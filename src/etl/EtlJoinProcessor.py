@@ -3,7 +3,8 @@ Created on Dec 28, 2012
 
 @author: nshearer
 '''
-import mydevtools
+from abc import ABCMeta, abstractmethod
+
 
 from EtlProcessor import EtlProcessor
 
@@ -25,27 +26,27 @@ class EtlJoinProcessor(EtlProcessor):
         
     # -- Override these -------------------------------------------------------
         
+    @abstractmethod
     def list_lookup_inputs(self):
         '''List inputs that contain the records to ref against
         
         These record sets must be indexed
         '''
-        mydevtools.abstract_method(self, 'list_lookup_inputs')
         
         
+    @abstractmethod
     def list_subject_inputs(self):
         '''List inputs that contain the records to find refs for'''
-        mydevtools.abstract_method(self, 'list_subject_inputs')
         
         
+    @abstractmethod
     def build_lookup_record_key(self, lookup_record):
         '''Build a key to be used for matching subject records to'''
-        mydevtools.abstract_method(self, 'build_lookup_record_key')
         
         
+    @abstractmethod
     def build_lookup_key(self, record):
         '''Build a key to use to find a lookup record'''
-        mydevtools.abstract_method(self, 'build_lookup_key')
         
         
     # -- Common join logic ----------------------------------------------------

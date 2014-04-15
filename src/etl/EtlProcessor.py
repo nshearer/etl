@@ -3,7 +3,7 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
-import mydevtools
+from abc import ABCMeta, abstractmethod
 
 class EtlProcessorDataPort(object):
     '''Specify a name for input or output record sets'''
@@ -14,18 +14,21 @@ class EtlProcessorDataPort(object):
 
 class EtlProcessor(object):
     '''Takes 0 or more inputs and generates 0 or more outputs'''
+    __metaclass__ = ABCMeta
     
     def __init__(self):
         self.data_dir_path = None
         self.tmp_dir_path = None
     
     
+    @abstractmethod
     def list_inputs(self):
-        mydevtools.abstract_method(self, 'list_inputs')
+        pass
     
     
+    @abstractmethod
     def list_outputs(self):
-        mydevtools.abstract_method(self, 'list_outputs')
+        pass
         
         
     def gen_output(self, name, inputs, record_set):
