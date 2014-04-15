@@ -3,7 +3,6 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
-from xlwt import Workbook
 import csv
 from tempfile import TemporaryFile
 import pickle
@@ -233,43 +232,43 @@ class EtlRecordSet(object):
         return False
         
         
-    def export_as_excel(self, path):
-        
-        # Init Workbook
-        book = Workbook()
-        data_sheet = book.add_sheet('Data')
-        schema_sheet = book.add_sheet('Schema')
-        
-        # Data Header
-        for i, field_info in enumerate(self.schema.list_fields()):
-            data_sheet.write(0, i, field_info['header'])
-        
-        # Data
-        for i, record in enumerate(self.all_records()):
-            for j, field_name in enumerate(self.__schema.list_field_names()):
-                if i < 65530: # Limit for Excel
-                    try:
-                        value = record.values[field_name]
-                        schema = self.__schema
-                        value = schema.format_field_value_for_excel(field_name,
-                                                                    value)
-                        data_sheet.write(1+i, j, value)
-                    except KeyError:
-                        data_sheet.write(1+i, j, '')
-        
-        # Schema Description
-        schema_sheet.write(0, 0, 'Field')
-        schema_sheet.write(0, 1, 'ID')
-        schema_sheet.write(0, 2, 'Description')
-        schema_sheet.write(0, 3, 'Type')
-        for i, field_info in enumerate(self.schema.list_fields()):
-            schema_sheet.write(i+1, 0, field_info['header'])
-            schema_sheet.write(i+1, 1, field_info['name'])
-            schema_sheet.write(i+1, 2, field_info['desc'])
-            schema_sheet.write(i+1, 3, field_info['type'])
-        
-        # Save File
-        book.save(path)
+#     def export_as_excel(self, path):
+#         
+#         # Init Workbook
+#         book = Workbook()
+#         data_sheet = book.add_sheet('Data')
+#         schema_sheet = book.add_sheet('Schema')
+#         
+#         # Data Header
+#         for i, field_info in enumerate(self.schema.list_fields()):
+#             data_sheet.write(0, i, field_info['header'])
+#         
+#         # Data
+#         for i, record in enumerate(self.all_records()):
+#             for j, field_name in enumerate(self.__schema.list_field_names()):
+#                 if i < 65530: # Limit for Excel
+#                     try:
+#                         value = record.values[field_name]
+#                         schema = self.__schema
+#                         value = schema.format_field_value_for_excel(field_name,
+#                                                                     value)
+#                         data_sheet.write(1+i, j, value)
+#                     except KeyError:
+#                         data_sheet.write(1+i, j, '')
+#         
+#         # Schema Description
+#         schema_sheet.write(0, 0, 'Field')
+#         schema_sheet.write(0, 1, 'ID')
+#         schema_sheet.write(0, 2, 'Description')
+#         schema_sheet.write(0, 3, 'Type')
+#         for i, field_info in enumerate(self.schema.list_fields()):
+#             schema_sheet.write(i+1, 0, field_info['header'])
+#             schema_sheet.write(i+1, 1, field_info['name'])
+#             schema_sheet.write(i+1, 2, field_info['desc'])
+#             schema_sheet.write(i+1, 3, field_info['type'])
+#         
+#         # Save File
+#         book.save(path)
         
         
     def export_as_csv(self, path):
