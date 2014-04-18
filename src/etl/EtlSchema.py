@@ -104,6 +104,12 @@ class EtlSchema(object):
 #        if self.__fields[field_name][2] == self.STRING:
 #            return "'%s" % (value)
         return value
-
+    
+    
+    def __eq__(self, schema):
+        if self.__field_order == schema.__field_order:
+            if self.__fields == schema.__fields:
+                return True
+        return False
 
         

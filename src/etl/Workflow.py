@@ -6,18 +6,10 @@ Created on Dec 27, 2012
 import os
 
 from EtlRecordSet import EtlRecordSet
-
-class WorkflowDataPath(object):
-    
-    def __init__(self):
-        self.src_prc_name = None
-        self.src_prc = None
-        self.output_name = None
-        self.output_schema = None
-        self.dst_prc_name = None
-        self.input_name = None
-        self.input_schema = None
-        self.dst_prc = None
+from EtlBuildError import EtlBuildError
+from InvalidProcessorName import InvalidProcessorName
+from InvalidDataPortName import InvalidDataPortName
+from WorkflowDataPath import WorkflowDataPath
 
 
 class Workflow(object):
@@ -60,8 +52,10 @@ class Workflow(object):
         self.__record_sets[name] = dict()
         self.__connections[name] = dict()
         
-        for p_input in prc.list_inputs():
-            self.__connections[name][p_input.name] = list()
+        inputs = prc.list_inputs()
+        if inputs is not None:
+            for p_input in prc.list_inputs():
+                self.__connections[name][p_input.name] = list()
         
         
     def connect(self, from_prc_name, output_name, to_prc_name, input_name=None):
@@ -74,10 +68,15 @@ class Workflow(object):
         '''
         if input_name is None:
             input_name = output_name
+            
+        connect_desc = "%s.%s -> %s.%s"
+        connect_desc = connect_desc % (from_prc_name, output_name,
+                                       to_prc_name, input_name)
         
         # Sanity Checks
         if not self.__processors.has_key(from_prc_name):
-            raise KeyError("Invalid processor name: %s" % (from_prc_name))
+            raise self._invalid_prc_name(from_prc_name,
+                                         "Building connection " + connect_desc)
         from_prc = self.__processors[from_prc_name]
 
         output_info = None
@@ -86,11 +85,16 @@ class Workflow(object):
                 output_info = p_output
                 break
         if output_info is None:
-            msg = "Processor '%s' does not have an output named '%s'"
-            raise KeyError(msg % (from_prc_name, output_name))
+            raise self._invalid_dataport_name(
+                direction = 'output',
+                prc_name = from_prc_name,
+                port_name = output_name,
+                context = "Building connection " + connect_desc)
+            
         
         if not self.__processors.has_key(to_prc_name):
-            raise KeyError("Invalid processor name: %s" % (to_prc_name))
+            raise self._invalid_prc_name(to_prc_name,
+                                         "Building connection " + connect_desc)
         to_prc = self.__processors[to_prc_name]
         
         input_info = None
@@ -99,8 +103,11 @@ class Workflow(object):
                 input_info = p_input
                 break
         if input_info is None:
-            msg = "Processor '%s' does not have an input named '%s'"
-            raise KeyError(msg % (to_prc_name, input_name))
+            raise self._invalid_dataport_name(
+                direction = 'input',
+                prc_name = to_prc_name,
+                port_name = input_name,
+                context = "Building connection " + connect_desc)
         
         # Build connection definition
         conn = WorkflowDataPath()
@@ -194,8 +201,64 @@ class Workflow(object):
         '''Get schema from processor for this output'''
         info = self._get_prc_output_info(prc_name, output_name)
         return info.schema
-        
-        
-        
     
+    
+    # -- ETL Inspection -------------------------------------------------------
+    
+    def list_prc_names(self):
+        return self.__processors.keys()
+    
+    
+    def get_prc(self, name):
+        return self.__processors[name]
+    
+        
+    # -- Exception Builders ---------------------------------------------------
+        
+    def _invalid_prc_name(self, prc_name, context):
+        '''Create an InvalidProcessorName exception object
+        
+        @param prc_name: The processor name that does not exist
+        @param context: Where the invalid name was used at
+        '''
+        msg = "Invalid processor name '%s' referenced by %s"
+        msg = msg % (prc_name, context)
+        
+        return InvalidProcessorName(
+            prc_name = None,
+            prc_class_name = None,
+            error_msg = msg,
+            possible_values = self.__processors.keys())
+    
+    
+    def _invalid_dataport_name(self, direction, prc_name, port_name, context):
+        '''Create an InvalidProcessorName exception object
+        
+        @param direction: 'input' or 'output'
+        @param prc_name: The processor being referenced with the data port
+        @param port_name: The non-existant dataport that's being referenced
+        @param context: Where the invalid name was used at
+        '''
+        msg = "Processor %s (%s) does not have an %s port named '%s'"
+        msg += " referenced by %s"
+        msg = msg % (prc_name,
+                     self.__processors[prc_name].__class__.__name__,
+                     direction,
+                     port_name,
+                     context)
+        
+        possible = None
+        if direction == 'input':
+            possible = self.__processors[prc_name].list_input_names()
+        elif direction == 'output':
+            possible = self.__processors[prc_name].list_output_names()
+        else:
+            raise ValueError("Invalid direction: '%s'" % (direction))
+            
+        
+        return InvalidDataPortName(
+            prc_name = prc_name,
+            prc_class_name = self.__processors[prc_name].__class__.__name__,
+            error_msg = msg,
+            possible_values = possible)
     
