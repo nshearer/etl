@@ -11,6 +11,7 @@ class EtlSchema(object):
     INT = 'int'
     FLOAT = 'int'
     DATE = 'date'
+    BOOL = 'bool'
     
     def __init__(self):
         self.__fields = dict()
@@ -76,6 +77,7 @@ class EtlSchema(object):
         n = EtlSchema()
         n.__fields = self.__fields.copy()
         n.__field_order = self.__field_order[:]
+        return n
         
         
     def list_field_names(self):
@@ -94,22 +96,28 @@ class EtlSchema(object):
         return rtn
     
     
-    def format_field_value_for_excel(self, field_name, value):
-        '''Format the given value to be stored in Excel'''
-        return value
-    
-    
-    def format_field_value_for_csv(self, field_name, value):
-        '''Format the given value to be stored in Excel'''
-#        if self.__fields[field_name][2] == self.STRING:
-#            return "'%s" % (value)
-        return value
+#     def format_field_value_for_excel(self, field_name, value):
+#         '''Format the given value to be stored in Excel'''
+#         return value
+#     
+#     
+#     def format_field_value_for_csv(self, field_name, value):
+#         '''Format the given value to be stored in Excel'''
+# #        if self.__fields[field_name][2] == self.STRING:
+# #            return "'%s" % (value)
+#         return value
     
     
     def __eq__(self, schema):
-        if self.__field_order == schema.__field_order:
-            if self.__fields == schema.__fields:
-                return True
+        if schema is None:
+            return False
+        
+        try:
+            if self.__field_order == schema.__field_order:
+                if self.__fields == schema.__fields:
+                    return True
+        except AttributeError:
+            return False
         return False
 
         

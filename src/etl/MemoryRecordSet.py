@@ -17,8 +17,13 @@ class MemoryRecordSet(object):
         
         @return: Generator of (record, tags)
         '''
-        for record in self.__records:
-            yield record, list(self.__record_tags[record.serial])
+        for serial in self.__records:
+            record = self.__records[serial]
+            tags = list()
+            if self.__record_tags.has_key(serial):
+                tags = list(self.__record_tags[serial])
+            
+            yield record, tags
     
     
     def add_record(self, etl_rec, tags=None):
@@ -42,6 +47,8 @@ class MemoryRecordSet(object):
         self.__records[etl_rec.serial] = etl_rec
         
         # Save Tag Values
+        if type(tags) is str:
+            tags = [tags, ]
         if tags is not None:
             self.__record_tags[etl_rec.serial] = set(tags)
             for tag in tags:
@@ -70,13 +77,13 @@ class MemoryRecordSet(object):
     
     def find_records_with_tag(self, tag):
         '''Find records that have a given tag'''
-        if self.__tags.has_value(tag):
+        if self.__tags.has_key(tag):
             for serial in self.__tags[tag]:
                 yield self.get_record(serial)
                 
                 
     def has_record_with_tag(self, tag):
-        if self.__tags.has_value(tag):
+        if self.__tags.has_key(tag):
             if len(self.__tags[tag]) > 0:
                 return True
         return False

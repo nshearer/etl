@@ -12,7 +12,7 @@ class Sqlite3RecordSet(object):
     def __init__(self):
         self.__path = NamedTemporaryFile(delete=False).name
         self.__db = sqlite3.connect(self.__path)
-        self.__schemas_by_key = dict()
+        self.__schema_ids_by_key = dict()
         self.__schemas_by_id = list()
         
         self._init_db()
@@ -47,7 +47,7 @@ class Sqlite3RecordSet(object):
             CREATE INDEX tag_index ON tags (tag)
             ''')
         
-        curs.commit()
+        self.__db.commit()
         
         
     def add_record(self, etl_rec, tags=None):
@@ -84,7 +84,7 @@ class Sqlite3RecordSet(object):
                 """,
                 (str(tag), str(etl_rec.serial)))
                 
-        curs.commit()
+        self.__db.commit()
             
         # Update Size
         self.__size += etl_rec.size
@@ -98,13 +98,13 @@ class Sqlite3RecordSet(object):
         '''
         # Retrieve record
         curs = self.__db.cursor()
-        results = curs.exectue("""\
+        results = curs.execute("""\
             SELECT record, schema_id
             FROM records
             WHERE serial = ?
-            """)
+            """, (str(serial), ))
         for row in results:
-            return self._rebuild_record(row[0], int(row[1]))
+            return self._rebuild_record(str(row[0]), int(row[1]))
         
         # Not Found
         raise IndexError("Record does not exist: " + str(serial))
@@ -123,11 +123,11 @@ class Sqlite3RecordSet(object):
     
     def has_record(self, serial):
         curs = self.__db.cursor()
-        results = curs.exectue("""\
+        results = curs.execute("""\
             SELECT count(*)
             FROM records
             WHERE serial = ?
-            """, (str(serial)))
+            """, (str(serial), ))
         if int(results.fetchone()[0]) > 0:
             return True
         return False
@@ -143,21 +143,21 @@ class Sqlite3RecordSet(object):
             FROM tags
             LEFT JOIN records on tags.serial = records.serial
             WHERE tags.tag = ?
-            """)
+            """, (tag, ))
         
         # Return back records
         for row in results:
-            return self._rebuild_record(row[0], int(row[1]))
+            yield self._rebuild_record(str(row[0]), int(row[1]))
         
                 
     def has_record_with_tag(self, tag):
         curs = self.__db.cursor()
-        results = curs.exectue("""\
+        results = curs.execute("""\
             SELECT count(*)
             FROM tags
             LEFT JOIN records on tags.serial = records.serial
             WHERE tags.tag = ?
-            """)
+            """, (tag, ) )
         if int(results.fetchone()[0]) > 0:
             return True
         return False
@@ -166,13 +166,14 @@ class Sqlite3RecordSet(object):
     def remove_record(self, serial):
         '''Drop a record from the collection'''
         # Deduct size
-        self.__size -= self.__records[serial].size
+        record = self.get_record(serial)
+        self.__size -= record.size
         
         # Remove records
         curs = self.__db.cursor()
-        curs.execute("DELETE FROM records WHERE serial = ?", (str(serial)))
-        curs.execute("DELETE FROM tags WHERE serial = ?", (str(serial)))
-        curs.commit()
+        curs.execute("DELETE FROM records WHERE serial = ?", (str(serial), ))
+        curs.execute("DELETE FROM tags WHERE serial = ?", (str(serial), ))
+        self.__db.commit()
         
         
     @property
@@ -184,36 +185,40 @@ class Sqlite3RecordSet(object):
     @property
     def count(self):
         curs = self.__db.cursor()
-        results = curs.exectue("""\
+        results = curs.execute("""\
             SELECT count(*)
             FROM records
             """)
-        if int(results.fetchone()[0]) > 0:
-            return True
-        return False
+        return int(results.fetchone()[0])
     
     
     def _save_schema(self, schema):
         '''Save schema into memory'''
         # Create key based on schema name
         schema_key = schema.__class__.__name__
-        if not self.__schemas_by_key.has_key(schema_key):
-            self.__schemas_by_key[schema_key] = list()
+        if not self.__schema_ids_by_key.has_key(schema_key):
+            self.__schema_ids_by_key[schema_key] = list()
         
         # Check to see if we already have this schema stored
-        rec_schema_id = None
-        for stored_schema_id in self.__schemas_by_key[schema_key]:
+        for stored_schema_id in self.__schema_ids_by_key[schema_key]:
             if self.__schemas_by_id[stored_schema_id] == schema:
-                return rec_schema_id
+                return stored_schema_id
         
         # Else, save schema
         schema_id = len(self.__schemas_by_id)
         self.__schemas_by_id.append(schema)
-        self.self.__schemas_by_id[schema_key].append(schema_id)
+        self.__schema_ids_by_key[schema_key].append(schema_id)
+        
+        return schema_id
         
         
     def _get_stored_schema(self, schema_id):
         return self.__schemas_by_id[schema_id]
+    
+    
+    @property
+    def db_path(self):
+        return self.__path
         
     
 

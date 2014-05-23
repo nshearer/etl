@@ -19,7 +19,7 @@ class EtlRecordSerial(object):
             NEXT_ETL_RECORD_SERIAL += 1L
 
     def __str__(self):
-        return str(self.__value__)
+        return str(self.__value)
     
     def __eq__(self, serial):
         return self.__value == serial.__value
@@ -69,6 +69,8 @@ class EtlRecord(DictMixin):
     
         
     def field_names(self):
+        if self.__schema is not None:
+            return self.__schema.list_field_names()
         return self.values.keys()
     
     
@@ -77,12 +79,27 @@ class EtlRecord(DictMixin):
         self.assert_not_frozen()
         if len(self.__from_records) < 100000:
             self.__from_records.append(rec.serial)
+            
+            
+    def get_src_record_serials(self):
+        '''Serial codes of records that helped generate this record'''
+        return self.__from_records[:]
     
     
     def set_source(self, prc_name, output_port_name):
         self.assert_not_frozen()
         self.__src_processor = prc_name
         self.__src_port = output_port_name
+        
+        
+    @property
+    def source_processor_name(self):
+        return  self.__src_processor
+    
+    
+    @property
+    def source_processor_output_name(self):
+        return self.__src_port
     
     
     def create_msg(self, msg):
@@ -106,6 +123,14 @@ class EtlRecord(DictMixin):
     def __setitem__(self, name, value):
         self.assert_not_frozen()
         self.__values[name] = value
+        
+        
+    def set(self, name, value):
+        self[name] = value
+        
+        
+    def keys(self):
+        return self.field_names()
     
     
     def freeze(self):
@@ -126,6 +151,7 @@ class EtlRecord(DictMixin):
         if self.__frozen:
             if self.__size_cache is None:
                 self.__size_cache = self._calc_size()
+            return self.__size_cache
         else:
             return self._calc_size()
 
@@ -151,3 +177,25 @@ class EtlRecord(DictMixin):
         Note: We allow the schema to be replaced to assist with storing to disk
         '''
         self.__schema = new_schema
+        
+        
+    def __eq__(self, record):
+        if record is None:
+            return False
+
+        try:        
+            my_fields = sorted(self.field_names())
+            rec_fields = sorted(record.field_names())
+            if my_fields != rec_fields:
+                return False
+            
+            for field_name in my_fields:
+                if self[field_name] != record[field_name]:
+                    return False
+                
+            return True
+        
+        except AttributeError:
+            return False
+        
+        return False

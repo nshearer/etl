@@ -118,11 +118,8 @@ class EtlRecordSet(object):
     than the record serial
     '''
     
-    MAX_SIZE_BEFORE_DISK = 10000
-    
-    def __init__(self, src_prc_name, output_name, schema):
-        self.src_prc_name = src_prc_name
-        self.output_name = output_name
+    def __init__(self, size_until_disk=10000):
+        self.max_size_until_disk = size_until_disk
         
         self.__store = MemoryRecordSet()
         self.__on_disk = False
@@ -139,7 +136,7 @@ class EtlRecordSet(object):
         '''
         # Consider switching to disk storage
         if not self.__on_disk:
-            if self.__store.size > EtlRecordSet.MAX_SIZE_BEFORE_DISK:
+            if self.__store.size > self.max_size_until_disk:
                 self.convert_to_disk_storage()
                 
         # Add record
@@ -201,6 +198,11 @@ class EtlRecordSet(object):
     @property
     def count(self):
         return self.__store.count
+    
+    
+    @property
+    def on_disk(self):
+        return self.__on_disk
         
 #         # -- Check Record -----------------------------------------------------
 #         
