@@ -23,15 +23,12 @@ class Workflow(object):
     3) exectue() - Run the workflow to generate the desired output. 
     '''
     
-    def __init__(self, data_dir_path = None, tmp_dir_path = None):
+    def __init__(self):
         
-        self.data_dir_path = data_dir_path
-        if self.data_dir_path is None:
-            self.data_dir_path = os.curdir
-            
-        self.tmp_dir_path = tmp_dir_path
-        if self.tmp_dir_path is None:
-            self.tmp_dir_path = os.path.join(self.data_dir_path, 'tmp')
+        self.default_data_directory = os.curdir # was data_dir_path
+
+        self.temp_directory = os.path.join(self.default_data_directory, 'tmp')
+        # was tmp_dir_path
         
         self.__processors = dict()
         self.__record_sets = dict()
@@ -133,7 +130,7 @@ class Workflow(object):
     def save_records(self, prc_name, output_name, filename):
         '''Output a record set to file for user review'''
         
-        path = os.path.join(self.data_dir_path, 'reports', filename) + '.xls'
+        path = os.path.join(self.default_data_directory, 'reports', filename) + '.xls'
         data = self.get_output(prc_name, output_name)
         
         # Inform User
@@ -143,7 +140,7 @@ class Workflow(object):
         # Export
         data.export_as_excel(path)
         
-        data.export_as_csv(os.path.join(self.data_dir_path, 'reports', filename) + '.csv')
+        data.export_as_csv(os.path.join(self.default_data_directory, 'reports', filename) + '.csv')
         
         
     def get_output(self, prc_name, output_name):
@@ -168,8 +165,8 @@ class Workflow(object):
             out_records = EtlRecordSet(prc_name, output_name, output_schema)
             
             # Prepare processor
-            prc.data_dir_path = self.data_dir_path
-            prc.tmp_dir_path = self.tmp_dir_path
+            prc.default_data_directory = self.default_data_directory
+            prc.temp_directory = self.temp_directory
             
             # Inform User
             msg = "Running processor '%s' to generate '%s'"
