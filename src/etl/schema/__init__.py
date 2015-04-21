@@ -1,0 +1,1 @@
+'''Schemas describe the structure of records, and how to handle fields'''

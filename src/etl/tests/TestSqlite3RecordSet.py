@@ -11,7 +11,7 @@ from test_data import test_person, PersonTestScehma
 
 from etl.Sqlite3RecordSet import Sqlite3RecordSet
 
-class TestSqllit3RecordSet(unittest.TestCase):
+class TestSqlite3RecordSet(unittest.TestCase):
 
 
     def testAddRecord(self):

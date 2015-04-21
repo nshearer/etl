@@ -36,8 +36,8 @@ class TestEtlRecord(unittest.TestCase):
         
         
     def testFieldNames(self):
-        self.assertEquals(test_person(0).field_names(),
-                          ['first', 'last', 'age'])
+        self.assertEquals(set(test_person(0).field_names()),
+                          set(['first', 'last', 'age']))
         
     
     def testFieldNamesWithoutSchema(self):

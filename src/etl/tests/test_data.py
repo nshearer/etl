@@ -1,24 +1,39 @@
 '''Some test fixtures data fixtures'''
 
 from etl.EtlRecord import EtlRecord
-from etl.EtlSchema import EtlSchema
+from etl.schema.EtlSchema import EtlSchema
+from etl.schema.EtlStringElement import EtlStringElement
+from etl.schema.EtlIntElement import EtlIntElement
+from etl.schema.EtlBoolElement import EtlBoolElement
 
 class PersonTestScehma(EtlSchema):
-    def __init__(self):
-        super(PersonTestScehma, self).__init__()
-        self.add_field('first', header="First Name")
-        self.add_field('last', header="Last Name")
-        self.add_field('age', header="Age", type_hint=self.INT)
-        
+    # def __init__(self):
+    #     super(PersonTestScehma, self).__init__()
+    #     self.add_field('first', header="First Name")
+    #     self.add_field('last', header="Last Name")
+    #     self.add_field('age', header="Age", type_hint=self.INT)
+    first = EtlStringElement(header="First Name")
+    last = EtlStringElement(header="Last Name")
+    age = EtlIntElement(header="Age")
+
+
+class EmployeeTestSchema(PersonTestScehma):
+    department = EtlStringElement(header="Department")
+
         
 class AnimalTestScehma(EtlSchema):
-    def __init__(self):
-        super(AnimalTestScehma, self).__init__()
-        self.add_field('common_name', header="Common Name")
-        self.add_field('kingdom', header="Kingdom")
-        self.add_field('family', header="Family")
-        self.add_field('sane', header="Is Sane", type_hint=self.BOOL)
-        
+    # def __init__(self):
+    #     super(AnimalTestScehma, self).__init__()
+    #     self.add_field('common_name', header="Common Name")
+    #     self.add_field('kingdom', header="Kingdom")
+    #     self.add_field('family', header="Family")
+    #     self.add_field('sane', header="Is Sane", type_hint=self.BOOL)
+    common_name = EtlStringElement(header="Common Name")
+    kingdom = EtlStringElement(header="Kingdom")
+    family = EtlStringElement(header="Family")
+    sane = EtlBoolElement(header="Is Sane")
+
+
         
 def test_data_source():
     person = PersonTestScehma()

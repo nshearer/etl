@@ -70,7 +70,7 @@ class EtlRecord(DictMixin):
         
     def field_names(self):
         if self.__schema is not None:
-            return self.__schema.list_field_names()
+            return self.__schema.etl_list_field_names()
         return self.values.keys()
     
     
