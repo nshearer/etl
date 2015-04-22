@@ -108,7 +108,8 @@ class EtlSchema(object):
             for name in my_field_names:
                 if self[name] != schema[name]:
                     return False
+        else:
+            return False
 
         return True
 
-        

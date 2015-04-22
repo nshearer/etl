@@ -47,6 +47,16 @@ class TestEtlSchema(unittest.TestCase):
 
     def testSchemaEqual(self):
         self.assertEqual(PersonTestScehma(), PersonTestScehma())
+        self.assertTrue(PersonTestScehma() == PersonTestScehma())
+
+
+    def testSchemaWithAddedFieldNotEqual(self):
+        schema_a = PersonTestScehma()
+        schema_b = PersonTestScehma()
+
+        schema_a.etl_add_field('hair_color', PersonTestScehma())
+
+        self.assertFalse(schema_a == schema_b)
         
 
     def testAddField(self):
