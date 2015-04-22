@@ -51,7 +51,7 @@ class TestEtlSchema(unittest.TestCase):
 
     def testAddField(self):
         schema = PersonTestScehma()
-        schema.add_field('hair_color',
+        schema.etl_add_field('hair_color',
             EtlStringElement(header="Hair Color"))
 
         self.assertEqual(set(schema.etl_list_field_names()),

@@ -18,7 +18,7 @@ class EtlSchema(object):
         self.__added_field_order = list()# Order is not preserved for non-added
         
         
-    def add_field(self, name, element_class):
+    def etl_add_field(self, name, element_class):
         '''Add a field to the schema
         
         @param name: Name of the field and field key in the records
@@ -60,24 +60,6 @@ class EtlSchema(object):
         return errors
     
     
-    # def copy_field(self, from_schema, name):
-    #     '''Copy a field from another schema to this schema'''
-    #     # Get field from schema
-    #     if not from_schema.__added_fields.has_key(name):
-    #         raise IndexError("Field %s not in schema" % (name))
-    #     header, desc, type_hint = from_schema.__added_fields[name]
-        
-    #     # Add to this schema
-    #     self.add_field(name, desc, header, type_hint)
-    
-    
-    # def clone(self):
-    #     n = EtlSchema()
-    #     n.__added_fields = self.__added_fields.copy()
-    #     n.__added_field_order = self.__added_field_order[:]
-    #     return n
-        
-        
     def etl_list_field_names(self):
         for attr_name, attr_eclass in self.etl_list_fields():
             yield attr_name
@@ -115,28 +97,18 @@ class EtlSchema(object):
     def __getitem__(self, name):
         return self.etl_get_field(name)
     
-#     def format_field_value_for_excel(self, field_name, value):
-#         '''Format the given value to be stored in Excel'''
-#         return value
-#     
-#     
-#     def format_field_value_for_csv(self, field_name, value):
-#         '''Format the given value to be stored in Excel'''
-# #        if self.__added_fields[field_name][2] == self.STRING:
-# #            return "'%s" % (value)
-#         return value
-    
     
     def __eq__(self, schema):
         if schema is None:
             return False
         
-        try:
-            if self.__added_field_order == schema.__added_field_order:
-                if self.__added_fields == schema.__added_fields:
-                    return True
-        except AttributeError:
-            return False
-        return False
+        my_field_names = set(self.etl_list_field_names())
+        their_field_names = set(schema.etl_list_field_names())
+        if my_field_names == their_field_names:
+            for name in my_field_names:
+                if self[name] != schema[name]:
+                    return False
+
+        return True
 
         
