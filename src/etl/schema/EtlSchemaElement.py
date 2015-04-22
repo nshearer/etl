@@ -23,3 +23,22 @@ class EtlSchemaElement(object):
     def is_schema_element(self):
         '''Marker to tell other ETL code that this is a schema element'''
         return True
+
+
+    @property
+    def element_type_code(self):
+        return self.__class__.__name__
+
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        
+        try:
+            if self.element_type_code != other.element_type_code:
+                return False
+        except AttributeError:
+            return False
+
+        return True
+        

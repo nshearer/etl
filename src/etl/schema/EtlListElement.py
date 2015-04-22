@@ -16,3 +16,11 @@ class EtlListElement(EtlSchemaElement):
     @property
     def item_element(self):
         return self.__item_element
+
+
+    def __eq__(self, other):
+        if super(EtlListElement, self).__eq__(other):
+            if self.item_element == other.item_element:
+                return True
+            return False
+        return False

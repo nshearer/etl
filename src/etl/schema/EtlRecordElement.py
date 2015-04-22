@@ -16,3 +16,11 @@ class EtlRecordElement(EtlSchemaElement):
     @property
     def record_schema(self):
         return self.__schema
+
+
+    def __eq__(self, other):
+        if super(EtlListElement, self).__eq__(other):
+            if self.__schema == other.__schema:
+                return True
+            return False
+        return False        
