@@ -1,6 +1,6 @@
 import unittest
 
-
+from etl.schema.EtlStringElement import EtlStringElement
 
 from test_data import test_person, PersonTestScehma, EmployeeTestSchema
 # Test Data:
@@ -40,10 +40,26 @@ class TestEtlSchema(unittest.TestCase):
         self.assertEqual(fields['age'].header, 'Age')
                     
 
+    def testFieldGetItem(self):
+        schema = PersonTestScehma()
+        self.assertEqual(schema['last'].header, 'Last Name')
+
+
     def testSchemaEqual(self):
         self.assertEqual(PersonTestScehma(), PersonTestScehma())
         
-        
+
+    def testAddField(self):
+        schema = PersonTestScehma()
+        schema.add_field('hair_color',
+            EtlStringElement(header="Hair Color"))
+
+        self.assertEqual(set(schema.etl_list_field_names()),
+                         set(['first', 'last', 'age', 'hair_color']))
+
+        self.assertEqual(schema['hair_color'].header, "Hair Color")
+
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
