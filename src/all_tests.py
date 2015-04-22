@@ -6,3 +6,4 @@ from etl.tests.TestEtlSchema import TestEtlSchema
 from etl.tests.TestMemoryRecordSet import TestMemoryRecordSet
 from etl.tests.TestSqlite3RecordSet import TestSqlite3RecordSet
 from etl.tests.TestEtlSchemaElement import TestEtlSchemaElement
+from etl.tests.TestWorkflow import TestWorkflow
