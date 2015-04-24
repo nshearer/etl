@@ -25,7 +25,7 @@ class TestEtlSchema(unittest.TestCase):
         
     def testInheritedFieldNames(self):
         self.assertEqual(set(EmployeeTestSchema().etl_list_field_names()),
-                         set(['first', 'last', 'age', 'department']))
+                         set(['first', 'last', 'department']))
 
         
     def testListFields(self):

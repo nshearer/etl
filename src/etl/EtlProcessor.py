@@ -20,19 +20,61 @@ class EtlProcessor(object):
     more of the Extract, Transform, or Load functions.
     
     When subclassing, you must:
-      1) Define list_inputs() to describe which dataports the component has
-         for receiving records
-      2) Define list_outputs() to describe which dataports the component has
-         for sending generated or processed records to other processors.
-      3) (optionally) define extract_records() to extract records from external
+     1) Define list_input_ports() to describe which dataports the component
+        has for receiving records
+     2) Define list_output_ports() to describe which dataports the component has
+        for sending generated or processed records to other processors.
+     3) (optionally) define extract_records() to extract records from external
          sources and output them for use by other processors
            -) Call dispatch_output() to send generated records out
-      4) (optionally) Define process_input_record() to consume incoming records
+     4) (optionally) Define process_input_record() to consume incoming records
            -) Call dispatch_output() to send processed records out
-      5) Define handle_input_disconnected() to respond to a processor that has
-         disconnected from an input.  All processors must disconnect by calling
-         output_is_finished() when no more records will be generated for that
-         output.
+     5) Define handle_input_disconnected() to respond to a processor that has
+        disconnected from an input.  All processors must disconnect by calling
+        output_is_finished() when no more records will be generated for that
+        output.
+
+    Each Processor goes through these states.  The current state can be queried
+    by the current_state property.
+
+    SETUP_PHASE       - Is the phase before processor is started.  This is the
+                        the processor starts in, and is meant to provide time to
+                        configure the component prior to starting the ETL process.
+
+    STARTUP_PHASE     - Is the state that the processor enters while starting the
+                        ETL process, before the processor starts reciving or
+                        dispatching records.
+
+    PAUSED            - Temporary state to stop processing
+
+    RUNNING_PHASE     - Is the state that the processor is in while it is 
+                        processing (recieving and dispatching) records.
+
+    FINSIHED_PHASE    - Is the status the the processor is in when it will no
+                        longer recieve or dispatch records.
+                        
+
+            +-------+   start_processor()   +---------+
+            | SETUP +-----------------------> STARTUP |
+            +-------+                       +----+----+
+                                                 |     
+                                           after |     
+                             starting_processor()|     
+                                            call |     
+                                                 |     
+            +-------+   pause_processor()   +----v----+
+            | PAUSE <-----------------------> RUNNING |
+            +-------+  resume_processor()   +----+----+
+                                                 |     
+                                    after inputs |     
+                                     and outputs |     
+                                      all closed |     
+                                                 |     
+                                           +-----v----+
+                                           | FINISHED |
+                                           +----------+
+
+
     '''
     __metaclass__ = ABCMeta
     
@@ -42,7 +84,7 @@ class EtlProcessor(object):
     
     
     @abstractmethod
-    def list_inputs(self):
+    def list_input_ports(self):
         '''List datasets to be consumed by this processor.
         
         @return list of EtlProcessorDataPort objects
@@ -51,7 +93,7 @@ class EtlProcessor(object):
     
     
     @abstractmethod
-    def list_outputs(self):
+    def list_output_ports(self):
         '''List the datasets produced by this processor
         
         @return list of EtlProcessorDataPort objects
@@ -61,7 +103,7 @@ class EtlProcessor(object):
     
     def list_input_names(self):
         '''List just the names of the input data sets'''
-        inputs = self.list_inputs()
+        inputs = self.list_input_ports()
         if inputs is not None:
             return [port.name for port in inputs]
         return list()
@@ -69,7 +111,7 @@ class EtlProcessor(object):
         
     def list_output_names(self):
         '''List just the names of the input data sets'''
-        outputs = self.list_outputs()
+        outputs = self.list_output_ports()
         if outputs is not None:
             return [port.name for port in outputs]
         return list()

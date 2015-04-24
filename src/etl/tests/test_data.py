@@ -19,6 +19,7 @@ class PersonTestScehma(EtlSchema):
 
 class EmployeeTestSchema(PersonTestScehma):
     department = EtlStringElement(header="Department")
+    age = None
 
         
 class AnimalTestScehma(EtlSchema):
@@ -38,13 +39,17 @@ class AnimalTestScehma(EtlSchema):
 def test_data_source():
     person = PersonTestScehma()
     animal = AnimalTestScehma()
+    employee = EmployeeTestSchema()
     
     return [
-        (person,    "John",     "Doe",      22),
-        (person,    "Jane",     "Doe",      20),
-        (person,    "Mark",     "Smith",    41),
-        (animal,    "dog",      "Animalia", "Canidae",  True),
-        (animal,    "cat",      "Animalia", "Felidae",  False),
+        (person,    "John",     "Doe",      22),                    # Person 1
+        (person,    "Jane",     "Doe",      20),                    # Person 2
+        (person,    "Mark",     "Smith",    41),                    # Person 3
+        (employee,  "John",     "Doe",      "Finance"),             # Employee 1
+        (employee,  "Jane",     "Doe",      "Budget"),              # Employee 2
+        (employee,  "Luke",     "Smith",    "Budget"),              # Employee 3
+        (animal,    "dog",      "Animalia", "Canidae",  True),      # Animal 1
+        (animal,    "cat",      "Animalia", "Felidae",  False),     # Animal 2
         ]
 
 def test_person(i):
@@ -56,9 +61,18 @@ def test_person(i):
                       'age': test_data[i][3]})
     
     
-def test_animal(i):
+def test_employee(i):
     test_data = test_data_source()
     i = i + 3
+    return EtlRecord(test_data[i][0],
+                     {'first': test_data[i][1],
+                      'last': test_data[i][2],
+                      'department': test_data[i][3]})
+    
+    
+def test_animal(i):
+    test_data = test_data_source()
+    i = i + 6
     assert(i<len(test_data))
     return EtlRecord(test_data[i][0],
                      {'common_name': test_data[i][1],

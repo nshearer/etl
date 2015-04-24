@@ -20,3 +20,5 @@ class TestWorkflow(unittest.TestCase):
     
     def test_workflow(self):
         self.assertFalse('Not yet implemented')
+
+        workflow = 
