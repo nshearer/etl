@@ -4,59 +4,88 @@ from Queue import Queue, Empty
 from EtlEvent import InputRecordRecieved
 from PostRecordProcessingAction import RecordConsumed
 
+import ports
+
 from EtlBuildError import EtlBuildError
 
-class EtlOutputConnection(object):
-    '''Holds details about a connected output manager'''
-    def __init__(self):
-        self.conn_id = None
-        self.status = None
-        self.prc_name = None
-        self.port_name = None
-        
-        self.prc_manager = None
-        self.schema = None
-        self.event_queue = None
-        self.record_queue = None
 
-
-class EtlInputConnection(object):
-    '''Holds details about a manager connected to an input'''
-    def __init__(self):
-        self.conn_id = None
-        self.status = None
-        self.prc_name = None
-        self.port_name = None
-        self.schema = None
-
-
-class EtlProcessorEventManager(Thread):
-    '''Encapsulates an EtlProcessor in the Workflow
+class EtlProcessorBase(object):
+    '''Base class for EtlProcessor
     
-    This object manages the event loop and input queues for a processor.
+    Each Processor goes through these states.  The current state can be queried
+    by the current_state property.
+
+    SETUP_PHASE       - Is the phase before processor is started.  This is the
+                        the processor starts in, and is meant to provide time to
+                        configure the component prior to starting the ETL process.
+
+    STARTUP_PHASE     - Is the state that the processor enters while starting the
+                        ETL process, before the processor starts reciving or
+                        dispatching records.
+
+    PAUSED            - Temporary state to stop processing
+
+    RUNNING_PHASE     - Is the state that the processor is in while it is 
+                        processing (recieving and dispatching) records.
+
+    FINSIHED_PHASE    - Is the status the the processor is in when it will no
+                        longer recieve or dispatch records.
+
+
+                    +-------+   start_processor()   +---------+
+                    | SETUP +-----------------------> STARTUP |
+                    +-------+                       +----+----+
+                                                         |     
+                                                   after |     
+                                     starting_processor()|     
+                                                    call |     
+                                                         |     
+                   +--------+   pause_processor()   +----v----+
+                   | PAUSED <-----------------------> RUNNING |
+                   +--------+  resume_processor()   +----+----+
+                                                         |     
+                                            after inputs |     
+                                             and outputs |     
+                                              all closed |     
+                                                         |     
+                                                   +-----v----+
+                                                   | FINISHED |
+                                                   +----------+    
     
     @see EtlProcessor
     '''
+
+    SETUP_PHASE = 1
+    STARTUP_PHASE = 2
+    RUNNING_PHASE = 3
+    FINISHED = 4
+
+    STATE_DESC = {
+        SETUP_PHASE:    'Setup',
+        STARTUP_PHASE:  'Startup',
+        RUNNING_PHASE:  'Running',
+        FINISHED:       'Finished',
+    }
+    def _state_code_desc(self, code):
+        try:
+            return self.STATE_DESC[code]
+        except IndexError:
+            return "UNKNOWN CODE STATE CODE '%s'" % (code)
+
     
     MAX_EVENT_Q_SIZE = 1000
     MAX_RECORD_Q_SZIE = 100
-    
-    # The states of input connections
-    CONN_CONNECTED = 0     # Initial state
-    CONN_CLOSSED   = 1     # State after PrcDisconnectedEvent
-    
-    def __init__(self, prc_name, processor):
-        '''Init
+
+
+    def __init__(self, name):
+        self.__name = name
+        self.__state = self.SETUP_PHASE
+
+        self._event_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
         
-        @param processor: EtlProcessor to be executed by this manager
-        @param output_connections: List of WorkflowDataPath for output connections
-        '''
-        self.prc = processor
-        self.prc_name = prc_name
-        self.__event_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
-        self.__input_queues = dict()    # [input_name] = Queue
-        self.__held_records = dict()     # [input_name] = EtlRecord
-        
+        self._input_ports = ports.InputPortCollection()
+        self._output_ports = ports.OutputPortCollection()
+
         self.__inputs = dict()  # [input_name] = list of EtlInputConnection
         self.__outpus = dict()  # [output_name] = list of EtlOutputConnection
         self.__conn_by_id = dict()  # [conn_id] = EtlInputConnection
@@ -89,6 +118,45 @@ class EtlProcessorEventManager(Thread):
         for name in self.__inputs.keys():
             self.__input_queues[name] = Queue(maxsize=self.MAX_RECORD_Q_SZIE)
             self.__held_records[name] = None
+
+
+    # -- State Checking ------------------------------------------------------
+
+    def _setup_phase_method(self):
+        '''Checks that the method call is happening during setup'''
+        self._asert_phase_is(self.SETUP_PHASE)
+
+
+    def _startup_phase_method(self):
+        '''Checks that the method call is happening during startup'''
+        self._asert_phase_is(self.STARTUP_PHASE)
+
+
+    def _processing_phase_method(self):
+        '''Checks that the method call is happening during processing'''
+        self._asert_phase_is(self.SETUP_PHASE)
+
+
+    def _finished_phase_method(self):
+        '''Checks that the method call is happening when finished'''
+        self._asert_phase_is(self.FINISHED_PHASE)
+
+
+    def _asert_phase_is(self, expected_state):
+        if self.__state != expected_state:
+            msg = "Processor %s is in state is %s."
+            msg += "  This method only valid in state %s"
+            raise Exception(msg % (
+                self.__name,
+                self._state_code_desc(self.__state),
+                self._state_code_desc(expected_state)
+                ))
+
+    
+    # The states of input connections
+    CONN_CONNECTED = 0     # Initial state
+    CONN_CLOSSED   = 1     # State after PrcDisconnectedEvent
+    
 
              
 #         # 

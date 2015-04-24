@@ -5,6 +5,8 @@ Created on Apr 18, 2014
 '''
 import unittest
 
+from etl.EtlProcessorBase import EtlProcessorBase
+
 from test_data import test_person, test_animal
 # Test Data:
 #   (person,    "John",     "Doe",      22),
@@ -18,7 +20,10 @@ from etl.EtlRecord import EtlRecordFrozen
 class TestWorkflow(unittest.TestCase):
     '''Test a full workflow'''
     
-    def test_workflow(self):
-        self.assertFalse('Not yet implemented')
+    def instantiate_base(self):
+        EtlProcessorBase()
 
-        workflow = 
+    # def test_workflow(self):
+    #     self.assertFalse('Not yet implemented')
+
+        

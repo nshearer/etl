@@ -53,26 +53,25 @@ class EtlProcessor(object):
     FINSIHED_PHASE    - Is the status the the processor is in when it will no
                         longer recieve or dispatch records.
 
-
-            +-------+   start_processor()   +---------+
-            | SETUP +-----------------------> STARTUP |
-            +-------+                       +----+----+
-                                                 |     
-                                           after |     
-                             starting_processor()|     
-                                            call |     
-                                                 |     
-           +--------+   pause_processor()   +----v----+
-           | PAUSED <-----------------------> RUNNING |
-           +--------+  resume_processor()   +----+----+
-                                                 |     
-                                    after inputs |     
-                                     and outputs |     
-                                      all closed |     
-                                                 |     
-                                           +-----v----+
-                                           | FINISHED |
-                                           +----------+
+                    +-------+   start_processor()   +---------+
+                    | SETUP +-----------------------> STARTUP |
+                    +-------+                       +----+----+
+                                                         |     
+                                                   after |     
+                                     starting_processor()|     
+                                                    call |     
+                                                         |     
+                   +--------+   pause_processor()   +----v----+
+                   | PAUSED <-----------------------> RUNNING |
+                   +--------+  resume_processor()   +----+----+
+                                                         |     
+                                            after inputs |     
+                                             and outputs |     
+                                              all closed |     
+                                                         |     
+                                                   +-----v----+
+                                                   | FINISHED |
+                                                   +----------+
 
 
     '''
@@ -92,8 +91,10 @@ class EtlProcessor(object):
     
     # -- State Checking ------------------------------------------------------
 
-    def _assert_in_setup_phase(self):
-        pass
+    def _setup_phase_method(self):
+        '''Checks that the method call is happening during setup'''
+        if self.__state != self.SETUP_PHASE:
+            raise Exception("Cannot call as phase is not SETUP")
 
     def _assert_in_startup_phase(self):
         pass
