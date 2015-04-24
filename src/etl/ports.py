@@ -1,14 +1,18 @@
 from abc import ABCMeta, abstractmethod
 from threading import Lock
 
+STATUS_OPEN = 1         # Could send more records on this connection
+STATUS_CLOSSED = 0      # Will not send more records
+
 
 class EtlOutputConnection(object):
-    '''Holds details about a connected output manager'''
+    '''Holds details about a connection to another processor's input port'''
+
     def __init__(self):
-        self.conn_id = None
-        self.status = None
-        self.prc_name = None
-        self.port_name = None
+        self.status = STATUS_CLOSSED
+        self.target_prc_name = None
+        self.target_prc = None
+        self.target_prc_port_name = None
         
         self.prc_manager = None
         self.schema = None
@@ -18,6 +22,7 @@ class EtlOutputConnection(object):
 
 class EtlInputConnection(object):
     '''Holds details about a manager connected to an input'''
+
     def __init__(self):
         self.conn_id = None
         self.status = None

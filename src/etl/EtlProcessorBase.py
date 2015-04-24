@@ -1,6 +1,8 @@
 from threading import Thread, Lock
 from Queue import Queue, Empty
 
+from abc import ABCMeta, abstractmethod
+
 from EtlEvent import InputRecordRecieved
 from PostRecordProcessingAction import RecordConsumed
 
@@ -52,8 +54,65 @@ class EtlProcessorBase(object):
                                                    | FINISHED |
                                                    +----------+    
     
+
+    Because Processors have multiple stages, and run in threads, knowing
+    which method can be called when gets complex.  Here is the convention
+    used to keep information organized:
+
+        | Name  |       Desc          |   Called by       |
+        |-------|---------------------|-------------------|
+        | st_*  | Static/Thread Safe  | Anyone            |
+        | if_*  | Interface           | Other Processors  |
+        | ct_*  | Control             | Parent Processor  |
+        | pr_*  | Processing          | Inside Prc Thread |
+
+    Each method may also check to verify that it is only called in specific
+    phases by calling one of the _*_phase_method() methods as the first line
+    of the method.  This serves both to remember when the method can be
+    called, and to enforce.
+
+
+        |       Method       | SETUP | STARTUP | RUNNING | FINISHED |
+        |--------------------|-------|---------|---------|----------|
+        | create_input_port  |   *   |         |         |          |
+        | create_output_port |   *   |         |         |          |
+        | _lock_input_port   |   *   |         |         |          |
+        | _unlock_input_port |       |   *     |         |          |
+
+
+    Interface methods interact with the internal thread safe queue to allow
+    external processors (or any external objects) to send signals/records to
+    this processor to work on.  Unlike previous versions of this ETL, external
+    objects do not push objects into the queue directly.  This is to help
+    keep the definition of the "Event" next to the handler for that event.
+    That is, you don't have an Event object, that needs to have the same
+    parameters as the handling method.  So, in general:
+
+        1) An external method calls an if_* method like if_receive_input()
+           using that methods normal signature.
+        2) The interface method describes that call with an object and 
+           queues it to the thread safe event_queue
+        3) pr_process_events() picks up that call description object from
+           the queue and calls the pr_* version of the interface method,
+           such as pr_receive_input().
+
+        (outside thread)            +                              
+                                    |                              
+                                    |                              
+                                    |                              
+               if_[name](args) +----------------> Queue            
+                                    |                              
+                                    |               +              
+        +---------------------------+               |              
+                                                    |              
+                                                    v              
+               pr_[name](args) <----------------+ pr_process_events
+
+
     @see EtlProcessor
     '''
+    __metaclass__ = ABCMeta
+
 
     SETUP_PHASE = 1
     STARTUP_PHASE = 2
@@ -81,43 +140,35 @@ class EtlProcessorBase(object):
         self.__name = name
         self.__state = self.SETUP_PHASE
 
-        self._event_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
+        self.input_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
         
         self._input_ports = ports.InputPortCollection()
         self._output_ports = ports.OutputPortCollection()
 
-        self.__inputs = dict()  # [input_name] = list of EtlInputConnection
-        self.__outpus = dict()  # [output_name] = list of EtlOutputConnection
-        self.__conn_by_id = dict()  # [conn_id] = EtlInputConnection
-        
-        self.__input_ports = dict()     # [input_name] = EtlProcessorDataPort
-        self.__output_ports = dict()    # [output_name] = EtlProcessorDataPort
-        
-        
-        # Record all input ports
-        for port in self.prc.list_inputs():
-            if self.__input_ports.has_key(port.name):
-                raise EtlBuildError(
-                    prc_name = self.prc_name,
-                    prc_class_name = self.prc,
-                    error_msg = "input %s defined twice" % (port.name))
-            self.__input_ports[port.name] = port
-            self.__inputs[port.name] = list()
+        # # Record all input ports
+        # for port in self.prc.list_inputs():
+        #     if self.__input_ports.has_key(port.name):
+        #         raise EtlBuildError(
+        #             prc_name = self.prc_name,
+        #             prc_class_name = self.prc,
+        #             error_msg = "input %s defined twice" % (port.name))
+        #     self.__input_ports[port.name] = port
+        #     self.__inputs[port.name] = list()
              
-        # Record all output ports
-        for port in self.prc.list_outputs():
-            if self.__output_ports.has_key(port.name):
-                raise EtlBuildError(
-                    prc_name = self.prc_name,
-                    prc_class_name = self.prc,
-                    error_msg = "output %s defined twice" % (port.name))
-            self.__output_ports[port.name] = port
-            self.__outpus[port.name] = list()
+        # # Record all output ports
+        # for port in self.prc.list_outputs():
+        #     if self.__output_ports.has_key(port.name):
+        #         raise EtlBuildError(
+        #             prc_name = self.prc_name,
+        #             prc_class_name = self.prc,
+        #             error_msg = "output %s defined twice" % (port.name))
+        #     self.__output_ports[port.name] = port
+        #     self.__outpus[port.name] = list()
          
-        # Setup record input queues
-        for name in self.__inputs.keys():
-            self.__input_queues[name] = Queue(maxsize=self.MAX_RECORD_Q_SZIE)
-            self.__held_records[name] = None
+        # # Setup record input queues
+        # for name in self.__inputs.keys():
+        #     self.__input_queues[name] = Queue(maxsize=self.MAX_RECORD_Q_SZIE)
+        #     self.__held_records[name] = None
 
 
     # -- State Checking ------------------------------------------------------
@@ -152,10 +203,12 @@ class EtlProcessorBase(object):
                 self._state_code_desc(expected_state)
                 ))
 
+
+
     
-    # The states of input connections
-    CONN_CONNECTED = 0     # Initial state
-    CONN_CLOSSED   = 1     # State after PrcDisconnectedEvent
+    # # The states of input connections
+    # CONN_CONNECTED = 0     # Initial state
+    # CONN_CLOSSED   = 1     # State after PrcDisconnectedEvent
     
 
              
@@ -164,15 +217,19 @@ class EtlProcessorBase(object):
 #             if not self.__connected_outputs.has_key(conn.output_name):
 #                 self.__connected_outputs[conn.output_name] = list()
 #             self.__connected_outputs[conn.output_name].append(conn)
+
         
     # -- Methods to be called before thread starts (NOT THREAD SAFE) ----------
     
-    def register_input(self, input_name, prc_manger, conn_id):
+    def create_input_port(self, input_name, prc_manger, conn_id):
         '''Inform the manager about another Processor connected to an input
         
         @param input_name: Name of the input on this processor
         @param prc_manger: EtlProcessorEventManager for connected processor
         '''
+        self._setup_phase_method()  # Needed?
+        raise NotImplementedError("TODO")
+
         # Validate input name
         assert(self.__inputs.has_key(input_name))
         assert(self.__input_ports.has_key(input_name))
@@ -191,13 +248,16 @@ class EtlProcessorBase(object):
         self.__conn_by_id[conn_id] = conn
         
         
-    def register_output(self, output_name, prc_manger, input_name, conn_id):
+    def create_output_port(self, output_name, prc_manger, input_name, conn_id):
         '''Inform the manager about another Processor connected to an output
         
         @param output_name: Name of the output on this processor
         @param prc_manger: EtlProcessorEventManager for connected processor
         @param input_name: Name of input on other processor receiving records
         '''
+        self._setup_phase_method()  # Needed?
+        raise NotImplementedError("TODO")
+
         # Validate output name
         assert(self.__outputs.has_key(output_name))
         assert(self.__output_ports.has_key(output_name))
@@ -217,14 +277,55 @@ class EtlProcessorBase(object):
 
         self.__outputs[input_name].append(conn)
         self.__conn_by_id[conn_id] = conn
-        
-        
-    def run(self):  # Thread start hook
-        self.run_event_loop()
-        
-                            
+
+
+    def _lock_input_port(self, port_name):
+        '''Lock an input port
+
+        This is used to block processors trying to send records on this input
+        port.  The intended use is to assist a processor in processing all
+        input on a specific port, before recieving records on another input,
+        without having to shelve a bunch of records.
+
+        I believe that this can only safely be done during setup to avoid
+        deadlock:
+            1) Record received during RUINNNG
+            2) Record being dispatched on port to be locked by external
+               processor, but queue is full
+                 a) External processor gets input lock
+                 b) External processor starts to queue record, but call
+                    is blocked because queue is full.
+            3) This processor descides to lock the input and calls
+               _lock_input_port()
+            4) _lock_input_port() blocks while trying to get input lock
+        '''
+        self._startup_phase_method()
+        self._input_ports[port_name].input_lock.aquire()
+
+
+    def _unlock_input_port(self, port_name):
+        '''Unlock an input port locked by _lock_input_port()
+
+        Will allow connected external processors to start sending records
+        on this port name.
+        '''
+        self._processing_phase_method()
+        self._input_ports[port_name].input_lock.release()
+
+    
+    @abstractmethod
+    def start_processor(self):
+        '''Begine processing records'''
+        #self._setup_phase_method()
+
+
+
     # -- Methods to be called from this thread (NOT THREAD SAFE) --------------
         
+
+
+
+
     def run_event_loop(self):
         '''This is the "main" loop of this thread'''
         
@@ -323,7 +424,7 @@ class EtlProcessorBase(object):
             self.notify_error(msg)
             return False
         
-        return True      
+        return True
           
           
     def _handle_disconnect_event(self, event):
