@@ -52,7 +52,7 @@ class EtlProcessor(object):
 
     FINSIHED_PHASE    - Is the status the the processor is in when it will no
                         longer recieve or dispatch records.
-                        
+
 
             +-------+   start_processor()   +---------+
             | SETUP +-----------------------> STARTUP |
@@ -62,9 +62,9 @@ class EtlProcessor(object):
                              starting_processor()|     
                                             call |     
                                                  |     
-            +-------+   pause_processor()   +----v----+
-            | PAUSE <-----------------------> RUNNING |
-            +-------+  resume_processor()   +----+----+
+           +--------+   pause_processor()   +----v----+
+           | PAUSED <-----------------------> RUNNING |
+           +--------+  resume_processor()   +----+----+
                                                  |     
                                     after inputs |     
                                      and outputs |     
@@ -78,11 +78,33 @@ class EtlProcessor(object):
     '''
     __metaclass__ = ABCMeta
     
+    SETUP_PHASE = 1
+    STARTUP_PHASE = 2
+    RUNNING_PHASE = 3
+    PAUSED = 4
+    FINISHED = 5
+
     def __init__(self):
         self.data_dir_path = None
         self.tmp_dir_path = None
+        self.__state = self.SETUP_PHASE
     
     
+    # -- State Checking ------------------------------------------------------
+
+    def _assert_in_setup_phase(self):
+        pass
+
+    def _assert_in_startup_phase(self):
+        pass
+
+    def _assert_in_running_phase(self):
+        pass
+
+    def _assert_finished(self):
+        pass
+
+
     @abstractmethod
     def list_input_ports(self):
         '''List datasets to be consumed by this processor.
