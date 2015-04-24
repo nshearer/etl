@@ -39,13 +39,7 @@ class EtlSchemaElement(object):
         if other is None:
             return False
         
-        try:
-            if self.element_type_code != other.element_type_code:
-                return False
-        except AttributeError:
-            return False
-
-        return True
+        return str(self) == str(other)
         
 
     def _get_attr_for_str(self):

@@ -102,16 +102,7 @@ class EtlSchema(object):
         if schema is None:
             return False
         
-        my_field_names = set(self.etl_list_field_names())
-        their_field_names = set(schema.etl_list_field_names())
-        if my_field_names == their_field_names:
-            for name in my_field_names:
-                if self[name] != schema[name]:
-                    return False
-        else:
-            return False
-
-        return True
+        return str(self) == str(schema)
 
 
     def __str__(self):
