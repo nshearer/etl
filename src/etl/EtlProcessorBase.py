@@ -96,17 +96,16 @@ class EtlProcessorBase(object):
            the queue and calls the pr_* version of the interface method,
            such as pr_receive_input().
 
-        (outside thread)            +                              
-                                    |                              
-                                    |                              
+                                    +                              
                                     |                              
                if_[name](args) +----------------> Queue            
-                                    |                              
-                                    |               +              
+                                    |               +
+                                    |               |              
+         (outside thread)           |               |              
         +---------------------------+               |              
-                                                    |              
+         (inside thread)                            |              
                                                     v              
-               pr_[name](args) <----------------+ pr_process_events
+               pr_[name](args) <------------+ pr_event_loop()
 
 
     @see EtlProcessor
@@ -313,53 +312,112 @@ class EtlProcessorBase(object):
         self._input_ports[port_name].input_lock.release()
 
     
-    @abstractmethod
     def start_processor(self):
-        '''Begine processing records'''
-        #self._setup_phase_method()
+        '''Begin processing records'''
+        self._setup_phase_method()
+
+        self._pr_start_children()
+        self._pr_run_processor()
 
 
+    # -- Processor execution --------------------------------------------------
 
-    # -- Methods to be called from this thread (NOT THREAD SAFE) --------------
+    def _pr_run_processor(self):
+        '''Perform the task of the processor'''
+        self._setup_phase_method()
+
+        # Do STARTUP Tasks
+        self.__state = STARTUP_PHASE
+        self.starting_processor()   # Hook for derived classes
+
+        # Begin PROCESSING
+        self.__state = RUNNING_PHASE
+        self._extract_records()
+        self._pr_event_loop()
+
+        # Finished
+        self.__state = FINISHED
+
+
+    def _pr_event_loop(self):
+        '''This is the primary loop that the processor runs while in RUNNING
+
+        Though, if a processor doesn't revieve input, it probably won't spend
+        much time here.  This is the glue between the if_* methods and the
+        pr_* methods.
+        '''
         
-
-
-
-
-    def run_event_loop(self):
-        '''This is the "main" loop of this thread'''
-        
-        # Let processor extract records
-        self.prc.extract_records(self.dispatch_output_record)
-        
-        # Receive events from other processors
+        # Receive events and dispatch to handler methods
         while self.waiting_on_more_input():
-            event = self.__event_queue.get()
-             
-            if event.type == 'input_record':
-                get_next = True
-                while get_next:
-                    get_next = self._handle_input_record_event(event)
-                    
-            elif event.type == 'input_disconnected':
-                self._handle_disconnect_event(event)
-                    
+
+            event_type, event = self.__event_queue.get()
+            
+            if event_type == 'input_port_opened':
+                self._pr_input_port_opened(event)
+
             else:
-                raise Exception("Unknown event type: " + event.type)
+                raise Exception("Unknown event type: " + event_type)
+
             
             
     def waiting_on_more_input(self):
-        for input_name in self.__inputs:
-            if self.__inputs[input_name].status != self.CONN_CLOSSED:
+        '''Check to see if input ports are still open'''
+        self._processing_phase_method()
+        for input_name, input_port in self._input_ports:
+            if input_port.has_open_connections():
                 return True
-        return False
-                    
+
+        return not self.__event_queue.empty()   # Last check to see if there
+                                                # are more events to process
+
+
+    # -- Port connection even handling ---------------------------------------
+
+    def _if_input_port_opened(self, port_name, src_prc_name, src_prc, src_port):
+        '''Notify this processor that one of it's input ports have been opened'''
+
+        event = {
+            'port_name': port_name,
+            'src_prc_name': src_prc_name,
+            'src_prc': src_prc,
+            'src_port': src_port,
+            }
+
+        # This can be called during SETUP, STARTUP, or RUNNING!
+        if self.__state in (self.SETUP_PHASE, self.STARTUP_PHASE):
+            self._pr_input_port_opened(event)
+
+        elif self.__state == self.RUNNING_PHASE:
+            self.__event_queue.put('input_port_opened', event)
+
+        else:
+            raise Exception("Not a valid state for this call")
+
+
+    def _pr_input_port_opened(self, event):
+        raise NotImplementedError('TODO')
+
+
+    # -- Incoming record handling --------------------------------------------
+
+    def _if_recieve_input_record(self, input_port_name, record):
+        event = {
+            'input_port':   input_port_name,
+            'record':       record,
+        }
+
+        if not self._input_ports.has_key(input_port_name):
+            msg = "This processor does not have input named %s"
+            raise IndexError(msg % (input_port_name))
+
+        # Use read lock
+        with self._input_ports[input_port_name].input_lock:
+            self.__event_queue.put('recieve_input_record', event)
+
+
                             
     def _handle_input_record_event(self, event):
-        '''Handle an incoming record
-        
-        @return: True if GetNextInputRecord returned
-        '''
+        '''Handle record recieved on input port'''
         msg = "Received message"
         if not self._validate_input_name(msg, event.input_name, event.conn_id):
             return False
