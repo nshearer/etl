@@ -12,13 +12,13 @@ class PersonTestScehma(EtlSchema):
     #     self.add_field('first', header="First Name")
     #     self.add_field('last', header="Last Name")
     #     self.add_field('age', header="Age", type_hint=self.INT)
-    first = EtlStringElement(header="First Name")
-    last = EtlStringElement(header="Last Name")
-    age = EtlIntElement(header="Age")
+    first = EtlStringElement().set_header("First Name")
+    last = EtlStringElement().set_header("Last Name")
+    age = EtlIntElement().set_header("Age")
 
 
 class EmployeeTestSchema(PersonTestScehma):
-    department = EtlStringElement(header="Department")
+    department = EtlStringElement().set_header("Department")
     age = None
 
         
@@ -29,10 +29,10 @@ class AnimalTestScehma(EtlSchema):
     #     self.add_field('kingdom', header="Kingdom")
     #     self.add_field('family', header="Family")
     #     self.add_field('sane', header="Is Sane", type_hint=self.BOOL)
-    common_name = EtlStringElement(header="Common Name")
-    kingdom = EtlStringElement(header="Kingdom")
-    family = EtlStringElement(header="Family")
-    sane = EtlBoolElement(header="Is Sane")
+    common_name = EtlStringElement().set_header("Common Name")
+    kingdom = EtlStringElement().set_header("Kingdom")
+    family = EtlStringElement().set_header("Family")
+    sane = EtlBoolElement().set_header("Is Sane")
 
 
         

@@ -11,15 +11,6 @@ class EtlSchemaElement(object):
     EtlRecord object.
     '''
 
-    def __init__(self, header=None):
-    	'''Init
-
-    	@param header:
-    		The header string displayed for this field when producing reports
-    	'''
-    	self.header = header
-
-
     def is_schema_element(self):
         '''Marker to tell other ETL code that this is a schema element'''
         return True
@@ -29,6 +20,20 @@ class EtlSchemaElement(object):
     def element_type_code(self):
         return self.__class__.__name__
 
+
+    # -- Setup Methods -------------------------------------------------------
+
+    def __init__(self):
+        self.header = None
+
+
+    def set_header(self, value):
+        '''Set the column header used when describing this field'''
+        self.header = value
+        return self
+
+
+    # -- Use Functions -------------------------------------------------------
 
     def __eq__(self, other):
         if other is None:
@@ -42,3 +47,13 @@ class EtlSchemaElement(object):
 
         return True
         
+
+    def _get_attr_for_str(self):
+        '''Get attributes to include in string representation'''
+        return {'header': self.header}
+
+
+    def __str__(self):
+        attrs = self._get_attr_for_str()
+        attrs = ', '.join(['%s: %s' % (item) for item in attrs.items()])
+        return '%s(%s)' % (self.element_type_code, attrs)

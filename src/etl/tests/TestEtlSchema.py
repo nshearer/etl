@@ -62,13 +62,39 @@ class TestEtlSchema(unittest.TestCase):
     def testAddField(self):
         schema = PersonTestScehma()
         schema.etl_add_field('hair_color',
-            EtlStringElement(header="Hair Color"))
+            EtlStringElement().set_header("Hair Color"))
 
         self.assertEqual(set(schema.etl_list_field_names()),
                          set(['first', 'last', 'age', 'hair_color']))
 
         self.assertEqual(schema['hair_color'].header, "Hair Color")
 
+
+    def testSchemaReprDifferent(self):
+        self.assertNotEqual(str(PersonTestScehma()), str(EmployeeTestSchema()))
+
+
+    def testAddingElementChangesSchemaRepr(self):
+        schema_a = PersonTestScehma()
+        schema_b = PersonTestScehma()
+
+        schema_a.etl_add_field('hair_color', PersonTestScehma())
+
+        self.assertNotEqual(str(schema_a), str(schema_b))
+
+
+    def testSchemaReprSame(self):
+        self.assertEqual(str(PersonTestScehma()), str(PersonTestScehma()))
+
+
+    def testDeterministicSchemaRepr(self):
+        schema_a = PersonTestScehma()
+        schema_b = PersonTestScehma()
+
+        schema_a.etl_add_field('hair_color', PersonTestScehma())
+        schema_b.etl_add_field('hair_color', PersonTestScehma())
+
+        self.assertEqual(str(schema_a), str(schema_b))
 
 
 if __name__ == "__main__":

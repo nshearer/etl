@@ -113,3 +113,9 @@ class EtlSchema(object):
 
         return True
 
+
+    def __str__(self):
+        field_repr = list()
+        for name in sorted(self.etl_list_field_names()):
+            field_repr.append(str(self.etl_get_field(name)))
+        return 'EtlSchema(%s)' % (', '.join(field_repr))
