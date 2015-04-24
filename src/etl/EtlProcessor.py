@@ -5,6 +5,8 @@ Created on Dec 27, 2012
 '''
 from abc import ABCMeta, abstractmethod
 
+from EtlProcessorBase import EtlProcessorBase
+
 class EtlProcessorDataPort(object):
     '''Specify a name for input or output record sets'''
     def __init__(self, name, schema):
@@ -12,99 +14,46 @@ class EtlProcessorDataPort(object):
         self.schema = schema
 
 
-class EtlProcessor(object):
+class EtlProcessor(EtlProcessorBase):
     '''Takes 0 or more inputs and generates 0 or more outputs
+
+    See EtlProcessorBase for additional detail
     
     The EtlProcessor class is intended to be subclassed in order to create 
     the components of the ETL processor.  Each processor, then, performs one or
     more of the Extract, Transform, or Load functions.
     
+    TODO: Update
     When subclassing, you must:
      1) Define list_input_ports() to describe which dataports the component
         has for receiving records
      2) Define list_output_ports() to describe which dataports the component has
         for sending generated or processed records to other processors.
-     3) (optionally) define extract_records() to extract records from external
+     3) (optionally) define starting_processor() to perform any startup tasks
+     4) (optionally) define extract_records() to extract records from external
          sources and output them for use by other processors
            -) Call dispatch_output() to send generated records out
-     4) (optionally) Define process_input_record() to consume incoming records
+     5) (optionally) define methods to process records sent to this component's 
+        input ports.
+
+
+         process_input_record() to consume incoming records
            -) Call dispatch_output() to send processed records out
      5) Define handle_input_disconnected() to respond to a processor that has
         disconnected from an input.  All processors must disconnect by calling
         output_is_finished() when no more records will be generated for that
         output.
 
-    Each Processor goes through these states.  The current state can be queried
-    by the current_state property.
 
-    SETUP_PHASE       - Is the phase before processor is started.  This is the
-                        the processor starts in, and is meant to provide time to
-                        configure the component prior to starting the ETL process.
-
-    STARTUP_PHASE     - Is the state that the processor enters while starting the
-                        ETL process, before the processor starts reciving or
-                        dispatching records.
-
-    PAUSED            - Temporary state to stop processing
-
-    RUNNING_PHASE     - Is the state that the processor is in while it is 
-                        processing (recieving and dispatching) records.
-
-    FINSIHED_PHASE    - Is the status the the processor is in when it will no
-                        longer recieve or dispatch records.
-
-                    +-------+   start_processor()   +---------+
-                    | SETUP +-----------------------> STARTUP |
-                    +-------+                       +----+----+
-                                                         |     
-                                                   after |     
-                                     starting_processor()|     
-                                                    call |     
-                                                         |     
-                   +--------+   pause_processor()   +----v----+
-                   | PAUSED <-----------------------> RUNNING |
-                   +--------+  resume_processor()   +----+----+
-                                                         |     
-                                            after inputs |     
-                                             and outputs |     
-                                              all closed |     
-                                                         |     
-                                                   +-----v----+
-                                                   | FINISHED |
-                                                   +----------+
 
 
     '''
     __metaclass__ = ABCMeta
     
-    SETUP_PHASE = 1
-    STARTUP_PHASE = 2
-    RUNNING_PHASE = 3
-    PAUSED = 4
-    FINISHED = 5
-
     def __init__(self):
         self.data_dir_path = None
         self.tmp_dir_path = None
-        self.__state = self.SETUP_PHASE
-    
-    
-    # -- State Checking ------------------------------------------------------
-
-    def _setup_phase_method(self):
-        '''Checks that the method call is happening during setup'''
-        if self.__state != self.SETUP_PHASE:
-            raise Exception("Cannot call as phase is not SETUP")
-
-    def _assert_in_startup_phase(self):
-        pass
-
-    def _assert_in_running_phase(self):
-        pass
-
-    def _assert_finished(self):
-        pass
-
+        
 
     @abstractmethod
     def list_input_ports(self):

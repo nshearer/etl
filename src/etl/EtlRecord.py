@@ -73,6 +73,8 @@ class EtlRecord(DictMixin):
             return self.__schema.etl_list_field_names()
         return self.values.keys()
     
+
+    # -- Source record linking.  TODO: Move? ----------------------------------
     
     def note_src_record(self, rec):
         '''Note another record that was processed to help create this record'''
@@ -85,6 +87,8 @@ class EtlRecord(DictMixin):
         '''Serial codes of records that helped generate this record'''
         return self.__from_records[:]
     
+
+    # -- Source processor -----------------------------------------------------
     
     def set_source(self, prc_name, output_port_name):
         self.assert_not_frozen()
@@ -101,6 +105,8 @@ class EtlRecord(DictMixin):
     def source_processor_output_name(self):
         return self.__src_port
     
+
+    # -- Debug ---------------------------------------------------------------
     
     def create_msg(self, msg):
         '''Generate a message about this record'''
