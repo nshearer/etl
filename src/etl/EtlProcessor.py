@@ -25,20 +25,25 @@ class EtlProcessor(EtlProcessorBase):
     
     TODO: Update
     When subclassing, you must:
+
      1) Define list_input_ports() to describe which dataports the component
         has for receiving records
+
      2) Define list_output_ports() to describe which dataports the component has
         for sending generated or processed records to other processors.
+
      3) (optionally) define starting_processor() to perform any startup tasks
+
      4) (optionally) define extract_records() to extract records from external
          sources and output them for use by other processors
            -) Call dispatch_output() to send generated records out
+
      5) (optionally) define methods to process records sent to this component's 
         input ports.
 
-
          process_input_record() to consume incoming records
            -) Call dispatch_output() to send processed records out
+
      5) Define handle_input_disconnected() to respond to a processor that has
         disconnected from an input.  All processors must disconnect by calling
         output_is_finished() when no more records will be generated for that
