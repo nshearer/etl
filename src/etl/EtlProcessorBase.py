@@ -59,12 +59,12 @@ class EtlProcessorBase(object):
     which method can be called when gets complex.  Here is the convention
     used to keep information organized:
 
-        | Name  |       Desc          |   Called by       |
-        |-------|---------------------|-------------------|
-        | st_*  | Static/Thread Safe  | Anyone            |
-        | if_*  | Interface           | Other Processors  |
-        | ct_*  | Control             | Parent Processor  |
-        | pr_*  | Processing          | Inside Prc Thread |
+    | Name  |       Desc          |   Called by       |
+    |-------|---------------------|-------------------|
+    | st_*  | Static/Thread Safe  | Anyone            |
+    | if_*  | Interface           | Other Processors  |
+    | ct_*  | Control             | Parent Processor  |
+    | pr_*  | Processing          | Inside Prc Thread |
 
     Each method may also check to verify that it is only called in specific
     phases by calling one of the _*_phase_method() methods as the first line
@@ -72,12 +72,12 @@ class EtlProcessorBase(object):
     called, and to enforce.
 
 
-        |       Method       | SETUP | STARTUP | RUNNING | FINISHED |
-        |--------------------|-------|---------|---------|----------|
-        | create_input_port  |   *   |         |         |          |
-        | create_output_port |   *   |         |         |          |
-        | _lock_input_port   |   *   |         |         |          |
-        | _unlock_input_port |       |   *     |         |          |
+    |       Method       | SETUP | STARTUP | RUNNING | FINISHED |
+    |--------------------|-------|---------|---------|----------|
+    | create_input_port  |   *   |         |         |          |
+    | create_output_port |   *   |         |         |          |
+    | _lock_input_port   |   *   |         |         |          |
+    | _unlock_input_port |       |   *     |         |          |
 
 
     Interface methods interact with the internal thread safe queue to allow
