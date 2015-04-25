@@ -96,17 +96,17 @@ class EtlProcessorBase(object):
            the queue and calls the pr_* version of the interface method,
            such as pr_receive_input().
 
-                                    +                              
-                                    |                              
-               if_[name](args) +----------------> Queue            
-                                    |               +
-                                    |               |              
-         (outside thread)           |               |              
-        +---------------------------+               |              
-         (inside thread)                            |              
-                                                    v              
-               pr_[name](args) <------------+ pr_event_loop()
-
+        +----------------------------------------------------------+    
+        |                                |                         |    
+        |           if_<name>(args) +----------------> Queue       |    
+        |                                |               +         |
+        |                                |               |         |    
+        | (outside thread)               |               |         |    
+        |--------------------------------+               |         |    
+        | (inside thread)                                |         |    
+        |                                                v         |    
+        |           pr_<name>(args) <------------+ pr_event_loop() |
+        +----------------------------------------------------------+
                 
     @see EtlProcessor
     '''
