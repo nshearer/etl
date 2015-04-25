@@ -88,25 +88,27 @@ class EtlProcessorBase(object):
     That is, you don't have an Event object, that needs to have the same
     parameters as the handling method.  So, in general:
 
-        1) An external method calls an if_* method like if_receive_input()
-           using that methods normal signature.
-        2) The interface method describes that call with an object and 
-           queues it to the thread safe event_queue
-        3) pr_process_events() picks up that call description object from
-           the queue and calls the pr_* version of the interface method,
-           such as pr_receive_input().
+    1) An external method calls an if_* method like if_receive_input()
+       using that methods normal signature.
 
-            +----------------------------------------------------------+    
-            |                                |                         |    
-            |           if_<name>(args) +----------------> Queue       |    
-            |                                |               +         |
-            |                                |               |         |    
-            | (outside thread)               |               |         |    
-            |--------------------------------+               |         |    
-            | (inside thread)                                |         |    
-            |                                                v         |    
-            |           pr_<name>(args) <------------+ pr_event_loop() |
-            +----------------------------------------------------------+
+    2) The interface method describes that call with an object and 
+       queues it to the thread safe event_queue
+       
+    3) pr_process_events() picks up that call description object from
+       the queue and calls the pr_* version of the interface method,
+       such as pr_receive_input().
+
+        +----------------------------------------------------------+    
+        |                                |                         |    
+        |           if_<name>(args) +----------------> Queue       |    
+        |                                |               +         |
+        |                                |               |         |    
+        | (outside thread)               |               |         |    
+        |--------------------------------+               |         |    
+        | (inside thread)                                |         |    
+        |                                                v         |    
+        |           pr_<name>(args) <------------+ pr_event_loop() |
+        +----------------------------------------------------------+
                 
     @see EtlProcessor
     '''
