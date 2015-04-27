@@ -205,21 +205,6 @@ class EtlProcessorBase(object):
                 self._state_code_desc(expected_state)
                 ))
 
-
-
-    
-    # # The states of input connections
-    # CONN_CONNECTED = 0     # Initial state
-    # CONN_CLOSSED   = 1     # State after PrcDisconnectedEvent
-    
-
-             
-#         # 
-#         for conn in output_connections:
-#             if not self.__connected_outputs.has_key(conn.output_name):
-#                 self.__connected_outputs[conn.output_name] = list()
-#             self.__connected_outputs[conn.output_name].append(conn)
-
         
     # -- Methods to be called before thread starts (NOT THREAD SAFE) ----------
     

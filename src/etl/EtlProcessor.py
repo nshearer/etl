@@ -61,40 +61,6 @@ class EtlProcessor(EtlProcessorBase):
     def __init__(self):
         self.data_dir_path = None
         self.tmp_dir_path = None
-        
-
-    @abstractmethod
-    def list_input_ports(self):
-        '''List datasets to be consumed by this processor.
-        
-        @return list of EtlProcessorDataPort objects
-        '''
-        return None
-    
-    
-    @abstractmethod
-    def list_output_ports(self):
-        '''List the datasets produced by this processor
-        
-        @return list of EtlProcessorDataPort objects
-        '''
-        return None
-        
-    
-    def list_input_names(self):
-        '''List just the names of the input data sets'''
-        inputs = self.list_input_ports()
-        if inputs is not None:
-            return [port.name for port in inputs]
-        return list()
-        
-        
-    def list_output_names(self):
-        '''List just the names of the input data sets'''
-        outputs = self.list_output_ports()
-        if outputs is not None:
-            return [port.name for port in outputs]
-        return list()
     
     
     def extract_records(self):

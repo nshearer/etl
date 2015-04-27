@@ -6,13 +6,19 @@ Python ETL Library for facilitating data transformations.
 
 
 Processors
-------------
+==========
+
+EtlProcessorBase
+----------------
 
 [include:EtlProcessorBase]
 
+EtlProcessor
+------------
+
 [include:EtlProcessor]
 
-Schemas
--------
+EtlSchema
+=========
 
 [include:EtlSchema]

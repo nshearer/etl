@@ -6,7 +6,10 @@ Python ETL Library for facilitating data transformations.
 
 
 Processors
-------------
+==========
+
+EtlProcessorBase
+----------------
 
 Base class for EtlProcessor
 
@@ -110,6 +113,9 @@ parameters as the handling method.  So, in general:
 @see EtlProcessor
 
 
+EtlProcessor
+------------
+
 Takes 0 or more inputs and generates 0 or more outputs
 
 See EtlProcessorBase for additional detail
@@ -152,8 +158,8 @@ When subclassing, you must:
     handling methods are available here.
 
 
-Schemas
--------
+EtlSchema
+=========
 
 Describes the structure of a record
 
