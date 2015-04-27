@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import unittest
 
 from etl.tests.TestEtlRecord import TestEtlRecord

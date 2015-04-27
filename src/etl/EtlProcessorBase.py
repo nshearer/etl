@@ -61,6 +61,7 @@ class EtlProcessorBase(object):
 
     | Name  |       Desc          |   Called by       |
     |-------|---------------------|-------------------|
+    | df_*  | Definition Methods  | Self during setup |
     | st_*  | Static/Thread Safe  | Anyone            |
     | if_*  | Interface           | Other Processors  |
     | ct_*  | Control             | Parent Processor  |
@@ -222,7 +223,7 @@ class EtlProcessorBase(object):
         
     # -- Methods to be called before thread starts (NOT THREAD SAFE) ----------
     
-    def create_input_port(self, input_name, prc_manger, conn_id):
+    def df_create_input_port(self, input_name, prc_manger, conn_id):
         '''Inform the manager about another Processor connected to an input
         
         @param input_name: Name of the input on this processor
@@ -249,7 +250,7 @@ class EtlProcessorBase(object):
         self.__conn_by_id[conn_id] = conn
         
         
-    def create_output_port(self, output_name, prc_manger, input_name, conn_id):
+    def df_create_output_port(self, output_name, prc_manger, input_name, conn_id):
         '''Inform the manager about another Processor connected to an output
         
         @param output_name: Name of the output on this processor

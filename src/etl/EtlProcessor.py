@@ -23,35 +23,38 @@ class EtlProcessor(EtlProcessorBase):
     the components of the ETL processor.  Each processor, then, performs one or
     more of the Extract, Transform, or Load functions.
     
-    TODO: Update
     When subclassing, you must:
 
-     1) Define list_input_ports() to describe which dataports the component
-        has for receiving records
+    1)  In your __init__():
+        a) Call the super init()
+        b) Call df_create_input_port() to define input ports
+        c) Call df_create_output_port() to define output ports
 
-     2) Define list_output_ports() to describe which dataports the component has
-        for sending generated or processed records to other processors.
+    2)  (optionally) define starting_processor() to perform any startup tasks
 
-     3) (optionally) define starting_processor() to perform any startup tasks
-
-     4) (optionally) define extract_records() to extract records from external
+    3)  (optionally) define extract_records() to extract records from external
          sources and output them for use by other processors
-           -) Call dispatch_output() to send generated records out
 
-     5) (optionally) define methods to process records sent to this component's 
+           - Call dispatch_output() to send generated records out
+
+    4)  (optionally) define methods to process records sent to this component's 
         input ports.
 
-         process_input_record() to consume incoming records
-           -) Call dispatch_output() to send processed records out
+          - Define pr_<name>_input_record() to process records recieved on
+            port named <name>.
+          - Define pr_any_input_record() to consume incoming records not handled
+            by a method setup for a speific port name.
 
-     5) Define handle_input_disconnected() to respond to a processor that has
-        disconnected from an input.  All processors must disconnect by calling
-        output_is_finished() when no more records will be generated for that
-        output.
+          - Call pr_dispatch_output() to send processed records out
+          - Call pr_hold_record() to stash a record for processing later
+          - Call pr_unhold_records() to retrieve previously held records
+          - Call pr_output_finished() to signal that no more output will
+            be sent on the named port.  When all output ports are clossed,
+            then the processing loop will exit.
 
-
-
-
+    5)  Define pr_handle_input_clossed() to perform any final processing when
+        an input port is clossed.  All of the methods available to the input
+        handling methods are available here.
     '''
     __metaclass__ = ABCMeta
     
