@@ -5,7 +5,30 @@ Created on Dec 27, 2012
 '''
 
 class EtlSchema(object):
-    '''Describes the structure of a record'''
+    '''Describes the structure of a record
+
+    The purpose of the schema is to assist the ETL logic with handling the
+    fields of records when the ETL library does not know the structure
+    of the records that will be used.  I've gone back and forth as to
+    whether to even require schemas, and whether to lock down input and
+    output ports to schemas.  Managing schemas, in my experience, can become
+    tedious and self-serving.
+
+    I've decided to keep schemas though to assist with:
+
+        - Freezing records from changes
+        - Serializeing records to disk
+        - Debuging/Describing records to the user
+
+    I will not provide a mechanism to lock/check schemas on processor ports,
+    though, and I don't see a great advantage to requiring this.  This leaves
+    a processor to be flexible in recieving multiple record types if desired,
+    and leaves it up to the developer to ensure that the required fields for a
+    given processor are present.  I feel this supports the common Python
+    practice of Duck Typing.
+
+    Each record, however, does need to have an associated schema.
+    '''
     
     STRING = 'str'
     INT = 'int'

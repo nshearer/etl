@@ -7,6 +7,7 @@ from textwrap import dedent
 
 from etl.EtlProcessorBase import EtlProcessorBase
 from etl.EtlProcessor import EtlProcessor
+from etl.schema.EtlSchema import EtlSchema
 
 def abort(msg):
     print "ERROR:", msg
@@ -45,6 +46,7 @@ if __name__ == '__main__':
 
     tpl = tpl.replace('[include:EtlProcessorBase]', get_class_doc(EtlProcessorBase))
     tpl = tpl.replace('[include:EtlProcessor]', get_class_doc(EtlProcessor))
+    tpl = tpl.replace('[include:EtlSchema]', get_class_doc(EtlSchema))
 
     print "Writing", tgt_path
     open(tgt_path, 'wt').write(tpl)
