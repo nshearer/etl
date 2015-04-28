@@ -169,6 +169,31 @@ parameters as the handling method.  So, in general:
     |           pr_<name>(args) <------------+ pr_event_loop() |
     +----------------------------------------------------------+
 
+
+Sub Processors
+--------------
+
+While typically, only the root processor will have children processors,
+support is built into this base class for keeping track of children
+processors.
+
+The parent processor of a child processor is responsible for tracking
+the status of all of it's children, and not considering itself finished
+until all of the child processes are finished.
+
+In general, connections can be formed between:
+
+  - Two processes that are sblings of the same parent with the
+    df_connect_sib_processors() method
+  - From a parent output down to one of it's children's input
+    ports with df_connect_parent_to_child()
+  - From one of a parent processor's children's output up to a parent
+    input port using df_connect_child_to_parent()
+
+Child processors are added to this processor by calling
+df_add_processor().  
+
+
 @see EtlProcessor
 
 

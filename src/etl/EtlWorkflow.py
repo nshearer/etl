@@ -78,8 +78,6 @@ class EtlWorkflow(EtlProcessorBase):
         # was tmp_dir_path
         
         self.__processors = dict()
-        self.__record_sets = dict()
-        self.__connections = dict()
         
         
     # -- Public Methods -------------------------------------------------------
@@ -175,19 +173,27 @@ class EtlWorkflow(EtlProcessorBase):
     
     
     def save_records(self, prc_name, output_name, filename):
-        '''Output a record set to file for user review'''
-        
-        path = os.path.join(self.default_data_directory, 'reports', filename) + '.xls'
-        data = self.get_output(prc_name, output_name)
-        
-        # Inform User
-        msg = "Saving '%s' output from '%s' to %s"
-        print msg % (output_name, prc_name, path)
-        
-        # Export
-        data.export_as_excel(path)
-        
-        data.export_as_csv(os.path.join(self.default_data_directory, 'reports', filename) + '.csv')
+        '''Output records to a file from a processor for review'''
+        raise NotImplementedError("TODO")
+
+        # 1) Connect port output to this processor
+        # 2) Open file for output
+        # 3) Write output as rows are received
+        # 4) Close file when Workflow is done
+
+        # Old Code:
+        #
+        # path = os.path.join(self.default_data_directory, 'reports', filename) + '.xls'
+        # data = self.get_output(prc_name, output_name)
+        #
+        # # Inform User
+        # msg = "Saving '%s' output from '%s' to %s"
+        # print msg % (output_name, prc_name, path)
+        #
+        # # Export
+        # data.export_as_excel(path)
+        #
+        # data.export_as_csv(os.path.join(self.default_data_directory, 'reports', filename) + '.csv')
         
         
     def get_output(self, prc_name, output_name):
