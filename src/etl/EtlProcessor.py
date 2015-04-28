@@ -21,7 +21,7 @@ class EtlProcessor(EtlProcessorBase):
     
     The EtlProcessor class is intended to be subclassed in order to create 
     the components of the ETL processor.  Each processor, then, performs one or
-    more of the Extract, Transform, or Load functions.
+    more of the Extract, Transform, or Load functions in it's own thread.
     
     When subclassing, you must:
 

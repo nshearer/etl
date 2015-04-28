@@ -5,6 +5,7 @@ import os
 import sys
 from textwrap import dedent
 
+from etl.EtlWorkflow import EtlWorkflow
 from etl.EtlProcessorBase import EtlProcessorBase
 from etl.EtlProcessor import EtlProcessor
 from etl.schema.EtlSchema import EtlSchema
@@ -44,6 +45,7 @@ if __name__ == '__main__':
 
     tpl = open(tpl_path, 'rt').read()
 
+    tpl = tpl.replace('[include:EtlWorkflow]', get_class_doc(EtlWorkflow))
     tpl = tpl.replace('[include:EtlProcessorBase]', get_class_doc(EtlProcessorBase))
     tpl = tpl.replace('[include:EtlProcessor]', get_class_doc(EtlProcessor))
     tpl = tpl.replace('[include:EtlSchema]', get_class_doc(EtlSchema))

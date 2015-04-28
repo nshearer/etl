@@ -10,17 +10,64 @@ from EtlBuildError import EtlBuildError
 from InvalidProcessorName import InvalidProcessorName
 from InvalidDataPortName import InvalidDataPortName
 from WorkflowDataPath import WorkflowDataPath
+from EtlProcessorBase import EtlProcessorBase
 
-
-class Workflow(object):
-    '''Encapsulates an ETL workflow and holds the execution context
+class EtlWorkflow(EtlProcessorBase):
+    '''Encapsulates an ETL workflow
     
     This class is used to organize all of the components in the workflow.
+    It is itself a processor in the ETL Workflow, refered to as the root
+    processor.  Unlike child processors based on EtlProcessor, though,
+    this root processor runs in the same thread as the invoking code.
     
-    1) add_processor() - Add Processors to generate, transform, and load 
-                         record sets
-    2) connect_record_set() - Connect the outputs and inputs of processors
-    3) exectue() - Run the workflow to generate the desired output. 
+    Definition of ETL:
+    ------------------
+    from [Wikipedia](http://en.wikipedia.org/wiki/Extract,_transform,_load)
+
+    In computing, Extract, Transform and Load (ETL) refers to a process in
+    database usage and especially in data warehousing that:
+
+    Extracts data from homogeneous or heterogeneous data sources Transforms the
+    data for storing it in proper format or structure for querying and analysis
+    purpose Loads it into the final target (database, more specifically,
+    operational data store, data mart, or data warehouse) Usually all the three
+    phases execute in parallel since the data extraction takes time, so while
+    the data is being pulled another transformation process executes, processing
+    the already received data and prepares the data for loading and as soon as
+    there is some data ready to be loaded into the target, the data loading
+    kicks off without waiting for the completion of the previous phases.
+
+    ETL systems commonly integrate data from multiple applications(systems),
+    typically developed and supported by different vendors or hosted on separate
+    computer hardware. The disparate systems containing the original data are
+    frequently managed and operated by different employees. For example a cost
+    accounting system may combine data from payroll, sales and purchasing.
+
+
+    Creating an ETL Process
+    -----------------------
+
+    In order to define an ETL process, the developer is encouraged to
+    subclass this class and then define and connect the processors.
+    This class does not need to be subclassed to create an ETL process,
+    though, as you can just instantiate it and call the methods.
+    
+     1) Define your processors by subclassing EtlProcessor, or using the
+        common processors under etl.common
+
+     2) Call add_processor() to add your processors to the Workflow
+
+     3) Call connect() to connect the output ports of processors to the
+        input ports of other processors
+
+     4) Call assign_processor_output() to connect the output ports of
+        processors to an input port of this Workflow object.  This allows
+        you to define a path for records to exit the ETL workflow and
+        be returned to the calling code.  When you call the workflow.
+        execute() method to run the ETL process, and records dispatched
+        on the specified port will be yielded back to the calling function.
+
+      5) Call exectue() - Run the workflow to generate the desired output. 
     '''
     
     def __init__(self):
