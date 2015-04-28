@@ -1,3 +1,5 @@
+'''Common exceptions for etl library'''
+
 
 class EtlBuildError(Exception):
     '''Error with the structure of the ETL graph'''
@@ -51,3 +53,9 @@ class EtlBuildError(Exception):
             print "  Possible Values: " + ", ".join(possible_values)
             
             
+class InvalidDataPortName(EtlBuildError):
+    '''A non-existant dataport was referenced for a processor'''
+
+
+class InvalidProcessorName(EtlBuildError):
+    '''A non-existent processor dataport name was used'''

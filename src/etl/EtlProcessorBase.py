@@ -133,8 +133,7 @@ class EtlProcessorBase(object):
         input port using df_connect_child_to_parent()
 
     Child processors are added to this processor by calling
-    df_add_processor().  
-
+    df_add_child_processor().  
 
     @see EtlProcessor
     '''
@@ -219,6 +218,18 @@ class EtlProcessorBase(object):
     def _finished_phase_method(self):
         '''Checks that the method call is happening when finished'''
         self._asert_phase_is(self.FINISHED_PHASE)
+
+
+    @property
+    def current_state(self):
+        '''Current state of this processor'''
+        return self.__state
+
+
+    @property
+    def current_state_desc(self):
+        '''Friendly description of current state'''
+        return self._state_code_desc(self.current_state)
 
 
     def _asert_phase_is(self, expected_state):
@@ -588,3 +599,12 @@ class EtlProcessorBase(object):
     # -- Sub Processors ------------------------------------------------------
 
 
+    def df_add_child_processor(self, child):
+        '''Add a child processor.
+
+        This processor will start in the SETUP state, and can be started by
+        start_child_processor().
+        '''
+
+
+    def df_connect_sib_processors(self)

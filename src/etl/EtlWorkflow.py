@@ -5,8 +5,6 @@ Created on Dec 27, 2012
 '''
 import os
 
-from EtlRecordSet import EtlRecordSet
-from EtlBuildError import EtlBuildError
 from InvalidProcessorName import InvalidProcessorName
 from InvalidDataPortName import InvalidDataPortName
 from WorkflowDataPath import WorkflowDataPath
@@ -196,61 +194,61 @@ class EtlWorkflow(EtlProcessorBase):
         # data.export_as_csv(os.path.join(self.default_data_directory, 'reports', filename) + '.csv')
         
         
-    def get_output(self, prc_name, output_name):
-        '''Get the output of a processor (running the processor if needed)'''
+    # def get_output(self, prc_name, output_name):
+    #     '''Get the output of a processor (running the processor if needed)'''
         
-        # Generate record set if not cached
-        if not self.__record_sets[prc_name].has_key(output_name):
+    #     # Generate record set if not cached
+    #     if not self.__record_sets[prc_name].has_key(output_name):
             
-            prc = self.__processors[prc_name]
+    #         prc = self.__processors[prc_name]
             
-            # Get required inputs
-            inputs = dict()
-            for p_input in prc.list_inputs():
-                inputs[p_input.name] = list()
-                for conn in self.__connections[prc_name][p_input.name]:
-                    input_records = self.get_output(conn.src_prc_name,
-                                                    conn.output_name)
-                    inputs[p_input.name].append(input_records)
+    #         # Get required inputs
+    #         inputs = dict()
+    #         for p_input in prc.list_inputs():
+    #             inputs[p_input.name] = list()
+    #             for conn in self.__connections[prc_name][p_input.name]:
+    #                 input_records = self.get_output(conn.src_prc_name,
+    #                                                 conn.output_name)
+    #                 inputs[p_input.name].append(input_records)
                     
-            # Init RecordSet to contain output
-            output_schema = self._get_output_schema(prc_name, output_name)
-            out_records = EtlRecordSet(prc_name, output_name, output_schema)
+    #         # Init RecordSet to contain output
+    #         output_schema = self._get_output_schema(prc_name, output_name)
+    #         out_records = EtlRecordSet(prc_name, output_name, output_schema)
             
-            # Prepare processor
-            prc.default_data_directory = self.default_data_directory
-            prc.temp_directory = self.temp_directory
+    #         # Prepare processor
+    #         prc.default_data_directory = self.default_data_directory
+    #         prc.temp_directory = self.temp_directory
             
-            # Inform User
-            msg = "Running processor '%s' to generate '%s'"
-            print msg % (prc_name, output_name)
+    #         # Inform User
+    #         msg = "Running processor '%s' to generate '%s'"
+    #         print msg % (prc_name, output_name)
             
-            # Generate output
-            prc.gen_output(output_name, inputs, out_records)
+    #         # Generate output
+    #         prc.gen_output(output_name, inputs, out_records)
             
-            # Cache output
-            self.__record_sets[prc_name][output_name] = out_records
+    #         # Cache output
+    #         self.__record_sets[prc_name][output_name] = out_records
             
-        # Returned cached output
-        return self.__record_sets[prc_name][output_name]
+    #     # Returned cached output
+    #     return self.__record_sets[prc_name][output_name]
         
         
     # -- Utility Methods ------------------------------------------------------
         
-    def _get_prc_output_info(self, prc_name, output_name):
-        '''Get EtlProcessorDataPort object from processor for this output'''
-        if not self.__processors.has_key(prc_name):
-            raise KeyError("Invalid processor name: %s" % (prc_name))
-        for output in self.__processors[prc_name].list_outputs():
-            if output.name == output_name:
-                return output
-        return None
+    # def _get_prc_output_info(self, prc_name, output_name):
+    #     '''Get EtlProcessorDataPort object from processor for this output'''
+    #     if not self.__processors.has_key(prc_name):
+    #         raise KeyError("Invalid processor name: %s" % (prc_name))
+    #     for output in self.__processors[prc_name].list_outputs():
+    #         if output.name == output_name:
+    #             return output
+    #     return None
     
     
-    def _get_output_schema(self, prc_name, output_name):
-        '''Get schema from processor for this output'''
-        info = self._get_prc_output_info(prc_name, output_name)
-        return info.schema
+    # def _get_output_schema(self, prc_name, output_name):
+    #     '''Get schema from processor for this output'''
+    #     info = self._get_prc_output_info(prc_name, output_name)
+    #     return info.schema
     
     
     # -- ETL Inspection -------------------------------------------------------
