@@ -1,0 +1,175 @@
+Python E\-T\-L Library for facilitating data transformations.
+
+\section*{Workflow }
+
+Encapsulates an E\-T\-L workflow
+
+This class is used to organize all of the components in the workflow. It is itself a processor in the E\-T\-L Workflow, refered to as the root processor. Unlike child processors based on Etl\-Processor, though, this root processor runs in the same thread as the invoking code.
+
+\subsection*{Definition of E\-T\-L\-: }
+
+from \href{http://en.wikipedia.org/wiki/Extract,_transform,_load}{\tt Wikipedia}
+
+In computing, Extract, Transform and Load (E\-T\-L) refers to a process in database usage and especially in data warehousing that\-:
+
+Extracts data from homogeneous or heterogeneous data sources Transforms the data for storing it in proper format or structure for querying and analysis purpose Loads it into the final target (database, more specifically, operational data store, data mart, or data warehouse) Usually all the three phases execute in parallel since the data extraction takes time, so while the data is being pulled another transformation process executes, processing the already received data and prepares the data for loading and as soon as there is some data ready to be loaded into the target, the data loading kicks off without waiting for the completion of the previous phases.
+
+E\-T\-L systems commonly integrate data from multiple applications(systems), typically developed and supported by different vendors or hosted on separate computer hardware. The disparate systems containing the original data are frequently managed and operated by different employees. For example a cost accounting system may combine data from payroll, sales and purchasing.
+
+\subsection*{Creating an E\-T\-L Process }
+
+In order to define an E\-T\-L process, the developer is encouraged to subclass this class and then define and connect the processors. This class does not need to be subclassed to create an E\-T\-L process, though, as you can just instantiate it and call the methods.
+
+1) Define your processors by subclassing Etl\-Processor, or using the common processors under etl.\-common
+
+2) Call add\-\_\-processor() to add your processors to the Workflow
+
+3) Call connect() to connect the output ports of processors to the input ports of other processors
+
+4) Call assign\-\_\-processor\-\_\-output() to connect the output ports of processors to an input port of this Workflow object. This allows you to define a path for records to exit the E\-T\-L workflow and be returned to the calling code. When you call the workflow. execute() method to run the E\-T\-L process, and records dispatched on the specified port will be yielded back to the calling function.
+
+5) Call exectue() -\/ Run the workflow to generate the desired output.
+
+\section*{Processors }
+
+\subsection*{Etl\-Processor\-Base }
+
+Base class for Etl\-Processor
+
+Each Processor goes through these states. The current state can be queried by the current\-\_\-state property.
+
+S\-E\-T\-U\-P\-\_\-\-P\-H\-A\-S\-E -\/ Is the phase before processor is started. This is the the processor starts in, and is meant to provide time to configure the component prior to starting the E\-T\-L process.
+
+S\-T\-A\-R\-T\-U\-P\-\_\-\-P\-H\-A\-S\-E -\/ Is the state that the processor enters while starting the E\-T\-L process, before the processor starts reciving or dispatching records.
+
+P\-A\-U\-S\-E\-D -\/ Temporary state to stop processing
+
+R\-U\-N\-N\-I\-N\-G\-\_\-\-P\-H\-A\-S\-E -\/ Is the state that the processor is in while it is processing (recieving and dispatching) records.
+
+F\-I\-N\-S\-I\-H\-E\-D\-\_\-\-P\-H\-A\-S\-E -\/ Is the status the the processor is in when it will no longer recieve or dispatch records.
+
+\begin{DoxyVerb}            +-------+   start_processor()   +---------+
+            | SETUP +-----------------------> STARTUP |
+            +-------+                       +----+----+
+                                                 |     
+                                           after |     
+                             starting_processor()|     
+                                            call |     
+                                                 |     
+           +--------+   pause_processor()   +----v----+
+           | PAUSED <-----------------------> RUNNING |
+           +--------+  resume_processor()   +----+----+
+                                                 |     
+                                    after inputs |     
+                                     and outputs |     
+                                      all closed |     
+                                                 |     
+                                           +-----v----+
+                                           | FINISHED |
+                                           +----------+    
+\end{DoxyVerb}
+
+
+Because Processors have multiple stages, and run in threads, knowing which method can be called when gets complex. Here is the convention used to keep information organized\-:
+
+\begin{TabularC}{3}
+\hline
+\rowcolor{lightgray}{\bf Name }&{\bf Desc }&{\bf Called by  }\\\cline{1-3}
+df\-\_\-$\ast$ &Definition Methods &Self during setup \\\cline{1-3}
+st\-\_\-$\ast$ &Static/\-Thread Safe &Anyone \\\cline{1-3}
+if\-\_\-$\ast$ &Interface &Other Processors \\\cline{1-3}
+ct\-\_\-$\ast$ &Control &Parent Processor \\\cline{1-3}
+pr\-\_\-$\ast$ &Processing &Inside Prc Thread \\\cline{1-3}
+\end{TabularC}
+Each method may also check to verify that it is only called in specific phases by calling one of the \-\_\-$\ast$\-\_\-phase\-\_\-method() methods as the first line of the method. This serves both to remember when the method can be called, and to enforce.
+
+\begin{TabularC}{5}
+\hline
+\rowcolor{lightgray}{\bf Method }&{\bf S\-E\-T\-U\-P }&{\bf S\-T\-A\-R\-T\-U\-P }&{\bf R\-U\-N\-N\-I\-N\-G }&{\bf F\-I\-N\-I\-S\-H\-E\-D  }\\\cline{1-5}
+create\-\_\-input\-\_\-port &$\ast$ &&&\\\cline{1-5}
+create\-\_\-output\-\_\-port &$\ast$ &&&\\\cline{1-5}
+\-\_\-lock\-\_\-input\-\_\-port &$\ast$ &&&\\\cline{1-5}
+\-\_\-unlock\-\_\-input\-\_\-port &&$\ast$ &&\\\cline{1-5}
+\end{TabularC}
+
+
+Interface methods interact with the internal thread safe queue to allow external processors (or any external objects) to send signals/records to this processor to work on. Unlike previous versions of this E\-T\-L, external objects do not push objects into the queue directly. This is to help keep the definition of the \char`\"{}\-Event\char`\"{} next to the handler for that event. That is, you don't have an Event object, that needs to have the same parameters as the handling method. So, in general\-:
+
+1) An external method calls an if\-\_\-$\ast$ method like if\-\_\-receive\-\_\-input() using that methods normal signature.
+
+2) The interface method describes that call with an object and queues it to the thread safe event\-\_\-queue
+
+3) pr\-\_\-process\-\_\-events() picks up that call description object from the queue and calls the pr\-\_\-$\ast$ version of the interface method, such as pr\-\_\-receive\-\_\-input().
+
++-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---+ $\vert$ $\vert$ $\vert$ $\vert$ if\-\_\-$<$name$>$(args) +-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---$>$ Queue $\vert$ $\vert$ $\vert$ + $\vert$ $\vert$ $\vert$ $\vert$ $\vert$ $\vert$ (outside thread) $\vert$ $\vert$ $\vert$ $\vert$-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---+ $\vert$ $\vert$ $\vert$ (inside thread) $\vert$ $\vert$ $\vert$ v $\vert$ $\vert$ pr\-\_\-$<$name$>$(args) $<$-\/-\/-\/-\/-\/-\/-\/-\/-\/---+ pr\-\_\-event\-\_\-loop() $\vert$ +-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/---+
+
+\subsection*{Sub Processors }
+
+While typically, only the root processor will have children processors, support is built into this base class for keeping track of children processors.
+
+The parent processor of a child processor is responsible for tracking the status of all of it's children, and not considering itself finished until all of the child processes are finished.
+
+In general, connections can be formed between\-:
+
+
+\begin{DoxyItemize}
+\item Two processes that are sblings of the same parent with the df\-\_\-connect\-\_\-sib\-\_\-processors() method
+\item From a parent output down to one of it's children's input ports with df\-\_\-connect\-\_\-parent\-\_\-to\-\_\-child()
+\item From one of a parent processor's children's output up to a parent input port using df\-\_\-connect\-\_\-child\-\_\-to\-\_\-parent()
+\end{DoxyItemize}
+
+Child processors are added to this processor by calling df\-\_\-add\-\_\-processor().
+
+\begin{DoxySeeAlso}{See Also}
+Etl\-Processor
+\end{DoxySeeAlso}
+\subsection*{Etl\-Processor }
+
+Takes 0 or more inputs and generates 0 or more outputs
+
+See Etl\-Processor\-Base for additional detail
+
+The Etl\-Processor class is intended to be subclassed in order to create the components of the E\-T\-L processor. Each processor, then, performs one or more of the Extract, Transform, or Load functions in it's own thread.
+
+When subclassing, you must\-:
+
+1) In your {\bfseries init}()\-: a) Call the super init() b) Call df\-\_\-create\-\_\-input\-\_\-port() to define input ports c) Call df\-\_\-create\-\_\-output\-\_\-port() to define output ports
+
+2) (optionally) define starting\-\_\-processor() to perform any startup tasks
+
+3) (optionally) define extract\-\_\-records() to extract records from external sources and output them for use by other processors
+
+
+\begin{DoxyItemize}
+\item Call dispatch\-\_\-output() to send generated records out
+\end{DoxyItemize}
+
+4) (optionally) define methods to process records sent to this component's input ports.
+
+
+\begin{DoxyItemize}
+\item Define pr\-\_\-$<$name$>$\-\_\-input\-\_\-record() to process records recieved on port named $<$name$>$.
+\item Define pr\-\_\-any\-\_\-input\-\_\-record() to consume incoming records not handled by a method setup for a speific port name.
+\item Call pr\-\_\-dispatch\-\_\-output() to send processed records out
+\item Call pr\-\_\-hold\-\_\-record() to stash a record for processing later
+\item Call pr\-\_\-unhold\-\_\-records() to retrieve previously held records
+\item Call pr\-\_\-output\-\_\-finished() to signal that no more output will be sent on the named port. When all output ports are clossed, then the processing loop will exit.
+\end{DoxyItemize}
+
+5) Define pr\-\_\-handle\-\_\-input\-\_\-clossed() to perform any final processing when an input port is clossed. All of the methods available to the input handling methods are available here.
+
+\section*{Etl\-Schema }
+
+Describes the structure of a record
+
+The purpose of the schema is to assist the E\-T\-L logic with handling the fields of records when the E\-T\-L library does not know the structure of the records that will be used. I've gone back and forth as to whether to even require schemas, and whether to lock down input and output ports to schemas. Managing schemas, in my experience, can become tedious and self-\/serving.
+
+I've decided to keep schemas though to assist with\-: \begin{DoxyVerb}- Freezing records from changes
+- Serializeing records to disk
+- Debuging/Describing records to the user
+\end{DoxyVerb}
+
+
+I will not provide a mechanism to lock/check schemas on processor ports, though, and I don't see a great advantage to requiring this. This leaves a processor to be flexible in recieving multiple record types if desired, and leaves it up to the developer to ensure that the required fields for a given processor are present. I feel this supports the common Python practice of Duck Typing.
+
+Each record, however, does need to have an associated schema. 

@@ -1,0 +1,119 @@
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet}{\section{etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set Class Reference}
+\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet}\index{etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set@{etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set}}
+}
+Inheritance diagram for etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_ad19e823f909c56fcda06829b2aa4208a}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_ad19e823f909c56fcda06829b2aa4208a}
+
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_afd7320b379c5c7e045f2616252337fc6}{dump\-\_\-records}
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a00d61494917b21379a954d9ce997ca31}{add\-\_\-record}
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6c655eb1e6cfb73a9516c165fbb5c682}{get\-\_\-record}
+\item 
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_aa138fc96e0100b2e800bfa415c2b9d3e}{def {\bfseries has\-\_\-record}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_aa138fc96e0100b2e800bfa415c2b9d3e}
+
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_aad7c550515b18387e7b2c3df06447ea2}{find\-\_\-records\-\_\-with\-\_\-tag}
+\item 
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a8d7c09c79fc751c7a84c40ba73f91888}{def {\bfseries has\-\_\-record\-\_\-with\-\_\-tag}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a8d7c09c79fc751c7a84c40ba73f91888}
+
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6b8f6fa6dba066f9f1ee9bb52dcf7568}{remove\-\_\-record}
+\item 
+def \hyperlink{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a9bb4a7678b7a8f7bcd7d46ea9ab789aa}{size}
+\item 
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a7d8f79931efa62a7ea2598668506acce}{def {\bfseries count}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a7d8f79931efa62a7ea2598668506acce}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Stores records in memory.
+
+Don't use this class directly, but use EtlRecordSet instead
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a00d61494917b21379a954d9ce997ca31}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!add\-\_\-record@{add\-\_\-record}}
+\index{add\-\_\-record@{add\-\_\-record}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{add\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-add\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{etl\-\_\-rec, }
+\item[{}]{tags = {\ttfamily None}}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a00d61494917b21379a954d9ce997ca31}
+\begin{DoxyVerb}Add a record to the collection
+
+Use indexes to index this 
+
+@param etl_rec: Record to store
+@param tags: List of optional additional tags to be used for retrieving
+    this record.  Record must be convertable to a string with str()
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_afd7320b379c5c7e045f2616252337fc6}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!dump\-\_\-records@{dump\-\_\-records}}
+\index{dump\-\_\-records@{dump\-\_\-records}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{dump\-\_\-records}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-dump\-\_\-records (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_afd7320b379c5c7e045f2616252337fc6}
+\begin{DoxyVerb}Return all records
+
+@return: Generator of (record, tags)
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_aad7c550515b18387e7b2c3df06447ea2}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!find\-\_\-records\-\_\-with\-\_\-tag@{find\-\_\-records\-\_\-with\-\_\-tag}}
+\index{find\-\_\-records\-\_\-with\-\_\-tag@{find\-\_\-records\-\_\-with\-\_\-tag}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{find\-\_\-records\-\_\-with\-\_\-tag}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-find\-\_\-records\-\_\-with\-\_\-tag (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{tag}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_aad7c550515b18387e7b2c3df06447ea2}
+\begin{DoxyVerb}Find records that have a given tag\end{DoxyVerb}
+ \hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6c655eb1e6cfb73a9516c165fbb5c682}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!get\-\_\-record@{get\-\_\-record}}
+\index{get\-\_\-record@{get\-\_\-record}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{get\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-get\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{serial}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6c655eb1e6cfb73a9516c165fbb5c682}
+\begin{DoxyVerb}Retrieve a record
+
+@param serical:
+    Record identifier
+@return EtlRecord
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6b8f6fa6dba066f9f1ee9bb52dcf7568}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!remove\-\_\-record@{remove\-\_\-record}}
+\index{remove\-\_\-record@{remove\-\_\-record}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{remove\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-remove\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{serial}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a6b8f6fa6dba066f9f1ee9bb52dcf7568}
+\begin{DoxyVerb}Drop a record from the collection\end{DoxyVerb}
+ \hypertarget{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a9bb4a7678b7a8f7bcd7d46ea9ab789aa}{\index{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}!size@{size}}
+\index{size@{size}!etl::recshelf::MemoryRecordSet::MemoryRecordSet@{etl\-::recshelf\-::\-Memory\-Record\-Set\-::\-Memory\-Record\-Set}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-recshelf.\-Memory\-Record\-Set.\-Memory\-Record\-Set.\-size (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1recshelf_1_1MemoryRecordSet_1_1MemoryRecordSet_a9bb4a7678b7a8f7bcd7d46ea9ab789aa}
+\begin{DoxyVerb}Estimated size of the record set\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/recshelf/Memory\-Record\-Set.\-py\end{DoxyCompactItemize}

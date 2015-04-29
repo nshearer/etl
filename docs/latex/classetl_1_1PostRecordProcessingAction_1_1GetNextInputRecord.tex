@@ -1,0 +1,40 @@
+\hypertarget{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord}{\section{etl.\-Post\-Record\-Processing\-Action.\-Get\-Next\-Input\-Record Class Reference}
+\label{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord}\index{etl.\-Post\-Record\-Processing\-Action.\-Get\-Next\-Input\-Record@{etl.\-Post\-Record\-Processing\-Action.\-Get\-Next\-Input\-Record}}
+}
+Inheritance diagram for etl.\-Post\-Record\-Processing\-Action.\-Get\-Next\-Input\-Record\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord_a2de2ecd67e4bf4767686ce90ed80d3e5}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord_a2de2ecd67e4bf4767686ce90ed80d3e5}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord_ab591c1210614fb122bbca0ccdf2e4815}{{\bfseries input\-\_\-name}}\label{classetl_1_1PostRecordProcessingAction_1_1GetNextInputRecord_ab591c1210614fb122bbca0ccdf2e4815}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Instruct processor to immediately retrieve the next buffered record
+
+This grabs the next record on the specified input and calls
+prc_input_record() again without processing additional events on the event
+queue first.  This is typically used to process through previously held
+(HoldRecord) records.  If no additional records exist on the specified
+input, then processor will continue processing the event queue.
+
+This response implies RecordConsumed, and the record passed in to
+prc_input_record() will be popped off the incoming queue.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/Post\-Record\-Processing\-Action.\-py\end{DoxyCompactItemize}
