@@ -396,6 +396,19 @@ class EtlProcessorBase(object):
                                                 # are more events to process
 
 
+    def extract_records(self):
+        '''Hook for processor to extract/generate records
+        
+        These are records that are *not* created from processing input records,
+        but rather are generated completely by the processor.  It is called
+        before any input records are received if inputs are connected.
+        
+        If you need to generate records after all input records are processed,
+        use the handle_input_disconnected() hook.
+        '''
+        pass
+
+
     # -- Port connection even handling ---------------------------------------
 
     def _if_input_port_opened(self, port_name, src_prc_name, src_prc, src_port):

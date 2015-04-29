@@ -63,17 +63,6 @@ class EtlProcessor(EtlProcessorBase):
         self.tmp_dir_path = None
     
     
-    def extract_records(self):
-        '''Hook for processor to extract/generate records
-        
-        These are records that are *not* created from processing input records,
-        but rather are generated completely by the processor.  It is called
-        before any input records are received if inputs are connected.
-        
-        If you need to generate records after all input records are processed,
-        use the handle_input_disconnected() hook.
-        '''
-        pass
     
 #         
 #         Dynamically calls 'gen_<name>_output' method
