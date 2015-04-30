@@ -89,7 +89,7 @@ def get_class_method_doc(class_obj):
         if type(method).__name__ == 'instancemethod':
             if method_name[0] != '_':
                 method_doc = MethodDoc(method.__doc__)
-                doc.append('**%s(%s)**:' %(
+                doc.append('**%s(%s)**' %(
                     deslash(method_name),
                     ', '.join([deslash(name) for name in method_doc.parm_order])))
                 if method_doc.header is not None:

@@ -170,32 +170,14 @@ class EtlProcessorBase(object):
         
         self._input_ports = ports.InputPortCollection()
         self._output_ports = ports.OutputPortCollection()
+        
         self._sub_processors = dict()
 
-        # # Record all input ports
-        # for port in self.prc.list_inputs():
-        #     if self.__input_ports.has_key(port.name):
-        #         raise EtlBuildError(
-        #             prc_name = self.prc_name,
-        #             prc_class_name = self.prc,
-        #             error_msg = "input %s defined twice" % (port.name))
-        #     self.__input_ports[port.name] = port
-        #     self.__inputs[port.name] = list()
-             
-        # # Record all output ports
-        # for port in self.prc.list_outputs():
-        #     if self.__output_ports.has_key(port.name):
-        #         raise EtlBuildError(
-        #             prc_name = self.prc_name,
-        #             prc_class_name = self.prc,
-        #             error_msg = "output %s defined twice" % (port.name))
-        #     self.__output_ports[port.name] = port
-        #     self.__outpus[port.name] = list()
-         
-        # # Setup record input queues
-        # for name in self.__inputs.keys():
-        #     self.__input_queues[name] = Queue(maxsize=self.MAX_RECORD_Q_SZIE)
-        #     self.__held_records[name] = None
+
+    @property
+    def name(self):
+        return self.__name
+    
 
 
     # -- State Checking ------------------------------------------------------
@@ -618,6 +600,11 @@ class EtlProcessorBase(object):
         This processor will start in the SETUP state, and can be started by
         start_child_processor().
         '''
+        name = child.name
+
+        if self._sub_processors.has_key(name):
+            raise IndexError("Duplicate processor name: %s" % (name))
+        self._sub_processors[name] = child
 
 
     # def df_connect_sib_processors(self)

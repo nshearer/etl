@@ -53,7 +53,7 @@ class PortCollection(object):
     __metaclass__ = ABCMeta    
 
     def __init__(self):
-        self.__ports = dict()
+        self._ports = dict()
 
     @abstractmethod
     def create_port(self, name):
@@ -64,22 +64,40 @@ class PortCollection(object):
 class InputPort(PortBase):
     '''Define a port that a component can recieve records on'''
 
+    def __init__(self, name):
+        super(InputPort, self).__init__(name)
+
+        # Used to lock input so that sending processors get blocked:
+        self.input_lock = Lock()
+
 
 class InputPortCollection(PortCollection):
     '''Collection of all input ports for a processor'''
 
-    def __init__(self, name):
-        super(InputPortCollection, self).__init__(name)
+    def __init__(self):
+        super(InputPortCollection, self).__init__()
         
-        # Used to lock input so that sending processors get blocked:
-        self.input_lock = Lock()    
-
+    def create_port(self, name):
+        '''Define a new input port'''
+        self._ports[name] = InputPort(name)
 
 
 class OutputPort(PortBase):
     '''Define a port that a component can dispatch records on'''
 
+    def __init__(self, name):
+        super(OutputPort, self).__init__(name)
+
 
 class OutputPortCollection(PortCollection):
     '''Collection of all input ports for a processor'''
+
+    def __init__(self):
+        super(OutputPortCollection, self).__init__()
+        
+    def create_port(self, name):
+        '''Define a new output port'''
+        self._ports[name] = OutputPort(name)
+
+
 

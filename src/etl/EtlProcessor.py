@@ -58,9 +58,11 @@ class EtlProcessor(EtlProcessorBase):
     '''
     __metaclass__ = ABCMeta
     
-    def __init__(self):
+    def __init__(self, name):
         self.data_dir_path = None
         self.tmp_dir_path = None
+
+        super(EtlProcessor, self).__init__(name)
     
     
     

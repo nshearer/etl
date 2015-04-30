@@ -69,33 +69,23 @@ class EtlWorkflow(EtlProcessorBase):
     '''
     
     def __init__(self):
-        
+        super(EtlWorkflow, self).__init__(name='main')
+
         self.default_data_directory = os.curdir # was data_dir_path
 
         self.temp_directory = os.path.join(self.default_data_directory, 'tmp')
         # was tmp_dir_path
         
-        self.__processors = dict()
         
         
     # -- Public Methods -------------------------------------------------------
         
-    def add_processor(self, name, prc):
+    def add_processor(self, prc):
         '''Add a processor to the workflow
         
-        @param name: Name to identify this processor
         @param prc: EtlProcessor class
         '''
-        if self.__processors.has_key(name):
-            raise IndexError("Processor '%s' already exists" % (name))
-        self.__processors[name] = prc
-        self.__record_sets[name] = dict()
-        self.__connections[name] = dict()
-        
-        inputs = prc.list_inputs()
-        if inputs is not None:
-            for p_input in prc.list_inputs():
-                self.__connections[name][p_input.name] = list()
+        self.df_add_child_processor(prc)
         
         
     def connect(self, from_prc_name, output_name, to_prc_name, input_name=None):
@@ -164,10 +154,9 @@ class EtlWorkflow(EtlProcessorBase):
         self.__connections[to_prc_name][input_name].append(conn)
         
         
-    def execute(self, prc_name):
-        '''Execute the processor (and any dependency processors) and return'''
-        for p_output in self.__processors[prc_name].list_outputs():
-            self.get_output(prc_name, p_output.name)
+    def execute(self):
+        '''Execute this workflow'''
+        raise NotImplementedError('TODO')
     
     
     def save_records(self, prc_name, output_name, filename):
