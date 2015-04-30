@@ -620,4 +620,4 @@ class EtlProcessorBase(object):
         '''
 
 
-    def df_connect_sib_processors(self)
+    # def df_connect_sib_processors(self)

@@ -8,6 +8,8 @@ Workflow
 
 [include:EtlWorkflow]
 
+[include:EtlWorkflow:methods]
+
 
 Processors
 ==========
