@@ -66,7 +66,7 @@ though, as you can just instantiate it and call the methods.
 Methods of EtlWorkflow
 ------------------------------------
 
-**add\_processor**(name, prc)
+**add\_processor(name, prc)**:
 
 Add a processor to the workflow
 
@@ -74,7 +74,7 @@ Add a processor to the workflow
  - **prc**: EtlProcessor class
 
 
-**connect**(from\_prc\_name, output\_name, to\_prc\_name, input\_name)
+**connect(from\_prc\_name, output\_name, to\_prc\_name, input\_name)**:
 
 Connect the output from one processor to the input of another
 
@@ -84,14 +84,14 @@ Connect the output from one processor to the input of another
  - **input\_name**: Name of input port on to_prc to provide data on
 
 
-**df\_add\_child\_processor**()
+**df\_add\_child\_processor()**:
 
 Add a child processor.
 
 This processor will start in the SETUP state, and can be started by
 start_child_processor().
 
-**df\_create\_input\_port**(input\_name, prc\_manger)
+**df\_create\_input\_port(input\_name, prc\_manger)**:
 
 Inform the manager about another Processor connected to an input
 
@@ -99,7 +99,7 @@ Inform the manager about another Processor connected to an input
  - **prc\_manger**: EtlProcessorEventManager for connected processor
 
 
-**df\_create\_output\_port**(output\_name, prc\_manger, input\_name)
+**df\_create\_output\_port(output\_name, prc\_manger, input\_name)**:
 
 Inform the manager about another Processor connected to an output
 
@@ -108,15 +108,15 @@ Inform the manager about another Processor connected to an output
  - **input\_name**: Name of input on other processor receiving records
 
 
-**dispatch\_output\_record**()
+**dispatch\_output\_record()**:
 
 Called by EtlProcessor to send generated records out
 
-**execute**()
+**execute()**:
 
 Execute the processor (and any dependency processors) and return
 
-**extract\_records**()
+**extract\_records()**:
 
 Hook for processor to extract/generate records
 
@@ -127,33 +127,33 @@ before any input records are received if inputs are connected.
 If you need to generate records after all input records are processed,
 use the handle_input_disconnected() hook.
 
-**get\_event\_queue**()
+**get\_event\_queue()**:
 
-**get\_prc**()
+**get\_prc()**:
 
-**get\_record\_queue**()
+**get\_record\_queue()**:
 
-**list\_prc\_names**()
+**list\_prc\_names()**:
 
-**notify\_dispatch\_error**()
+**notify\_dispatch\_error()**:
 
 Record an error encountered with a generated record
 
-**notify\_error**()
+**notify\_error()**:
 
-**notify\_record\_error**()
+**notify\_record\_error()**:
 
 Record an error encountered with a received record
 
-**save\_records**()
+**save\_records()**:
 
 Output records to a file from a processor for review
 
-**start\_processor**()
+**start\_processor()**:
 
 Begin processing records
 
-**waiting\_on\_more\_input**()
+**waiting\_on\_more\_input()**:
 
 Check to see if input ports are still open
 
