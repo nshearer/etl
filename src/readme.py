@@ -93,6 +93,7 @@ def get_class_method_doc(class_obj):
                     deslash(method_name),
                     ', '.join([deslash(name) for name in method_doc.parm_order])))
                 if method_doc.header is not None:
+                    doc.append('')
                     doc.append('%s' % (method_doc.header))
                 if method_doc.body is not None:
                     doc.append('')

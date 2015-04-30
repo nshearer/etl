@@ -67,6 +67,7 @@ Methods of EtlWorkflow
 ------------------------------------
 
 **add\_processor**(name, prc)
+
 Add a processor to the workflow
 
  - **name**: Name to identify this processor
@@ -74,6 +75,7 @@ Add a processor to the workflow
 
 
 **connect**(from\_prc\_name, output\_name, to\_prc\_name, input\_name)
+
 Connect the output from one processor to the input of another
 
  - **from\_prc\_name**: Name of processor producing data
@@ -83,12 +85,14 @@ Connect the output from one processor to the input of another
 
 
 **df\_add\_child\_processor**()
+
 Add a child processor.
 
 This processor will start in the SETUP state, and can be started by
 start_child_processor().
 
 **df\_create\_input\_port**(input\_name, prc\_manger)
+
 Inform the manager about another Processor connected to an input
 
  - **input\_name**: Name of the input on this processor
@@ -96,6 +100,7 @@ Inform the manager about another Processor connected to an input
 
 
 **df\_create\_output\_port**(output\_name, prc\_manger, input\_name)
+
 Inform the manager about another Processor connected to an output
 
  - **output\_name**: Name of the output on this processor
@@ -104,12 +109,15 @@ Inform the manager about another Processor connected to an output
 
 
 **dispatch\_output\_record**()
+
 Called by EtlProcessor to send generated records out
 
 **execute**()
+
 Execute the processor (and any dependency processors) and return
 
 **extract\_records**()
+
 Hook for processor to extract/generate records
 
 These are records that are *not* created from processing input records,
@@ -128,20 +136,25 @@ use the handle_input_disconnected() hook.
 **list\_prc\_names**()
 
 **notify\_dispatch\_error**()
+
 Record an error encountered with a generated record
 
 **notify\_error**()
 
 **notify\_record\_error**()
+
 Record an error encountered with a received record
 
 **save\_records**()
+
 Output records to a file from a processor for review
 
 **start\_processor**()
+
 Begin processing records
 
 **waiting\_on\_more\_input**()
+
 Check to see if input ports are still open
 
 
