@@ -5,9 +5,6 @@ Created on Dec 27, 2012
 '''
 import os
 
-from InvalidProcessorName import InvalidProcessorName
-from InvalidDataPortName import InvalidDataPortName
-from WorkflowDataPath import WorkflowDataPath
 from EtlProcessorBase import EtlProcessorBase
 
 class EtlWorkflow(EtlProcessorBase):
@@ -101,8 +98,13 @@ class EtlWorkflow(EtlProcessorBase):
         
         
     def execute(self):
-        '''Execute this workflow'''
-        raise NotImplementedError('TODO')
+        '''Execute this workflow
+        
+        Yields records received
+        '''
+        for yield_record in self.run_processor():
+            yield yield_record
+        
     
     
     def save_records(self, prc_name, output_name, filename):

@@ -8,7 +8,7 @@ from test_data import test_person, PersonTestScehma
 #   (animal,    "dog",      "Animalia", "Canidae",  True),
 #   (animal,    "cat",      "Animalia", "Felidae",  False),
 
-from etl.EtlRecordSet import EtlRecordSet
+from etl.depricated import EtlRecordSet.EtlRecordSet
 
 
 class TestEtlRecordSetConverts(unittest.TestCase):

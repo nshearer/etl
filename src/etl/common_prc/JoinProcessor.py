@@ -50,15 +50,15 @@ class JoinProcessor(EtlProcessor):
         
     # -- Override these -------------------------------------------------------
         
-#    @abstractmethod
+    @abstractmethod
     def calc_left_join_key(self, left_record):
         '''Return a string to use for matching to records on rith input'''
 
-#    @abstractmethod
+    @abstractmethod
     def calc_right_join_key(self, left_record):
         '''Return a string to use for matching to records on rith input'''
         
-#    @abstractmethod
+    @abstractmethod
     def join_left_to_right(self, right_record, left_record):
         '''Return a new record with the information joined'''
         

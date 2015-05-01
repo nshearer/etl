@@ -70,8 +70,14 @@ class PortCollection(object):
             raise InvalidDataPortName(name, self._ports.keys())
         return self._ports[name]
 
+
     def keys(self):
         return self._ports.keys()
+
+
+    def values(self):
+        return self._ports.values()
+
 
 
 # -- Inputs -------------------------------------------------------------------

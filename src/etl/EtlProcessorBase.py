@@ -3,9 +3,6 @@ from Queue import Queue, Empty
 
 from abc import ABCMeta, abstractmethod
 
-from EtlEvent import InputRecordRecieved
-from PostRecordProcessingAction import RecordConsumed
-
 import ports
 from exceptions import EtlBuildError, InvalidProcessorName
 
@@ -16,7 +13,8 @@ class EtlEvent:
     See http://code.activestate.com/recipes/52308-the-simple-but-handy-collector-of-a-bunch-of-named/
     '''
     
-    def __init__(self, **kwds):
+    def __init__(self, event_type, **kwds):
+        self.event_type = event_type
         self.__dict__.update(kwds)
 
 
@@ -43,7 +41,7 @@ class EtlProcessorBase(object):
                         longer recieve or dispatch records.
 
 
-                    +-------+   start_processor()   +---------+
+                    +-------+     run_processor()   +---------+
                     | SETUP +-----------------------> STARTUP |
                     +-------+                       +----+----+
                                                          |     
@@ -174,7 +172,7 @@ class EtlProcessorBase(object):
         self.__name = name
         self.__state = self.SETUP_PHASE
 
-        self.input_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
+        self._input_queue = Queue(maxsize=self.MAX_EVENT_Q_SIZE)
         
         self._input_ports = ports.InputPortCollection()
         self._output_ports = ports.OutputPortCollection()
@@ -202,7 +200,7 @@ class EtlProcessorBase(object):
 
     def _processing_phase_method(self):
         '''Checks that the method call is happening during processing'''
-        self._asert_phase_is(self.SETUP_PHASE)
+        self._asert_phase_is(self.RUNNING_PHASE)
 
 
     def _finished_phase_method(self):
@@ -290,12 +288,21 @@ class EtlProcessorBase(object):
         self._input_ports[port_name].input_lock.release()
 
     
-    def start_processor(self):
+    def run_processor_without_yield(self):
+        for record in self.run_processor():
+            pass
+    
+    
+    def run_processor(self):
         '''Begin processing records'''
         self._setup_phase_method()
 
+        print "[%s] Starting children" % (self.name)
         self._pr_start_children()
-        self._pr_run_processor()
+        print "[%s] All children started" % (self.name)
+        
+        for yield_record in self._pr_run_processor():
+            yield yield_record
 
 
     # -- Processor execution --------------------------------------------------
@@ -306,14 +313,18 @@ class EtlProcessorBase(object):
 
         # Do STARTUP Tasks
         self.__state = self.STARTUP_PHASE
+        print "[%s] Startup" % (self.name)
         self.starting_processor()   # Hook for derived classes
 
         # Begin PROCESSING
         self.__state = self.RUNNING_PHASE
-        self._extract_records()
-        self._pr_event_loop()
+        print "[%s] Running" % (self.name)
+        self.extract_records()
+        for yeild_record in self._pr_event_loop():
+            yield yeild_record  # Top level workflow can yield records
 
         # Finished
+        print "[%s] Finished" % (self.name)
         self.__state = self.FINISHED
 
 
@@ -327,8 +338,9 @@ class EtlProcessorBase(object):
         
         # Receive events and dispatch to handler methods
         while self.waiting_on_more_input():
+            yield None
 
-            event = self.__event_queue.get()
+            event = self._input_queue.get()
             
             if event.event_type == 'input_port_opened':
                 self._pr_input_port_opened(event)
@@ -341,24 +353,23 @@ class EtlProcessorBase(object):
     def waiting_on_more_input(self):
         '''Check to see if input ports are still open'''
         self._processing_phase_method()
-        for input_name, input_port in self._input_ports:
-            if input_port.has_open_connections():
+        for input_port in self._input_ports.values():
+            if input_port.is_connected:
                 return True
 
-        return not self.__event_queue.empty()   # Last check to see if there
-                                                # are more events to process
+        return not self._input_queue.empty()   # Last check to see if there
+                                               # are more events to process
 
 
+    # -- Processor execution hooks --------------------------------------------
+    
+    def starting_processor(self):
+        '''Hook for child class to do something while processor is stopping'''
+        pass
+    
+    
     def extract_records(self):
-        '''Hook for processor to extract/generate records
-        
-        These are records that are *not* created from processing input records,
-        but rather are generated completely by the processor.  It is called
-        before any input records are received if inputs are connected.
-        
-        If you need to generate records after all input records are processed,
-        use the handle_input_disconnected() hook.
-        '''
+        '''Hook for child classes to extract records from an external source'''
         pass
 
 
@@ -504,42 +515,42 @@ class EtlProcessorBase(object):
                 self.prc.handle_input_disconnected(input_name, dispatcher)
     
     
-    def dispatch_output_record(self, output_name, record):
-        '''Called by EtlProcessor to send generated records out'''
-        
-        # Validate output name
-        if not self.__output_ports.has_key(output_name):
-            msg = "Output named '%s' does not exist.  " % (output_name)
-            msg += "Use one of the following: "
-            msg += ", ".join(self.__output_ports.keys())
-            self.notify_dispatch_error(record, msg)
-            return
-            
-        # Validate record matches output schema
-        schema = self.__output_ports[output_name].schema
-        errors = schema.check_record_struct(record)
-        if len(errors) > 0:
-            for error in errors:
-                msg = "Record fails validation: " + error
-                self.notify_dispatch_error(record, msg)
-            return
-        
-        # Finish setting attributes on the record
-        if not record.is_frozen:
-            record.set_source(self.prc_name, output_name)
-            record.freeze()
-            
-        # Send to connected processor managers
-        for conn in self.__connected_outputs[output_name]:
-            
-            # Send Record
-            queue = conn.dst_prc_manager.get_input_record_queue(conn.input_name)
-            queue.put(record)
-    
-            # Send Event
-            queue = conn.dst_prc_manager.get_event_queue()
-            event = InputRecordRecieved(conn.input_name)
-            queue.put(event)
+#     def dispatch_output_record(self, output_name, record):
+#         '''Called by EtlProcessor to send generated records out'''
+#         
+#         # Validate output name
+#         if not self.__output_ports.has_key(output_name):
+#             msg = "Output named '%s' does not exist.  " % (output_name)
+#             msg += "Use one of the following: "
+#             msg += ", ".join(self.__output_ports.keys())
+#             self.notify_dispatch_error(record, msg)
+#             return
+#             
+#         # Validate record matches output schema
+#         schema = self.__output_ports[output_name].schema
+#         errors = schema.check_record_struct(record)
+#         if len(errors) > 0:
+#             for error in errors:
+#                 msg = "Record fails validation: " + error
+#                 self.notify_dispatch_error(record, msg)
+#             return
+#         
+#         # Finish setting attributes on the record
+#         if not record.is_frozen:
+#             record.set_source(self.prc_name, output_name)
+#             record.freeze()
+#             
+#         # Send to connected processor managers
+#         for conn in self.__connected_outputs[output_name]:
+#             
+#             # Send Record
+#             queue = conn.dst_prc_manager.get_input_record_queue(conn.input_name)
+#             queue.put(record)
+#     
+#             # Send Event
+#             queue = conn.dst_prc_manager.get_event_queue()
+#             event = InputRecordRecieved(conn.input_name)
+#             queue.put(event)
             
     
     def notify_dispatch_error(self, record, error_msg):
@@ -579,6 +590,15 @@ class EtlProcessorBase(object):
         if not self._sub_processors.has_key(name):
             raise InvalidProcessorName(name, self._sub_processors.keys())
         return self._sub_processors[name]
+    
+    
+    def _pr_start_children(self):
+        '''Begin executing child processors'''
+        for subproc in self._sub_processors.values():
+            subproc.run_processor_without_yield()
+    
+    
+    # -- Connecting processors ------------------------------------------------
 
 
     def df_connect_children(self, source_prc, source_port, dst_prc, dst_port):
@@ -667,54 +687,54 @@ class EtlProcessorBase(object):
 #        self.__connections[to_prc_name][input_name].append(conn)
 
 
-    # -- Exception Builders ---------------------------------------------------
-        
-    def _invalid_prc_name(self, prc_name, context):
-        '''Create an InvalidProcessorName exception object
-        
-        @param prc_name: The processor name that does not exist
-        @param context: Where the invalid name was used at
-        '''
-        msg = "Invalid processor name '%s' referenced by %s"
-        msg = msg % (prc_name, context)
-        
-        return InvalidProcessorName(
-            prc_name = None,
-            prc_class_name = None,
-            error_msg = msg,
-            possible_values = self.__processors.keys())
-    
-    
-    def _invalid_dataport_name(self, direction, prc_name, port_name, context):
-        '''Create an InvalidProcessorName exception object
-        
-        @param direction: 'input' or 'output'
-        @param prc_name: The processor being referenced with the data port
-        @param port_name: The non-existant dataport that's being referenced
-        @param context: Where the invalid name was used at
-        '''
-        msg = "Processor %s (%s) does not have an %s port named '%s'"
-        msg += " referenced by %s"
-        msg = msg % (prc_name,
-                     self.__processors[prc_name].__class__.__name__,
-                     direction,
-                     port_name,
-                     context)
-        
-        possible = None
-        if direction == 'input':
-            possible = self.__processors[prc_name].list_input_names()
-        elif direction == 'output':
-            possible = self.__processors[prc_name].list_output_names()
-        else:
-            raise ValueError("Invalid direction: '%s'" % (direction))
-            
-        
-        return InvalidDataPortName(
-            prc_name = prc_name,
-            prc_class_name = self.__processors[prc_name].__class__.__name__,
-            error_msg = msg,
-            possible_values = possible)
+#     # -- Exception Builders ---------------------------------------------------
+#         
+#     def _invalid_prc_name(self, prc_name, context):
+#         '''Create an InvalidProcessorName exception object
+#         
+#         @param prc_name: The processor name that does not exist
+#         @param context: Where the invalid name was used at
+#         '''
+#         msg = "Invalid processor name '%s' referenced by %s"
+#         msg = msg % (prc_name, context)
+#         
+#         return InvalidProcessorName(
+#             prc_name = None,
+#             prc_class_name = None,
+#             error_msg = msg,
+#             possible_values = self.__processors.keys())
+#     
+#     
+#     def _invalid_dataport_name(self, direction, prc_name, port_name, context):
+#         '''Create an InvalidProcessorName exception object
+#         
+#         @param direction: 'input' or 'output'
+#         @param prc_name: The processor being referenced with the data port
+#         @param port_name: The non-existant dataport that's being referenced
+#         @param context: Where the invalid name was used at
+#         '''
+#         msg = "Processor %s (%s) does not have an %s port named '%s'"
+#         msg += " referenced by %s"
+#         msg = msg % (prc_name,
+#                      self.__processors[prc_name].__class__.__name__,
+#                      direction,
+#                      port_name,
+#                      context)
+#         
+#         possible = None
+#         if direction == 'input':
+#             possible = self.__processors[prc_name].list_input_names()
+#         elif direction == 'output':
+#             possible = self.__processors[prc_name].list_output_names()
+#         else:
+#             raise ValueError("Invalid direction: '%s'" % (direction))
+#             
+#         
+#         return InvalidDataPortName(
+#             prc_name = prc_name,
+#             prc_class_name = self.__processors[prc_name].__class__.__name__,
+#             error_msg = msg,
+#             possible_values = possible)
 
 
     # -- Debug ----------------------------------------------------------------
