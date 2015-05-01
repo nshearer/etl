@@ -1,52 +1,66 @@
-'''
-Created on Dec 28, 2012
-
-@author: nshearer
-'''
 from abc import ABCMeta, abstractmethod
 
+from etl.EtlProcessor import EtlProcessor
+from etl.recshelf.RecordShelf import RecordShelf
 
-from EtlProcessor import EtlProcessor
-
-
-class EtlJoinProcessor(EtlProcessor):
-    '''Join one set of records to another'''
+class JoinProcessor(EtlProcessor):
+    '''Join each record on the right to one on the left
     
-    def __init__(self):
-        super(EtlJoinProcessor, self).__init__()
-        self.__match_keys = dict()      # Match Key -> (input_set, Record Key)
-        self.__lookup_inputs_processed = False
+                       +----------------+                                     
+                       |                +--->  joined                         
+            left   +--->                |                                     
+                       |  JoinProcssor  +--->  left_not_joined                
+            right  +--->                |                                     
+                       |                +--->  right_not_joined               
+                       +----------------+
+
+    This is a key utility processor which joins records coming in on one input
+    to the records on another input.
+    
+    The three key outputs are:
+    
+    joined: Contains each of the right records joined to a single matching left
+        record if one was found to join to.
+            
+    left_not_joined: Contains each of the left records that was not matched to
+        any record on the right input
+                     
+    right_not_joined: Contains each of the right records that was not matched to
+        any record on the left input
+                      
+    To use, you must subclass and implement:
+      - calc_left_join_key()
+      - calc_right_join_key()
+      - join_left_to_right() 
+    '''
+    __metacass__ = ABCMeta
+    
+    def __init__(self, name):
+        super(JoinProcessor, self).__init__(name)
+        self.__shelf = RecordShelf()
+        
+        self.df_create_input_port('left')
+        self.df_create_input_port('right')
+        
+        self.df_create_output_port('joined')
+        self.df_create_output_port('left_not_joined')
+        self.df_create_output_port('right_not_joined')
         
         
-    def list_inputs(self):
-        for p_input in self.list_lookup_inputs():
-            yield p_input
-        for p_input in self.list_subject_inputs():
-            yield p_input
         
     # -- Override these -------------------------------------------------------
         
-    @abstractmethod
-    def list_lookup_inputs(self):
-        '''List inputs that contain the records to ref against
+#    @abstractmethod
+    def calc_left_join_key(self, left_record):
+        '''Return a string to use for matching to records on rith input'''
+
+#    @abstractmethod
+    def calc_right_join_key(self, left_record):
+        '''Return a string to use for matching to records on rith input'''
         
-        These record sets must be indexed
-        '''
-        
-        
-    @abstractmethod
-    def list_subject_inputs(self):
-        '''List inputs that contain the records to find refs for'''
-        
-        
-    @abstractmethod
-    def build_lookup_record_key(self, lookup_record):
-        '''Build a key to be used for matching subject records to'''
-        
-        
-    @abstractmethod
-    def build_lookup_key(self, record):
-        '''Build a key to use to find a lookup record'''
+#    @abstractmethod
+    def join_left_to_right(self, right_record, left_record):
+        '''Return a new record with the information joined'''
         
         
     # -- Common join logic ----------------------------------------------------
@@ -92,7 +106,7 @@ class EtlJoinProcessor(EtlProcessor):
             self.__lookup_inputs_processed = True
                     
         # Call Parent to process subject records
-        super(EtlJoinProcessor, self).gen_output(name, inputs, record_set)
+        super(JoinProcessor, self).gen_output(name, inputs, record_set)
         
         
     #def gen_invoices_output(self, inputs, output_set):
