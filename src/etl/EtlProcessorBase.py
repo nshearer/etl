@@ -1,4 +1,3 @@
-from threading import Thread, Lock
 from Queue import Queue, Empty
 
 from abc import ABCMeta, abstractmethod
@@ -181,7 +180,7 @@ class EtlProcessorBase(object):
 
 
     @property
-    def name(self):
+    def processor_name(self):
         return self.__name
     
 
@@ -286,45 +285,53 @@ class EtlProcessorBase(object):
         '''
         self._processing_phase_method()
         self._input_ports[port_name].input_lock.release()
-
-    
-    def run_processor_without_yield(self):
-        for record in self.run_processor():
-            pass
     
     
-    def run_processor(self):
-        '''Begin processing records'''
-        self._setup_phase_method()
-
-        print "[%s] Starting children" % (self.name)
-        self._pr_start_children()
-        print "[%s] All children started" % (self.name)
-        
-        for yield_record in self._pr_run_processor():
-            yield yield_record
-
-
     # -- Processor execution --------------------------------------------------
 
-    def _pr_run_processor(self):
-        '''Perform the task of the processor'''
-        self._setup_phase_method()
+    def _boot_processor(self):
+        '''Perform startup tasks for this processor'''
+        self._setup_phase_method()  # We can only start if we're in SETUP
 
         # Do STARTUP Tasks
         self.__state = self.STARTUP_PHASE
-        print "[%s] Startup" % (self.name)
+        print "[%s] STARTUP" % (self.processor_name)
         self.starting_processor()   # Hook for derived classes
 
-        # Begin PROCESSING
+        # Start child processors
+        print "[%s] Starting children" % (self.processor_name)
+        for subproc in self._sub_processors.values():
+            # Sub processors shouldn't be generators!
+            subproc._boot_processor()
+        print "[%s] All children started" % (self.processor_name)
+
+
+    def _set_running(self):
+        print "[%s] RUNNING" % (self.processor_name)
         self.__state = self.RUNNING_PHASE
-        print "[%s] Running" % (self.name)
+        
+
+    def _pr_process_records(self):
+        '''Perform the task of the processor
+        
+        Note that this method is a generator.  Super classes can yield back
+        records received.
+        '''
+        self._processing_phase_method()
+
+        # Extract Records
+        print "[%s] extract_records()" % (self.processor_name)
         self.extract_records()
+        print "[%s] extract_records() finished" % (self.processor_name)
+        
+        # Process incoming records
+        print "[%s] _pr_event_loop()" % (self.processor_name)
         for yeild_record in self._pr_event_loop():
             yield yeild_record  # Top level workflow can yield records
+        print "[%s] _pr_event_loop() finished" % (self.processor_name)
 
         # Finished
-        print "[%s] Finished" % (self.name)
+        print "[%s] FINISHED" % (self.processor_name)
         self.__state = self.FINISHED
 
 
@@ -338,7 +345,7 @@ class EtlProcessorBase(object):
         
         # Receive events and dispatch to handler methods
         while self.waiting_on_more_input():
-            yield None
+            yield None  # TODO
 
             event = self._input_queue.get()
             
@@ -426,7 +433,7 @@ class EtlProcessorBase(object):
 
                             
     def _handle_input_record_event(self, event):
-        '''Handle record recieved on input port'''
+        '''Handle record received on input port'''
         msg = "Received message"
         if not self._validate_input_name(msg, event.input_name, event.conn_id):
             return False
@@ -579,7 +586,7 @@ class EtlProcessorBase(object):
         This processor will start in the SETUP state, and can be started by
         start_child_processor().
         '''
-        name = child.name
+        name = child.processor_name
 
         if self._sub_processors.has_key(name):
             raise IndexError("Duplicate processor name: %s" % (name))
@@ -590,12 +597,6 @@ class EtlProcessorBase(object):
         if not self._sub_processors.has_key(name):
             raise InvalidProcessorName(name, self._sub_processors.keys())
         return self._sub_processors[name]
-    
-    
-    def _pr_start_children(self):
-        '''Begin executing child processors'''
-        for subproc in self._sub_processors.values():
-            subproc.run_processor_without_yield()
     
     
     # -- Connecting processors ------------------------------------------------
@@ -625,7 +626,7 @@ class EtlProcessorBase(object):
         self._output_ports[source_port].connect_to(dst_prc, dst_port)
         dst_prc._if_input_port_opened(
             port_name=dst_port,
-            src_prc_name=self.name,
+            src_prc_name=self.processor_name,
             src_prc_port=source_port)
         
 
@@ -644,7 +645,7 @@ class EtlProcessorBase(object):
 #
 #        output_info = None
 #        for p_output in from_prc.list_outputs():
-#            if p_output.name == output_name:
+#            if p_output.processor_name == output_name:
 #                output_info = p_output
 #                break
 #        if output_info is None:
@@ -662,7 +663,7 @@ class EtlProcessorBase(object):
 #        
 #        input_info = None
 #        for p_input in to_prc.list_inputs():
-#            if p_input.name == input_name:
+#            if p_input.processor_name == input_name:
 #                input_info = p_input
 #                break
 #        if input_info is None:
@@ -745,6 +746,7 @@ class EtlProcessorBase(object):
         
         src.append('digraph %s {' % (self.__class__.__name__))
         
+        src.append('rankdir = "LR";')
         src.append('node [shape=Mrecord];')
         
         # Self
@@ -757,7 +759,7 @@ class EtlProcessorBase(object):
                 conns = prc._output_ports[output_port_name].list_connections()
                 for target_prc_name, target_port_name in conns:
                     src.append('%s:o_%s -> %s:i_%s;' % (
-                        prc.name,
+                        prc.processor_name,
                         output_port_name,
                         target_prc_name,
                         target_port_name))
@@ -776,9 +778,9 @@ class EtlProcessorBase(object):
         input_port_defs = ['<i_%s> %s' % (name, name) for name in input_ports]
         output_port_defs = ['<o_%s> %s' % (name, name) for name in output_ports]
         
-        src.append('%s [label="{ %s\\n\'%s\' | { { %s } | { %s } } }"];' % (prc.name,
+        src.append('%s [label="{ %s\\n\'%s\' | { { %s } | { %s } } }"];' % (prc.processor_name,
                                               prc.__class__.__name__,
-                                              prc.name,
+                                              prc.processor_name,
                                               " | ".join(input_port_defs),
                                               " | ".join(output_port_defs),
                                               ))

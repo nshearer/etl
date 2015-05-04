@@ -5,16 +5,12 @@ Created on Dec 27, 2012
 '''
 from abc import ABCMeta, abstractmethod
 
+# TODO: Move to multiprocessing later?
+from threading import Thread
+
 from EtlProcessorBase import EtlProcessorBase
 
-class EtlProcessorDataPort(object):
-    '''Specify a name for input or output record sets'''
-    def __init__(self, name, schema):
-        self.name = name
-        self.schema = schema
-
-
-class EtlProcessor(EtlProcessorBase):
+class EtlProcessor(Thread, EtlProcessorBase):
     '''Takes 0 or more inputs and generates 0 or more outputs
 
     See EtlProcessorBase for additional detail
@@ -62,9 +58,35 @@ class EtlProcessor(EtlProcessorBase):
         self.data_dir_path = None
         self.tmp_dir_path = None
 
-        super(EtlProcessor, self).__init__(name)
+        EtlProcessorBase.__init__(self, name)
+        Thread.__init__(self)
     
     
+    def starting_processor_in_thread(self):
+        '''Like starting_processor() hook, but called in thread'''
+        pass
+    
+    
+    # -- Thread handling ------------------------------------------------------
+    
+    
+    def _boot_processor(self):
+        '''Start this processor execution.  This starts the thread'''
+        # Let parent do startup tasks first such as starting any children
+        super(EtlProcessor, self)._boot_processor()
+        
+        # Start thread
+        self.start()
+    
+    
+    def run(self):
+        '''First method called in spawned thread'''
+        self.starting_processor_in_thread()
+        self._set_running()
+        for ignored_record in self._pr_process_records():
+            pass
+    
+
     
 #         
 #         Dynamically calls 'gen_<name>_output' method

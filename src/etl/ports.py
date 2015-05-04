@@ -51,6 +51,10 @@ class PortBase(object):
     @property
     def name(self):
         return self.__name
+    
+    
+    def __str__(self):
+        return "%s('%s')" % (self.__class__.__name__, self.__name) 
 
 
 class PortCollection(object):

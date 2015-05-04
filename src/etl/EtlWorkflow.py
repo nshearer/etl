@@ -97,12 +97,16 @@ class EtlWorkflow(EtlProcessorBase):
         
         
         
-    def execute(self):
+    def execute_workflow(self):
         '''Execute this workflow
+        
+        This method is kindof a main() function for workflows.
         
         Yields records received
         '''
-        for yield_record in self.run_processor():
+        self._boot_processor()
+        self._set_running()
+        for yield_record in self._pr_process_records():
             yield yield_record
         
     

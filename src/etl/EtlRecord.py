@@ -42,13 +42,15 @@ class EtlRecord(DictMixin):
     output set.
     '''
     
-    def __init__(self, schema, values):
+    def __init__(self, schema, values=None):
         '''Init
         
         @param schema: The Schema this record is being created to match
         @param values: Initial values
         '''
-        self.__values = values.copy()
+        self.__values = dict()
+        if values is not None:
+            self.__values = values.copy()
         self.__schema = schema
         self.__serial = EtlRecordSerial()
         self.__frozen = False
