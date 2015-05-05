@@ -351,6 +351,9 @@ class EtlProcessorBase(object):
             
             if event.event_type == 'input_port_opened':
                 self._pr_input_port_opened(event)
+                
+            elif event.event_type == 'recieve_input_record':
+                self._pr_recieve_input_record(event)
 
             else:
                 raise Exception("Unknown event type: " + event.event_type)
@@ -414,26 +417,60 @@ class EtlProcessorBase(object):
                                                         event.src_prc_port)
 
 
+    # -- Record output -------------------------------------------------------
+    
+    def pr_dispatch_output(self, output_port_name, record):
+        '''Send a processed record out of the named output port
+        
+        This method is how records are sent to processors that have connected
+        to this processors output port.
+        
+        Before being sent, the record is frozen to make it immutable.  This
+        ensures that the record object can be passed to multiple processors
+        without one changing the data and effecting the other.
+        '''
+        record.freeze()
+        conns = self._output_ports[output_port_name].get_connected_prcs()
+        for prc, prc_input_port_name in conns:
+            prc._if_recieve_input_record(
+                prc_name = self.processor_name,
+                output_port = output_port_name,
+                input_port = prc_input_port_name,
+                rec = record)
+
+
+
     # -- Incoming record handling --------------------------------------------
 
-    def _if_recieve_input_record(self, input_port_name, record):
-        event = {
-            'input_port':   input_port_name,
-            'record':       record,
-        }
+    def _if_recieve_input_record(self, prc_name, output_port, input_port, rec):
+        '''Receive a record from another processor
+        
+        It is assumed that the source processor has "connected" one of it's
+        output ports to this processor's input port.
+        
+        @param prc_name: Source processor name
+        @param output_port: Name of output port on source processor
+        @param input_port: Name of the input port on this processor record was
+            sent to.
+        @param rec: The EtlRecord begin sent.
+        '''
+        event = EtlEvent(
+            event_type = 'recieve_input_record',
+            source_prc =    prc_name,
+            output_port =   output_port,
+            input_port =    input_port,
+            record =        rec,
+        )
 
-        if not self._input_ports.has_key(input_port_name):
-            msg = "This processor does not have input named %s"
-            raise IndexError(msg % (input_port_name))
-
-        # Use read lock
-        with self._input_ports[input_port_name].input_lock:
-            self.__event_queue.put('recieve_input_record', event)
+        # Use input port lock
+        with self._input_ports[input_port].input_lock:
+            self._input_queue.put(event)
 
 
                             
-    def _handle_input_record_event(self, event):
+    def _pr_recieve_input_record(self, event):
         '''Handle record received on input port'''
+        
         msg = "Received message"
         if not self._validate_input_name(msg, event.input_name, event.conn_id):
             return False
@@ -560,22 +597,22 @@ class EtlProcessorBase(object):
 #             queue.put(event)
             
     
-    def notify_dispatch_error(self, record, error_msg):
-        '''Record an error encountered with a generated record'''
-        self.notify_error(record.create_msg("CANNOT DISPATCH MSG: " + error_msg))
-        
-        
-    def notify_record_error(self, record, error_msg):
-        '''Record an error encountered with a received record'''
-        msg = "RECEIVCED INVALID MESSAGE: " + error_msg
-        self.notify_error(record.create_msg(msg))
-        
-        
-    def notify_error(self, error):
-        msg ="Error encountered in event loop with processor %s: %s"
-        msg = msg % (self.prc_name, error)
-        print msg
-    
+#     def notify_dispatch_error(self, record, error_msg):
+#         '''Record an error encountered with a generated record'''
+#         self.notify_error(record.create_msg("CANNOT DISPATCH MSG: " + error_msg))
+#         
+#         
+#     def notify_record_error(self, record, error_msg):
+#         '''Record an error encountered with a received record'''
+#         msg = "RECEIVCED INVALID MESSAGE: " + error_msg
+#         self.notify_error(record.create_msg(msg))
+#         
+#         
+#     def notify_error(self, error):
+#         msg ="Error encountered in event loop with processor %s: %s"
+#         msg = msg % (self.prc_name, error)
+#         print msg
+#     
 
     # -- Sub Processors ------------------------------------------------------
 

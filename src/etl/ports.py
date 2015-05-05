@@ -158,6 +158,13 @@ class OutputPort(PortBase):
     def list_connections(self):
         for conn in self.__conns:
             yield conn.target_prc.name, conn.target_port_name
+            
+            
+    def get_connected_prcs(self):
+        '''Return processors to dispatch this output to'''
+        for conn in self.__conns:
+            if conn.status == STATUS_OPEN:
+                yield conn.target_prc, conn.target_port_name
 
 
 class OutputPortCollection(PortCollection):
@@ -169,6 +176,7 @@ class OutputPortCollection(PortCollection):
     def create_port(self, name):
         '''Define a new output port'''
         self._ports[name] = OutputPort(name)
+        
 
 
 
