@@ -4,7 +4,7 @@ from EtlSchemaElement import EtlSchemaElement
 class EtlListElementWrapper(list):
     
     def __init__(self, item_element):
-        super(EtlListElementWrapper, self).__init__()
+        list.__init__(self)
         self._is_frozen = False
         self._item_element = item_element
         
@@ -16,7 +16,7 @@ class EtlListElementWrapper(list):
             self[i] = self._item_element.freeze_value(value)
     
     def assert_not_frozen(self):
-        if self.__frozen:
+        if self._is_frozen:
             raise EtlRecordFrozen()
 
     def append(self, value):
@@ -34,7 +34,13 @@ class EtlListElementWrapper(list):
         value = self._item_element.validate_and_set_value(value)
         list.__setitem__(self, index, value)
         
-
+        
+    def __getitem__(self, name):
+        value = list.__getitem__(name)
+        return self._item_element.access_value(name, self._is_frozen)
+        
+        
+    
 
 class EtlListElement(EtlSchemaElement):
     '''An element that stores a list of items'''
@@ -89,8 +95,11 @@ class EtlListElement(EtlSchemaElement):
         # Else, convert iterable to EtlListElementWrapper
         stored = EtlListElementWrapper(self.item_element)
         for item in value:
-            stored.append(value)
-        
+            stored.append(item)
+        value = stored
+            
+        return value
+         
     
     def access_value(self, stored_value, is_frozen):
         '''Return the stored value to the user

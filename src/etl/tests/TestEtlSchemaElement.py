@@ -66,3 +66,10 @@ class TestEtlSchemaElement(unittest.TestCase):
         self.assertEqual(str(elm_a), str(elm_b))
 
 
+    def test_list_element(self):
+        elm_a = EtlListElement(item_element=EtlStringElement())
+        
+        list_wrapper = elm_a.validate_and_set_value(["a", "b"])
+        
+        self.assertEqual(list_wrapper, ["a", "b"])
+        

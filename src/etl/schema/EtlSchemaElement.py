@@ -82,6 +82,21 @@ class EtlSchemaElement(object):
         return stored_value
     
     
+    @abstractmethod
+    def repr_for_pickle(self):
+        '''Return a value that is easily pickleable, for stashing record'''
+        
+        
+    @abstractmethod
+    def unpickle_to_store(self, value):
+        '''Re-create value un-pickled from shelf, to store in record __values
+        
+        This should return the same representation that validate_and_set_value()
+        originoally did when creating this record
+        '''
+        
+    
+    
     # -- Use Functions -------------------------------------------------------
 
     def __eq__(self, other):
