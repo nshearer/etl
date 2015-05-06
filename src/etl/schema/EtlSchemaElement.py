@@ -71,7 +71,16 @@ class EtlSchemaElement(object):
         @return: Value to work with in ETL
         '''
         return None
+
+
+    def freeze_value(self, stored_value):
+        '''Cascade the freeze action down to the values
         
+        @param stored_value: The value returned by validate_value()
+        @return: Value to store in values
+        '''        
+        return stored_value
+    
     
     # -- Use Functions -------------------------------------------------------
 

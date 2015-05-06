@@ -8,15 +8,12 @@ from etl.schema.EtlBoolElement import EtlBoolElement
 from etl.schema.EtlIntElement import EtlIntElement
 from etl.schema.EtlListElement import EtlListElement
 from etl.schema.EtlRecordElement import EtlRecordElement
-from etl.schema.EtlAnyElement import EtlAnyElement
 
 
 class TestEtlSchemaElement(unittest.TestCase):
 
 
     # Sorted alphabetically:
-    def test_can_create_any_element(self):
-        EtlAnyElement()
     def test_can_create_binary_element(self):
         EtlBinaryElement()
     def test_can_create_bool_element(self):

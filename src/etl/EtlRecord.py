@@ -8,6 +8,8 @@ from threading import Lock
 
 from etl.schema.EtlSchema import RecordSchemaError
 
+from exceptions import EtlRecordFrozen
+
 NEXT_ETL_RECORD_SERIAL = 0L
 NEXT_ETL_RECORD_LOCK = Lock()
 
@@ -29,12 +31,6 @@ class EtlRecordSerial(object):
     def __hash__(self):
         return hash(self.__value) # May change to string in the future
         
-
-
-class EtlRecordFrozen(Exception):
-    def __init__(self):
-        msg = "Attempting to modify a frozen EtlRecord"
-        super(EtlRecordFrozen, self).__init__(msg)        
 
 
 class EtlRecord(DictMixin):
@@ -124,7 +120,8 @@ class EtlRecord(DictMixin):
             return self.schema[name].get_none_value(self.__frozen)
         
         # Return value
-        return self.schema[name].access_value(name, self.__frozen)
+        stored_value = self.__values[name]
+        return self.schema[name].access_value(stored_value, self.__frozen)
         
 
     # -- Source processor -----------------------------------------------------
@@ -178,6 +175,12 @@ class EtlRecord(DictMixin):
     
     def freeze(self):
         self.__frozen = True
+        for field_name in self.schema.etl_list_field_names():
+            if self.__values.has_key(field_name):
+                if self.__values[field_name] is not None:
+                    value = self.__values[field_name]
+                    value = self.schema[field_name].freeze_value(value)
+                    self.__values[field_name] = value
         
     @property
     def is_frozen(self):

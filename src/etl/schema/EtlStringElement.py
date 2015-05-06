@@ -28,13 +28,16 @@ class EtlStringElement(EtlSchemaElement):
         @param value: Value being set for this fiel in on the record
         @return: Value to be stored on record
         '''
+        if value is None:
+            return None
+        return str(value)
         
     
-    @abstractmethod
     def access_value(self, stored_value, is_frozen):
         '''Return the stored value to the user
         
         @param stored_value: The value returned by validate_value()
         @param is_frozen: Has the record been frozen
         @return: Value to work with in ETL
-        '''    
+        '''
+        return stored_value

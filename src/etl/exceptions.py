@@ -66,3 +66,11 @@ class InvalidProcessorName(EtlBuildError):
         msg = "Invalid processor name: %s (not in [%s])"
         msg = msg % (name, ", ".join(possible_values))
         super(InvalidProcessorName, self).__init__(msg)
+
+
+class EtlRecordFrozen(Exception):
+    def __init__(self):
+        msg = "Attempting to modify a frozen EtlRecord"
+        super(EtlRecordFrozen, self).__init__(msg)        
+
+

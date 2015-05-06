@@ -40,11 +40,11 @@ class TestEtlRecord(unittest.TestCase):
                           set(['first', 'last', 'age']))
         
     
-    def testFieldNamesWithoutSchema(self):
-        rec = test_person(0)
-        rec.set_schema(None)
-        self.assertEquals(sorted(rec.field_names()),
-                          sorted(['first', 'last', 'age']))
+#     def testFieldNamesWithoutSchema(self):
+#         rec = test_person(0)
+#         rec.set_schema(None)
+#         self.assertEquals(sorted(rec.field_names()),
+#                           sorted(['first', 'last', 'age']))
         
     
     def testGetFieldValue(self):
