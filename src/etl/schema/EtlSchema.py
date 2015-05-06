@@ -4,6 +4,16 @@ Created on Dec 27, 2012
 @author: nshearer
 '''
 
+
+class RecordSchemaError(Exception):
+    '''An error occurred where a field value doesn't agree with the schema'''
+    
+    def __init__(self, record, field, error):
+        msg = "%s: %s: %s" % (record.schema.__class__.__name__,
+                              field, error)
+        super(RecordSchemaError, self).__init__(msg)
+
+
 class EtlSchema(object):
     '''Describes the structure of a record
 
@@ -108,7 +118,7 @@ class EtlSchema(object):
             if self.__added_fields.has_key(name):
                 return self.__added_fields[name]
             
-        
+            
     def _check_obj_is_element(self, obj):
         '''Check to see if the given object is an element definition'''
         if hasattr(obj, 'is_schema_element'):

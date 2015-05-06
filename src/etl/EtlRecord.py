@@ -6,6 +6,8 @@ Created on Dec 27, 2012
 from UserDict import DictMixin
 from threading import Lock
 
+from etl.schema.EtlSchema import RecordSchemaError
+
 NEXT_ETL_RECORD_SERIAL = 0L
 NEXT_ETL_RECORD_LOCK = Lock()
 
@@ -49,8 +51,6 @@ class EtlRecord(DictMixin):
         @param values: Initial values
         '''
         self.__values = dict()
-        if values is not None:
-            self.__values = values.copy()
         self.__schema = schema
         self.__serial = EtlRecordSerial()
         self.__frozen = False
@@ -58,6 +58,10 @@ class EtlRecord(DictMixin):
         self.__src_port = None
         self.__from_records = list()
         self.__size_cache = None
+        
+        if values is not None:
+            for k, v in values.items():
+                self[k] = v
         
         
     def clone(self):
@@ -77,18 +81,51 @@ class EtlRecord(DictMixin):
     
 
     # -- Source record linking.  TODO: Move? ----------------------------------
-    
+     
     def note_src_record(self, rec):
         '''Note another record that was processed to help create this record'''
         self.assert_not_frozen()
         if len(self.__from_records) < 100000:
             self.__from_records.append(rec.serial)
-            
-            
+             
+             
     def get_src_record_serials(self):
         '''Serial codes of records that helped generate this record'''
         return self.__from_records[:]
+     
+    # -- Handling fields ------------------------------------------------------
     
+    def set_field_value(self, name, value):
+        self.assert_not_frozen()
+        
+        # Validate field exists in schema
+        schema_element = self.schema.etl_get_field(name)
+        if schema_element is None:
+            raise RecordSchemaError(
+                record = self,
+                field = name,
+                error = "Field not in schema")
+        
+        self.__values[name] = self.schema[name].validate_and_set_value(value)
+        
+        
+    def get_field_value(self, name):
+        
+        # Validate field exists in schema
+        schema_element = self.schema.etl_get_field(name)
+        if schema_element is None:
+            raise RecordSchemaError(
+                record = self,
+                field = name,
+                error = "Field not in schema")
+            
+        # See if a value is even stored
+        if not self.__values.has_key(name) or self.__values[name] is None:
+            return self.schema[name].get_none_value(self.__frozen)
+        
+        # Return value
+        return self.schema[name].access_value(name, self.__frozen)
+        
 
     # -- Source processor -----------------------------------------------------
     
@@ -117,20 +154,18 @@ class EtlRecord(DictMixin):
         
     @property
     def values(self):
-        return self.__values.copy()
-    
-    
-    def value(self, name):
-        return self.__values[name]
+        rtn = dict()
+        for field_name in self.schema.etl_list_field_names():
+            rtn[field_name] = self.get_field_value(field_name)
+        return rtn
     
     
     def __getitem__(self, name):
-        return self.value(name)
+        return self.get_field_value(name)
     
     
     def __setitem__(self, name, value):
-        self.assert_not_frozen()
-        self.__values[name] = value
+        self.set_field_value(name, value)
         
         
     def set(self, name, value):

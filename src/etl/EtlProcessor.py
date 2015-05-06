@@ -59,7 +59,7 @@ class EtlProcessor(Thread, EtlProcessorBase):
         self.tmp_dir_path = None
 
         EtlProcessorBase.__init__(self, name)
-        Thread.__init__(self)
+        Thread.__init__(self, name=name)
     
     
     def starting_processor_in_thread(self):

@@ -1,3 +1,5 @@
+import weakref 
+from textwrap import dedent
 from Queue import Queue, Empty
 
 from abc import ABCMeta, abstractmethod
@@ -37,7 +39,7 @@ class EtlProcessorBase(object):
                         processing (recieving and dispatching) records.
 
     FINSIHED_PHASE    - Is the status the the processor is in when it will no
-                        longer recieve or dispatch records.
+                        longer receive or dispatch records.
 
 
                     +-------+     run_processor()   +---------+
@@ -164,7 +166,6 @@ class EtlProcessorBase(object):
 
     
     MAX_EVENT_Q_SIZE = 1000
-    MAX_RECORD_Q_SZIE = 100
 
 
     def __init__(self, name):
@@ -177,11 +178,24 @@ class EtlProcessorBase(object):
         self._output_ports = ports.OutputPortCollection()
         
         self._sub_processors = dict()
+        self._parent_processor = None
+        
+        self.__last_prc_status_msgs = dict()
+        self.__last_prc_status_order = list()
 
 
     @property
     def processor_name(self):
         return self.__name
+    
+    
+    def set_parent_processor(self, parent):
+        self._parent_processor = weakref.ref(parent)
+    
+    @property
+    def parent_processor(self):
+        if self._parent_processor is not None:
+            return self._parent_processor()
     
 
 
@@ -295,19 +309,20 @@ class EtlProcessorBase(object):
 
         # Do STARTUP Tasks
         self.__state = self.STARTUP_PHASE
-        print "[%s] STARTUP" % (self.processor_name)
+        self.report_status("STARTUP")
         self.starting_processor()   # Hook for derived classes
 
         # Start child processors
-        print "[%s] Starting children" % (self.processor_name)
-        for subproc in self._sub_processors.values():
-            # Sub processors shouldn't be generators!
-            subproc._boot_processor()
-        print "[%s] All children started" % (self.processor_name)
+        if len(self._sub_processors) > 0:
+            self.report_status("Starting children")
+            for subproc in self._sub_processors.values():
+                # Sub processors shouldn't be generators!
+                subproc._boot_processor()
+            self.report_status("All children started")
 
 
     def _set_running(self):
-        print "[%s] RUNNING" % (self.processor_name)
+        self.report_status("RUNNING")
         self.__state = self.RUNNING_PHASE
         
 
@@ -320,18 +335,18 @@ class EtlProcessorBase(object):
         self._processing_phase_method()
 
         # Extract Records
-        print "[%s] extract_records()" % (self.processor_name)
+        self.report_status("extract_records()")
         self.extract_records()
-        print "[%s] extract_records() finished" % (self.processor_name)
+        self.report_status("extract_records() finished")
         
         # Process incoming records
-        print "[%s] _pr_event_loop()" % (self.processor_name)
+        self.report_status("_pr_event_loop()")
         for yeild_record in self._pr_event_loop():
             yield yeild_record  # Top level workflow can yield records
-        print "[%s] _pr_event_loop() finished" % (self.processor_name)
+        self.report_status("_pr_event_loop() finished")
 
         # Finished
-        print "[%s] FINISHED" % (self.processor_name)
+        self.report_status("FINISHED")
         self.__state = self.FINISHED
 
 
@@ -345,15 +360,19 @@ class EtlProcessorBase(object):
         
         # Receive events and dispatch to handler methods
         while self.waiting_on_more_input():
-            yield None  # TODO
+            if False:
+                yield None  # TODO
 
             event = self._input_queue.get()
             
             if event.event_type == 'input_port_opened':
                 self._pr_input_port_opened(event)
                 
-            elif event.event_type == 'recieve_input_record':
-                self._pr_recieve_input_record(event)
+            elif event.event_type == 'receive_input_record':
+                self._pr_receive_input_record(event)
+                
+            elif event.event_type == 'report_processor_status':
+                self._pr_report_processor_status(event)
 
             else:
                 raise Exception("Unknown event type: " + event.event_type)
@@ -369,8 +388,8 @@ class EtlProcessorBase(object):
 
         return not self._input_queue.empty()   # Last check to see if there
                                                # are more events to process
-
-
+                                               
+                                               
     # -- Processor execution hooks --------------------------------------------
     
     def starting_processor(self):
@@ -381,7 +400,65 @@ class EtlProcessorBase(object):
     def extract_records(self):
         '''Hook for child classes to extract records from an external source'''
         pass
+    
+    
+    # -- Status logging ------------------------------------------------------
+    
+    def report_status(self, msg):
+        '''Report the stage that this processor is at
+        
+        Rolling all print commands up to the parent to make the lines print
+        cleanly.
+        '''
+        self._if_report_processor_status(self.processor_name, msg)
+        
+        if self.parent_processor is None:
+            print "[%s] %s" % (self.processor_name, msg)
+        else:
+            self.parent_processor._if_report_processor_status(
+                self.processor_name, msg)
 
+
+    def _if_report_processor_status(self, processor_name, msg):
+        '''Inform user of the status of a processor
+        
+        @param processor_name: Name of the processor reporting it's status
+        @param msg: Status update message for uesr
+        '''
+        # Bump to parent if exists
+        if self.parent_processor is not None:
+            self.parent_processor._if_report_processor_status(
+                processor_name,
+                msg)
+
+        # Else, queue to process here
+        event = EtlEvent(
+            event_type      = 'report_processor_status',
+            processor_name  = processor_name,
+            msg             = msg)
+        self._input_queue.put(event)
+        
+        
+    def _pr_report_processor_status(self, event):
+        
+        # Show current status
+        print "STATUS UPDATE: %s reports %s" % (event.processor_name, event.msg)
+        
+        # Show processor statuses
+        for name in self.__last_prc_status_order:
+            status = self.__last_prc_status_msgs[name]
+            if name == event.processor_name:
+                print "  %-30s %s -> %s" % ('[%s]:' % (name), status, event.msg)
+            else:
+                print "  %-30s %s" % ('[%s]:' % (name), status)
+        
+        # Save status for next call
+        if not self.__last_prc_status_msgs.has_key(event.processor_name):
+            self.__last_prc_status_order.append(event.processor_name)
+        self.__last_prc_status_msgs[event.processor_name] = event.msg
+
+        print ""
+        
 
     # -- Port connection event handling ---------------------------------------
 
@@ -406,7 +483,7 @@ class EtlProcessorBase(object):
             self._pr_input_port_opened(event)
 
         elif self.__state == self.RUNNING_PHASE:
-            self.__event_queue.put(event)
+            self._input_queue.put(event)
 
         else:
             raise Exception("Not a valid state for this call")
@@ -432,7 +509,7 @@ class EtlProcessorBase(object):
         record.freeze()
         conns = self._output_ports[output_port_name].get_connected_prcs()
         for prc, prc_input_port_name in conns:
-            prc._if_recieve_input_record(
+            prc._if_receive_input_record(
                 prc_name = self.processor_name,
                 output_port = output_port_name,
                 input_port = prc_input_port_name,
@@ -442,7 +519,7 @@ class EtlProcessorBase(object):
 
     # -- Incoming record handling --------------------------------------------
 
-    def _if_recieve_input_record(self, prc_name, output_port, input_port, rec):
+    def _if_receive_input_record(self, prc_name, output_port, input_port, rec):
         '''Receive a record from another processor
         
         It is assumed that the source processor has "connected" one of it's
@@ -455,7 +532,7 @@ class EtlProcessorBase(object):
         @param rec: The EtlRecord begin sent.
         '''
         event = EtlEvent(
-            event_type = 'recieve_input_record',
+            event_type = 'receive_input_record',
             source_prc =    prc_name,
             output_port =   output_port,
             input_port =    input_port,
@@ -468,74 +545,118 @@ class EtlProcessorBase(object):
 
 
                             
-    def _pr_recieve_input_record(self, event):
+    def _pr_receive_input_record(self, event):
         '''Handle record received on input port'''
         
-        msg = "Received message"
-        if not self._validate_input_name(msg, event.input_name, event.conn_id):
-            return False
+        # TODO: Validate record here?
         
-        # Validate input state
-        if self.__conn_by_id[event.conn_id].status == self.CONN_CLOSSED:
-            msg = "Received message for a closed input %s" % (event.input_name)
-            self.notify_error(msg)
-            return False
+        # Pass to input processing method
+        prc_method_name = 'pr_%s_input_record' % (event.input_port)
+        if hasattr(self, prc_method_name):
+            prc_method = getattr(self, prc_method_name)
+            prc_method(
+                record          = event.record,
+                from_prc_name   = event.source_prc,
+                from_port_name  = event.output_port)
         
-        # If a record is held on that port, then ignore event
-        input_name = event.input_name
-        if self.__held_records[input_name] is not None:
-            return False
-            
-        # Get record to be processed
-        record = None
-        try:
-            record = self.__input_queues[input_name].get_nowait()
-        except Empty:
-            return False
-        
-        # Pass to processor
-        dispatcher = self.dispatch_output_record
-        action = self.prc.process_input_record(record, dispatcher)
-        
-        # Handle processor requested action
-        if action is None:
-            action = RecordConsumed()
-        
-        if action.code == 'record_consumed':
-            return False
-        elif action.code == 'hold_record':
-            self.__held_records[input_name] = record
-            return False
-        elif action.code == 'get_next_record':
-            return True
         else:
-            msg = "Invalid post-record action code: %s"
-            raise Exception(msg % (action.code))
+            self.pr_any_input_record(
+                to_port_name    = event.input_port,
+                record          = event.record,
+                from_prc_name   = event.source_prc,
+                from_port_name  = event.output_port)
         
+#         msg = "Received message"
+#         if not self._validate_input_name(msg, event.input_name, event.conn_id):
+#             return False
+#         
+#         # Validate input state
+#         if self.__conn_by_id[event.conn_id].status == self.CONN_CLOSSED:
+#             msg = "Received message for a closed input %s" % (event.input_name)
+#             self.notify_error(msg)
+#             return False
+#         
+#         # If a record is held on that port, then ignore event
+#         input_name = event.input_name
+#         if self.__held_records[input_name] is not None:
+#             return False
+#             
+#         # Get record to be processed
+#         record = None
+#         try:
+#             record = self.__input_queues[input_name].get_nowait()
+#         except Empty:
+#             return False
+#         
+#         # Pass to processor
+#         dispatcher = self.dispatch_output_record
+#         action = self.prc.process_input_record(record, dispatcher)
+#         
+#         # Handle processor requested action
+#         if action is None:
+#             action = RecordConsumed()
+#         
+#         if action.code == 'record_consumed':
+#             return False
+#         elif action.code == 'hold_record':
+#             self.__held_records[input_name] = record
+#             return False
+#         elif action.code == 'get_next_record':
+#             return True
+#         else:
+#             msg = "Invalid post-record action code: %s"
+#             raise Exception(msg % (action.code))
+#         
+#         
+#     def _validate_input_name(self, context, input_name, conn_id):
+#         # Validate input name exists
+#         if not self.__inputs.has_key(input_name):
+#             msg = "%s on unknown input '%s'"
+#             self.notify_error(msg % (context, input_name))
+#             return False
+#             
+#         # Validate connection ID exists
+#         if not self.__conn_by_id.has_key(conn_id):
+#             msg = "%s on unknown connection '%s'"
+#             self.notify_error(msg % (context, conn_id))
+#             return False
+#             
+#         # Validate connection ID correct
+#         if self.__conn_by_id[conn_id].port_name != input_name:
+#             msg = "%s for input %s using connection ID %s"
+#             msg += " but, connection %s is port %s"
+#             msg = msg % (context, input_name, conn_id, conn_id,
+#                          self.__conn_by_id[conn_id].port_name)
+#             self.notify_error(msg)
+#             return False
+#         
+#         return True
+          
+    def pr_any_input_record(self, to_port_name, record, from_prc_name,
+                            from_port_name):
+        '''Process a record received from another processor.
         
-    def _validate_input_name(self, context, input_name, conn_id):
-        # Validate input name exists
-        if not self.__inputs.has_key(input_name):
-            msg = "%s on unknown input '%s'"
-            self.notify_error(msg % (context, input_name))
-            return False
+        Optionally, define a method to process records on a defined port:
+        def pr_<name>_input_record(record, from_prc_name, from_port_name)
+        
+        @param to_port_name: Name of the port on this processor record was
+            received on
+        @param record: Record received
+        @param from_prc_name: Name of the processor that emitted the record
+        @param from_port_name: Name of the output port on the processor that the
+            record was sent from.
+        '''
+        msg = dedent("""\
+            Processor %s (%s) has not defined a method to process incoming
+            records for port '%s'.
             
-        # Validate connection ID exists
-        if not self.__conn_by_id.has_key(conn_id):
-            msg = "%s on unknown connection '%s'"
-            self.notify_error(msg % (context, conn_id))
-            return False
-            
-        # Validate connection ID correct
-        if self.__conn_by_id[conn_id].port_name != input_name:
-            msg = "%s for input %s using connection ID %s"
-            msg += " but, connection %s is port %s"
-            msg = msg % (context, input_name, conn_id, conn_id,
-                         self.__conn_by_id[conn_id].port_name)
-            self.notify_error(msg)
-            return False
-        
-        return True
+            Define either:
+              - pr_%s_input_record(self, record, from_prc_name, from_port_name)
+              - pr_any_input_record(self, to_port_name, record, from_prc_name, from_port_name)
+              """)
+        raise EtlBuildError(msg % (self.processor_name, self.__class__.__name__,
+                                   to_port_name, to_port_name))
+          
           
           
     def _handle_disconnect_event(self, event):
@@ -593,7 +714,7 @@ class EtlProcessorBase(object):
 #     
 #             # Send Event
 #             queue = conn.dst_prc_manager.get_event_queue()
-#             event = InputRecordRecieved(conn.input_name)
+#             event = InputRecordreceived(conn.input_name)
 #             queue.put(event)
             
     
@@ -628,6 +749,8 @@ class EtlProcessorBase(object):
         if self._sub_processors.has_key(name):
             raise IndexError("Duplicate processor name: %s" % (name))
         self._sub_processors[name] = child
+        
+        child.set_parent_processor(self)
 
 
     def get_child_prc(self, name):
@@ -815,7 +938,7 @@ class EtlProcessorBase(object):
         input_port_defs = ['<i_%s> %s' % (name, name) for name in input_ports]
         output_port_defs = ['<o_%s> %s' % (name, name) for name in output_ports]
         
-        src.append('%s [label="{ %s\\n\'%s\' | { { %s } | { %s } } }"];' % (prc.processor_name,
+        src.append('%s [label="%s\\n\'%s\' | { { %s } | { %s } }"];' % (prc.processor_name,
                                               prc.__class__.__name__,
                                               prc.processor_name,
                                               " | ".join(input_port_defs),
