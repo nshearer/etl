@@ -77,7 +77,7 @@ class EtlProcessorBase(object):
 
     Each method may also check to verify that it is only called in specific
     phases by calling one of the _*_phase_method() methods as the first line
-    of the method.  This serves both to remember when the method can be
+    of the method.  This serves both to inform when the method can be
     called, and to enforce.
 
 
@@ -98,7 +98,7 @@ class EtlProcessorBase(object):
     parameters as the handling method.  So, in general:
 
     1) An external method calls an if_* method like if_receive_input()
-       using that methods normal signature.
+       using that method's normal signature.
 
     2) The interface method describes that call with an object and 
        queues it to the thread safe event_queue
