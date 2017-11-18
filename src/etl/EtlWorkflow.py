@@ -43,7 +43,7 @@ class EtlWorkflow(EtlProcessorBase):
     -----------------------
 
     In order to define an ETL process, the developer is encouraged to
-    subclass this class and then define and connect the processors.
+    subclass EtlWorkflow and then define and connect the processors.
     This class does not need to be subclassed to create an ETL process,
     though, as you can just instantiate it and call the methods.
     
