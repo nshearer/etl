@@ -9,7 +9,7 @@ from test_data import test_person, PersonTestScehma
 #   (animal,    "dog",      "Animalia", "Canidae",  True),
 #   (animal,    "cat",      "Animalia", "Felidae",  False),
 
-from etl.MemoryRecordSet import MemoryRecordSet
+from netl.MemoryRecordSet import MemoryRecordSet
 
 class TestMemoryRecordSet(unittest.TestCase):
 

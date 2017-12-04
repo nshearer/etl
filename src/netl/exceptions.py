@@ -1,4 +1,4 @@
-'''Common exceptions for etl library'''
+'''Common exceptions for netl library'''
 
 
 class EtlBuildError(Exception): pass

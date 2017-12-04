@@ -1,10 +1,10 @@
 '''Some test fixtures data fixtures'''
 
-from etl.EtlRecord import EtlRecord
-from etl.schema.EtlSchema import EtlSchema
-from etl.schema.EtlStringElement import EtlStringElement
-from etl.schema.EtlIntElement import EtlIntElement
-from etl.schema.EtlBoolElement import EtlBoolElement
+from netl.EtlRecord import EtlRecord
+from netl.schema.EtlSchema import EtlSchema
+from netl.schema.EtlStringElement import EtlStringElement
+from netl.schema.EtlIntElement import EtlIntElement
+from netl.schema.EtlBoolElement import EtlBoolElement
 
 class PersonTestScehma(EtlSchema):
     # def __init__(self):

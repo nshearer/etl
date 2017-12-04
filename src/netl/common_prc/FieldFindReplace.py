@@ -1,6 +1,6 @@
 import re
 
-from etl.EtlProcessor import EtlProcessor, EtlProcessorDataPort
+from netl.EtlProcessor import EtlProcessor, EtlProcessorDataPort
 
 class FieldFindReplace(EtlProcessor):
     '''Find and replace values in one or more fields

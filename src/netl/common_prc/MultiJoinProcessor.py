@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 from JoinProcessor import JoinProcessor
-from etl.recshelf.RecordShelf import RecordShelf
+from netl.recshelf.RecordShelf import RecordShelf
 
 class MultiJoinProcessor(JoinProcessor):
     '''Join all the record on the right to one on the left

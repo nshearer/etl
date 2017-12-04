@@ -48,7 +48,7 @@ class EtlWorkflow(EtlProcessorBase):
     though, as you can just instantiate it and call the methods.
     
      1) Define your processors by subclassing EtlProcessor, or using the
-        common processors under etl.common
+        common processors under netl.common
 
      2) Call add_processor() to add your processors to the Workflow
 

@@ -1,6 +1,6 @@
 
-from etl.EtlProcessor import EtlProcessor
-from etl.EtlRecord import EtlRecord
+from netl.EtlProcessor import EtlProcessor
+from netl.EtlRecord import EtlRecord
 
 class ExtractProcessor(EtlProcessor):
     '''This processor is used to strip out all fields except a few

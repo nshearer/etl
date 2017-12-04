@@ -1,4 +1,4 @@
-from etl.EtlProcessor import EtlProcessor
+from netl.EtlProcessor import EtlProcessor
 
 class GroupByProcessor(EtlProcessor):
     '''This processor groups input records by a given key

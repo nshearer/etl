@@ -9,7 +9,7 @@ from test_data import test_person, PersonTestScehma
 #   (animal,    "dog",      "Animalia", "Canidae",  True),
 #   (animal,    "cat",      "Animalia", "Felidae",  False),
 
-from etl.Sqlite3RecordSet import Sqlite3RecordSet
+from netl.Sqlite3RecordSet import Sqlite3RecordSet
 
 class TestSqlite3RecordSet(unittest.TestCase):
 

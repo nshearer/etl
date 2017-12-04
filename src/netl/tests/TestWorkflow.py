@@ -5,7 +5,7 @@ Created on Apr 18, 2014
 '''
 import unittest
 
-from etl.EtlProcessorBase import EtlProcessorBase
+from netl.EtlProcessorBase import EtlProcessorBase
 
 from test_data import test_person, test_animal
 # Test Data:
@@ -15,7 +15,7 @@ from test_data import test_person, test_animal
 #   (animal,    "dog",      "Animalia", "Canidae",  True),
 #   (animal,    "cat",      "Animalia", "Felidae",  False),
 
-from etl.EtlRecord import EtlRecordFrozen
+from netl.EtlRecord import EtlRecordFrozen
 
 class TestWorkflow(unittest.TestCase):
     '''Test a full workflow'''

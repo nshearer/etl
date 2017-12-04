@@ -1,6 +1,6 @@
 import unittest
 
-from etl.schema.EtlStringElement import EtlStringElement
+from netl.schema.EtlStringElement import EtlStringElement
 
 from test_data import test_person, PersonTestScehma, EmployeeTestSchema
 # Test Data:

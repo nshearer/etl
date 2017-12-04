@@ -6,7 +6,7 @@ Created on Dec 27, 2012
 from UserDict import DictMixin
 from threading import Lock
 
-from etl.schema.EtlSchema import RecordSchemaError
+from netl.schema.EtlSchema import RecordSchemaError
 
 from exceptions import EtlRecordFrozen
 

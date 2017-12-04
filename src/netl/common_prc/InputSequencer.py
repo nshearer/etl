@@ -1,5 +1,5 @@
 
-from etl.EtlProcessor import EtlProcessor
+from netl.EtlProcessor import EtlProcessor
 
 class InputSequencer(EtlProcessor):
     '''Passes through one complete input before another

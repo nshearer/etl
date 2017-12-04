@@ -8,7 +8,7 @@ class TkWorkflowMonitor(object):
     def __init__(self, workflow):
         '''Init
         
-        @param workflow: etl.Workflow object with ETL components added/connected
+        @param workflow: netl.Workflow object with ETL components added/connected
         '''
         
         wf = self.__workflow = workflow

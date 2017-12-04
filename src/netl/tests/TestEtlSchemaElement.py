@@ -2,12 +2,12 @@ import unittest
 
 from test_data import PersonTestScehma
 
-from etl.schema.EtlStringElement import EtlStringElement
-from etl.schema.EtlBinaryElement import EtlBinaryElement
-from etl.schema.EtlBoolElement import EtlBoolElement
-from etl.schema.EtlIntElement import EtlIntElement
-from etl.schema.EtlListElement import EtlListElement
-from etl.schema.EtlRecordElement import EtlRecordElement
+from netl.schema.EtlStringElement import EtlStringElement
+from netl.schema.EtlBinaryElement import EtlBinaryElement
+from netl.schema.EtlBoolElement import EtlBoolElement
+from netl.schema.EtlIntElement import EtlIntElement
+from netl.schema.EtlListElement import EtlListElement
+from netl.schema.EtlRecordElement import EtlRecordElement
 
 
 class TestEtlSchemaElement(unittest.TestCase):

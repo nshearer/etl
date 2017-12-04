@@ -5,10 +5,10 @@ import os
 import sys
 from textwrap import dedent
 
-from etl.EtlWorkflow import EtlWorkflow
-from etl.EtlProcessorBase import EtlProcessorBase
-from etl.EtlProcessor import EtlProcessor
-from etl.schema.EtlSchema import EtlSchema
+from netl.EtlWorkflow import EtlWorkflow
+from netl.EtlProcessorBase import EtlProcessorBase
+from netl.EtlProcessor import EtlProcessor
+from netl.schema.EtlSchema import EtlSchema
 
 def abort(msg):
     print "ERROR:", msg

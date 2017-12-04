@@ -1,4 +1,4 @@
-from etl.TemporaryDir import TempoaryDirectory
+from netl.TemporaryDir import TempoaryDirectory
 
 class RecordShelf(object):
     '''Class for storing records temporarily'''

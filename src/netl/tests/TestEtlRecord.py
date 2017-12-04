@@ -13,7 +13,7 @@ from test_data import test_person, test_animal
 #   (animal,    "dog",      "Animalia", "Canidae",  True),
 #   (animal,    "cat",      "Animalia", "Felidae",  False),
 
-from etl.EtlRecord import EtlRecordFrozen
+from netl.EtlRecord import EtlRecordFrozen
 
 class TestEtlRecord(unittest.TestCase):
     

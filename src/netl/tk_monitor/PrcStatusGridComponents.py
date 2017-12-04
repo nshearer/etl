@@ -5,7 +5,7 @@ Created on Apr 16, 2014
 '''
 import Tkinter as tk
 
-from etl.EtlProcessor import EtlProcessor, EtlProcessorDataPort
+from netl.EtlProcessor import EtlProcessor, EtlProcessorDataPort
 
 class PrcStatusGridComponent(object):
     
