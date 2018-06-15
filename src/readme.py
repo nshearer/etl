@@ -8,7 +8,6 @@ from textwrap import dedent
 from netl.EtlWorkflow import EtlWorkflow
 from netl.EtlProcessorBase import EtlProcessorBase
 from netl.EtlProcessor import EtlProcessor
-from netl.schema.EtlSchema import EtlSchema
 
 def abort(msg):
     print("ERROR:", msg)
@@ -133,7 +132,6 @@ if __name__ == '__main__':
 
     tpl = tpl.replace('[include:EtlProcessorBase]', get_class_head_doc(EtlProcessorBase))
     tpl = tpl.replace('[include:EtlProcessor]', get_class_head_doc(EtlProcessor))
-    tpl = tpl.replace('[include:EtlSchema]', get_class_head_doc(EtlSchema))
 
     print("Writing", tgt_path)
     open(tgt_path, 'wt').write(tpl)
