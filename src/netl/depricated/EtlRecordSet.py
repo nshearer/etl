@@ -142,7 +142,7 @@ class EtlRecordSet(object):
         # Add record
         try:
             self.__store.add_record(etl_rec, tags)
-        except Exception, e:
+        except Exception as e:
             msg = etl_rec.create_msg("Failed to store record: " + str(e))
             raise Exception(msg)
          

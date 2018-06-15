@@ -11,7 +11,7 @@ from netl.EtlProcessor import EtlProcessor
 from netl.schema.EtlSchema import EtlSchema
 
 def abort(msg):
-    print "ERROR:", msg
+    print("ERROR:", msg)
     sys.exit(2)
 
 
@@ -135,5 +135,5 @@ if __name__ == '__main__':
     tpl = tpl.replace('[include:EtlProcessor]', get_class_head_doc(EtlProcessor))
     tpl = tpl.replace('[include:EtlSchema]', get_class_head_doc(EtlSchema))
 
-    print "Writing", tgt_path
+    print("Writing", tgt_path)
     open(tgt_path, 'wt').write(tpl)

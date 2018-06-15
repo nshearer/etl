@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from JoinProcessor import JoinProcessor
+from .JoinProcessor import JoinProcessor
 from netl.recshelf.RecordShelf import RecordShelf
 
 class MultiJoinProcessor(JoinProcessor):

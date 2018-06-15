@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 class SchemaValidationError(Exception): pass
 
 
-class EtlSchemaElement(object):
+class EtlSchemaElement(object, metaclass=ABCMeta):
     '''A field within a record
 
     These classes assist the ETL process with knowing how to handle values.
@@ -15,7 +15,6 @@ class EtlSchemaElement(object):
     instantiated EltSchemaElement object.  Values for fields are stored in the
     EtlRecord object.
     '''
-    __metaclass__ = ABCMeta
 
     def is_schema_element(self):
         '''Marker to tell other ETL code that this is a schema element'''
@@ -113,5 +112,5 @@ class EtlSchemaElement(object):
 
     def __str__(self):
         attrs = self._get_attr_for_str()
-        attrs = ', '.join(['%s: %s' % (item) for item in attrs.items()])
+        attrs = ', '.join(['%s: %s' % (item) for item in list(attrs.items())])
         return '%s(%s)' % (self.element_type_code, attrs)

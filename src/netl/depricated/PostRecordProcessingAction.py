@@ -1,7 +1,7 @@
 from abc import ABCMeta
  
  
-class PostRecordProcessingAction(object):
+class PostRecordProcessingAction(object, metaclass=ABCMeta):
     '''Action to take after a record is processed by prc_input_record()
      
     This instructs the Processors Event on what to do with the input record
@@ -9,7 +9,6 @@ class PostRecordProcessingAction(object):
     to declare that it did not process an input record, and will request it
     later
     '''
-    __metaclass__ = ABCMeta
     def __init__(self, action_code):
         self.__code = action_code
     @property

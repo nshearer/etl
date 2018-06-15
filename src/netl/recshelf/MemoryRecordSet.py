@@ -20,7 +20,7 @@ class MemoryRecordSet(object):
         for serial in self.__records:
             record = self.__records[serial]
             tags = list()
-            if self.__record_tags.has_key(serial):
+            if serial in self.__record_tags:
                 tags = list(self.__record_tags[serial])
             
             yield record, tags
@@ -36,7 +36,7 @@ class MemoryRecordSet(object):
             this record.  Record must be convertable to a string with str()
         '''
         # Check Duplicate
-        if self.__records.has_key(etl_rec.serial):
+        if etl_rec.serial in self.__records:
             msg = etl_rec.create_msg("Record already in record set")
             raise IndexError(msg)
         
@@ -52,7 +52,7 @@ class MemoryRecordSet(object):
         if tags is not None:
             self.__record_tags[etl_rec.serial] = set(tags)
             for tag in tags:
-                if not self.__tags.has_key(tag):
+                if tag not in self.__tags:
                     self.__tags[tag] = set()
                 self.__tags[tag].add(etl_rec.serial)
                 
@@ -72,18 +72,18 @@ class MemoryRecordSet(object):
     
     
     def has_record(self, serial):
-        return self.__records.has_key(serial)
+        return serial in self.__records
     
     
     def find_records_with_tag(self, tag):
         '''Find records that have a given tag'''
-        if self.__tags.has_key(tag):
+        if tag in self.__tags:
             for serial in self.__tags[tag]:
                 yield self.get_record(serial)
                 
                 
     def has_record_with_tag(self, tag):
-        if self.__tags.has_key(tag):
+        if tag in self.__tags:
             if len(self.__tags[tag]) > 0:
                 return True
         return False
@@ -98,7 +98,7 @@ class MemoryRecordSet(object):
         del self.__records[serial]
         
         # Clean up tags
-        if self.__record_tags.has_key(serial):
+        if serial in self.__record_tags:
             for tag in self.__record_tags[serial]:
                 self.__tags[tag].remove(serial)
                 if len(self.__tags[tag]) == 0:

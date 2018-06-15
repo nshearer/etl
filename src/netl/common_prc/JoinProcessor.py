@@ -95,7 +95,7 @@ class JoinProcessor(EtlProcessor):
                             raise Exception(msg)
                         
                         # Make sure match key is unique
-                        if self.__match_keys.has_key(match_key):
+                        if match_key in self.__match_keys:
                             handle = self._handle_duplicate_lookup_match_key
                             handle(match_key, record)
                         
@@ -136,7 +136,7 @@ class JoinProcessor(EtlProcessor):
             raise Exception(msg)
         
         # Find match
-        if self.__match_keys.has_key(match_key):
+        if match_key in self.__match_keys:
             input_set, lookup_index = self.__match_keys[match_key]
             return input_set.get_record(lookup_index)
             

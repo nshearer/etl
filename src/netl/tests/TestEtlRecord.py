@@ -5,7 +5,7 @@ Created on Apr 18, 2014
 '''
 import unittest
 
-from test_data import test_person, test_animal
+from .test_data import test_person, test_animal
 # Test Data:
 #   (person,    "John",     "Doe",      22),
 #   (person,    "Jane",     "Doe",      20),
@@ -36,7 +36,7 @@ class TestEtlRecord(unittest.TestCase):
         
         
     def testFieldNames(self):
-        self.assertEquals(set(test_person(0).field_names()),
+        self.assertEqual(set(test_person(0).field_names()),
                           set(['first', 'last', 'age']))
         
     
@@ -49,16 +49,16 @@ class TestEtlRecord(unittest.TestCase):
     
     def testGetFieldValue(self):
         rec = test_person(0)
-        self.assertEquals(rec['first'], "John")
-        self.assertEquals(rec['last'], "Doe")
-        self.assertEquals(rec['age'], 22)
+        self.assertEqual(rec['first'], "John")
+        self.assertEqual(rec['last'], "Doe")
+        self.assertEqual(rec['age'], 22)
         
         
     def testSetFieldValue(self):
         rec = test_person(1)
         rec['first'] = "Jane"
         rec['age'] = 20
-        self.assertEquals(rec, test_person(1))
+        self.assertEqual(rec, test_person(1))
         
         
     def testFreeze(self):

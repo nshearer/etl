@@ -5,7 +5,7 @@ Created on Dec 27, 2012
 '''
 import os
 
-from EtlProcessorBase import EtlProcessorBase
+from .EtlProcessorBase import EtlProcessorBase
 
 class EtlWorkflow(EtlProcessorBase):
     '''Encapsulates an ETL workflow
@@ -195,7 +195,7 @@ class EtlWorkflow(EtlProcessorBase):
     # -- ETL Inspection -------------------------------------------------------
     
     def list_prc_names(self):
-        return self.__processors.keys()
+        return list(self.__processors.keys())
     
     
     def get_prc(self, name):

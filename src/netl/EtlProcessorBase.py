@@ -1,11 +1,11 @@
 import weakref 
 from textwrap import dedent
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 from abc import ABCMeta, abstractmethod
 
-import ports
-from exceptions import EtlBuildError, InvalidProcessorName
+from . import ports
+from .exceptions import EtlBuildError, InvalidProcessorName
 
 
 class EtlEvent:
@@ -19,7 +19,7 @@ class EtlEvent:
         self.__dict__.update(kwds)
 
 
-class EtlProcessorBase(object):
+class EtlProcessorBase(object, metaclass=ABCMeta):
     '''Base class for EtlProcessor
     
     Each Processor goes through these states.  The current state can be queried
@@ -145,7 +145,6 @@ class EtlProcessorBase(object):
 
     @see EtlProcessor
     '''
-    __metaclass__ = ABCMeta
 
     SETUP_PHASE = 1
     STARTUP_PHASE = 2
@@ -315,7 +314,7 @@ class EtlProcessorBase(object):
         # Start child processors
         if len(self._sub_processors) > 0:
             self.report_status("Starting children")
-            for subproc in self._sub_processors.values():
+            for subproc in list(self._sub_processors.values()):
                 # Sub processors shouldn't be generators!
                 subproc._boot_processor()
             self.report_status("All children started")
@@ -382,7 +381,7 @@ class EtlProcessorBase(object):
     def waiting_on_more_input(self):
         '''Check to see if input ports are still open'''
         self._processing_phase_method()
-        for input_port in self._input_ports.values():
+        for input_port in list(self._input_ports.values()):
             if input_port.is_connected:
                 return True
 
@@ -413,7 +412,7 @@ class EtlProcessorBase(object):
         self._if_report_processor_status(self.processor_name, msg)
         
         if self.parent_processor is None:
-            print "[%s] %s" % (self.processor_name, msg)
+            print("[%s] %s" % (self.processor_name, msg))
         else:
             self.parent_processor._if_report_processor_status(
                 self.processor_name, msg)
@@ -442,22 +441,22 @@ class EtlProcessorBase(object):
     def _pr_report_processor_status(self, event):
         
         # Show current status
-        print "STATUS UPDATE: %s reports %s" % (event.processor_name, event.msg)
+        print("STATUS UPDATE: %s reports %s" % (event.processor_name, event.msg))
         
         # Show processor statuses
         for name in self.__last_prc_status_order:
             status = self.__last_prc_status_msgs[name]
             if name == event.processor_name:
-                print "  %-30s %s -> %s" % ('[%s]:' % (name), status, event.msg)
+                print("  %-30s %s -> %s" % ('[%s]:' % (name), status, event.msg))
             else:
-                print "  %-30s %s" % ('[%s]:' % (name), status)
+                print("  %-30s %s" % ('[%s]:' % (name), status))
         
         # Save status for next call
-        if not self.__last_prc_status_msgs.has_key(event.processor_name):
+        if event.processor_name not in self.__last_prc_status_msgs:
             self.__last_prc_status_order.append(event.processor_name)
         self.__last_prc_status_msgs[event.processor_name] = event.msg
 
-        print ""
+        print("")
         
 
     # -- Port connection event handling ---------------------------------------
@@ -746,7 +745,7 @@ class EtlProcessorBase(object):
         '''
         name = child.processor_name
 
-        if self._sub_processors.has_key(name):
+        if name in self._sub_processors:
             raise IndexError("Duplicate processor name: %s" % (name))
         self._sub_processors[name] = child
         
@@ -754,8 +753,8 @@ class EtlProcessorBase(object):
 
 
     def get_child_prc(self, name):
-        if not self._sub_processors.has_key(name):
-            raise InvalidProcessorName(name, self._sub_processors.keys())
+        if name not in self._sub_processors:
+            raise InvalidProcessorName(name, list(self._sub_processors.keys()))
         return self._sub_processors[name]
     
     
@@ -913,9 +912,9 @@ class EtlProcessorBase(object):
         src.append(self._debug_processor_as_dot(self))
         
         # Children
-        for prc in self._sub_processors.values():
+        for prc in list(self._sub_processors.values()):
             src.append(self._debug_processor_as_dot(prc))
-            for output_port_name in prc._output_ports.keys():
+            for output_port_name in list(prc._output_ports.keys()):
                 conns = prc._output_ports[output_port_name].list_connections()
                 for target_prc_name, target_port_name in conns:
                     src.append('%s:o_%s -> %s:i_%s;' % (

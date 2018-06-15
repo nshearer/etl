@@ -2,7 +2,7 @@ import unittest
 
 from netl.schema.EtlStringElement import EtlStringElement
 
-from test_data import test_person, PersonTestScehma, EmployeeTestSchema
+from .test_data import test_person, PersonTestScehma, EmployeeTestSchema
 # Test Data:
 #   (person,    "John",     "Doe",      22),
 #   (person,    "Jane",     "Doe",      20),

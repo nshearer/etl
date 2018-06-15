@@ -1,6 +1,6 @@
-import Tkinter as tk
+import tkinter as tk
 
-from TkProcessorStatusGrid import TkProcessorStatusGrid
+from .TkProcessorStatusGrid import TkProcessorStatusGrid
 
 class TkWorkflowMonitor(object):
     '''GUI Application to run, monitor, and trace a workflow'''

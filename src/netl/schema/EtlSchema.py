@@ -115,7 +115,7 @@ class EtlSchema(object):
                 attr = getattr(self, name)
                 if self._check_obj_is_element(attr):
                     return attr
-            if self.__added_fields.has_key(name):
+            if name in self.__added_fields:
                 return self.__added_fields[name]
             
             

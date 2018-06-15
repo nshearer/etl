@@ -1,7 +1,7 @@
 import os
 from tempfile import NamedTemporaryFile
 import sqlite3
-import cPickle
+import pickle
 
 class Sqlite3RecordSet(object):
     '''Stores records into an sqlite3 database.
@@ -67,7 +67,7 @@ class Sqlite3RecordSet(object):
         etl_rec.set_schema(None) 
         
         # Pickle the object and save
-        record_data = cPickle.dumps(etl_rec, cPickle.HIGHEST_PROTOCOL)
+        record_data = pickle.dumps(etl_rec, pickle.HIGHEST_PROTOCOL)
         curs = self.__db.cursor()
         curs.execute("""\
             insert into records (serial, record, schema_id)
@@ -112,7 +112,7 @@ class Sqlite3RecordSet(object):
     
     def _rebuild_record(self, record_data, schema_id):
         # Unpickle record
-        record = cPickle.loads(record_data)
+        record = pickle.loads(record_data)
         
         # Restore schema
         schema = self._get_stored_schema(schema_id)
@@ -196,7 +196,7 @@ class Sqlite3RecordSet(object):
         '''Save schema into memory'''
         # Create key based on schema name
         schema_key = schema.__class__.__name__
-        if not self.__schema_ids_by_key.has_key(schema_key):
+        if schema_key not in self.__schema_ids_by_key:
             self.__schema_ids_by_key[schema_key] = list()
         
         # Check to see if we already have this schema stored

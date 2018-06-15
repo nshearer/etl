@@ -4,7 +4,7 @@ from threading import Lock
 STATUS_OPEN = 1         # Could send more records on this connection
 STATUS_CLOSSED = 0      # Will not send more records
 
-from exceptions import InvalidDataPortName
+from .exceptions import InvalidDataPortName
 
 # -- Connections --------------------------------------------------------------
  
@@ -36,9 +36,8 @@ class EtlInputConnection(object):
 
 # -- Base Classes -------------------------------------------------------------
  
-class PortBase(object):
+class PortBase(object, metaclass=ABCMeta):
     '''Base class for InputPortCollection and OutputPortCollection'''
-    __metaclass__ = ABCMeta
 
     def __init__(self, name):
         '''Init 
@@ -57,9 +56,8 @@ class PortBase(object):
         return "%s('%s')" % (self.__class__.__name__, self.__name) 
 
 
-class PortCollection(object):
+class PortCollection(object, metaclass=ABCMeta):
     '''Base class for InputPorts and OutputPorts'''
-    __metaclass__ = ABCMeta    
 
     def __init__(self):
         self._ports = dict()
@@ -70,17 +68,17 @@ class PortCollection(object):
         
         
     def __getitem__(self, name):
-        if not self._ports.has_key(name):
-            raise InvalidDataPortName(name, self._ports.keys())
+        if name not in self._ports:
+            raise InvalidDataPortName(name, list(self._ports.keys()))
         return self._ports[name]
 
 
     def keys(self):
-        return self._ports.keys()
+        return list(self._ports.keys())
 
 
     def values(self):
-        return self._ports.values()
+        return list(self._ports.values())
 
 
 

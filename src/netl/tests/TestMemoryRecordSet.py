@@ -1,7 +1,7 @@
 
 import unittest
 
-from test_data import test_person, PersonTestScehma
+from .test_data import test_person, PersonTestScehma
 # Test Data:
 #   (person,    "John",     "Doe",      22),
 #   (person,    "Jane",     "Doe",      20),

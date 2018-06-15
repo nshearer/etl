@@ -7,7 +7,7 @@ import unittest
 
 from netl.EtlProcessorBase import EtlProcessorBase
 
-from test_data import test_person, test_animal
+from .test_data import test_person, test_animal
 # Test Data:
 #   (person,    "John",     "Doe",      22),
 #   (person,    "Jane",     "Doe",      20),

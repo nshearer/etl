@@ -1,8 +1,7 @@
 from abc import ABCMeta
 
-class EtlEvent(object):
+class EtlEvent(object, metaclass=ABCMeta):
     '''Notify an EtlProcessor of an event'''
-    __metaclass__ = ABCMeta
     def __init__(self, event_type):
         self.__type = event_type
     @property

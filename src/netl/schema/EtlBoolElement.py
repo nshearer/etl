@@ -1,4 +1,4 @@
-from EtlSchemaElement import EtlSchemaElement
+from .EtlSchemaElement import EtlSchemaElement
 
 class EtlBoolElement(EtlSchemaElement):
     '''Yes/No values'''

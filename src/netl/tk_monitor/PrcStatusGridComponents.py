@@ -3,7 +3,7 @@ Created on Apr 16, 2014
 
 @author: nshearer
 '''
-import Tkinter as tk
+import tkinter as tk
 
 from netl.EtlProcessor import EtlProcessor, EtlProcessorDataPort
 

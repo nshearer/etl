@@ -8,9 +8,9 @@ from abc import ABCMeta, abstractmethod
 # TODO: Move to multiprocessing later?
 from threading import Thread
 
-from EtlProcessorBase import EtlProcessorBase
+from .EtlProcessorBase import EtlProcessorBase
 
-class EtlProcessor(Thread, EtlProcessorBase):
+class EtlProcessor(Thread, EtlProcessorBase, metaclass=ABCMeta):
     '''Takes 0 or more inputs and generates 0 or more outputs
 
     See EtlProcessorBase for additional detail
@@ -52,7 +52,6 @@ class EtlProcessor(Thread, EtlProcessorBase):
         an input port is clossed.  All of the methods available to the input
         handling methods are available here.
     '''
-    __metaclass__ = ABCMeta
     
     def __init__(self, name):
         self.data_dir_path = None

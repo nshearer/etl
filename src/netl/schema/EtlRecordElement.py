@@ -1,4 +1,4 @@
-from EtlSchemaElement import EtlSchemaElement, SchemaValidationError
+from .EtlSchemaElement import EtlSchemaElement, SchemaValidationError
 
 class EtlRecordElement(EtlSchemaElement):
     '''An element that stores a record'''

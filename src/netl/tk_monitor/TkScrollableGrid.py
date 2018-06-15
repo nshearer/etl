@@ -1,4 +1,4 @@
-import Tkinter as tk
+import tkinter as tk
 
 class TkScrollableGrid(tk.Frame):
     '''Create a scrollable grid / table of data

@@ -8,9 +8,9 @@ from threading import Lock
 
 from netl.schema.EtlSchema import RecordSchemaError
 
-from exceptions import EtlRecordFrozen
+from .exceptions import EtlRecordFrozen
 
-NEXT_ETL_RECORD_SERIAL = 0L
+NEXT_ETL_RECORD_SERIAL = 0
 NEXT_ETL_RECORD_LOCK = Lock()
 
 class EtlRecordSerial(object):
@@ -20,7 +20,7 @@ class EtlRecordSerial(object):
         global NEXT_ETL_RECORD_SERIAL, NEXT_ETL_RECORD_LOCK
         with NEXT_ETL_RECORD_LOCK:
             self.__value = NEXT_ETL_RECORD_SERIAL
-            NEXT_ETL_RECORD_SERIAL += 1L
+            NEXT_ETL_RECORD_SERIAL += 1
 
     def __str__(self):
         return str(self.__value)
@@ -56,7 +56,7 @@ class EtlRecord(DictMixin):
         self.__size_cache = None
         
         if values is not None:
-            for k, v in values.items():
+            for k, v in list(values.items()):
                 self[k] = v
         
         
@@ -73,7 +73,7 @@ class EtlRecord(DictMixin):
     def field_names(self):
         if self.__schema is not None:
             return self.__schema.etl_list_field_names()
-        return self.values.keys()
+        return list(self.values.keys())
     
 
     # -- Source record linking.  TODO: Move? ----------------------------------
@@ -116,7 +116,7 @@ class EtlRecord(DictMixin):
                 error = "Field not in schema")
             
         # See if a value is even stored
-        if not self.__values.has_key(name) or self.__values[name] is None:
+        if name not in self.__values or self.__values[name] is None:
             return self.schema[name].get_none_value(self.__frozen)
         
         # Return value
@@ -176,7 +176,7 @@ class EtlRecord(DictMixin):
     def freeze(self):
         self.__frozen = True
         for field_name in self.schema.etl_list_field_names():
-            if self.__values.has_key(field_name):
+            if field_name in self.__values:
                 if self.__values[field_name] is not None:
                     value = self.__values[field_name]
                     value = self.schema[field_name].freeze_value(value)
@@ -205,7 +205,7 @@ class EtlRecord(DictMixin):
     def _calc_size(self):
         '''Estimate records size'''
         size = 0
-        for k, v in self.__values.items():
+        for k, v in list(self.__values.items()):
             size += len(k)
             if type(v) is str:
                 size += len(v)

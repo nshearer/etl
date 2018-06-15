@@ -1,7 +1,7 @@
-import Tkinter as tk
+import tkinter as tk
 
-from TkScrollableGrid import TkScrollableGrid
-from PrcStatusGridComponents import ProcessInGrid, DataPortInGrid
+from .TkScrollableGrid import TkScrollableGrid
+from .PrcStatusGridComponents import ProcessInGrid, DataPortInGrid
 
 class TkProcessorStatusGrid(TkScrollableGrid):
     '''A scrollable grid showing the status of all processors'''

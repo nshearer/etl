@@ -1,6 +1,6 @@
 import unittest
 
-from test_data import PersonTestScehma
+from .test_data import PersonTestScehma
 
 from netl.schema.EtlStringElement import EtlStringElement
 from netl.schema.EtlBinaryElement import EtlBinaryElement
