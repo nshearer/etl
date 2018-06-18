@@ -3,6 +3,15 @@ Nate's ETL Library
 
 Python ETL Library for facilitating data transformations.
 
+Project Goals
+-------------
+
+ 1. Quick to implement ETL method based on flowing data between components
+ 2. Useful debugging tools to help visualize and troubleshoot your data flow
+
+Summary
+-------
+
 I am frequently trying to implement ETL workflows in Python that follow the pattern
 of multiple components doing one thing well and passing records bewtween each other.
 However, doing this well often proves challenging.  This tool aims to solve this
