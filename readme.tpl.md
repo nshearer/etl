@@ -38,6 +38,14 @@ that span multiple threads.
    providing the ability to trace information flowing through the ETL graph.
 
 
+TODO
+----
+
+Features to consider:
+
+ - Dynamically adding components to the ETL Workflow after it has started.
+
+
 Workflow
 ========
 

@@ -3,11 +3,10 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
-import io
-import pickle
 from threading import Lock
+import ujson as json
 
-from .exceptions import EtlRecordFrozen
+from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
 
 NEXT_ETL_RECORD_SERIAL = 0
 NEXT_ETL_RECORD_LOCK = Lock()
@@ -31,22 +30,20 @@ class EtlRecordSerial(object):
         return hash(self.__value) # May change to string in the future
         
 
-# TODO: When I freeze a record, maybe produce a new object with the pickked
-#       data in it to pass?
-
 class EtlRecord:
     '''Container for values for a single record
     
-    ETL Records are meant to not be mutable once they have been added to an
-    output set.
+    ETL Records are meant to not be mutable once they have been dispached out
+    of a component.
     '''
 
-    def __init__(self, **values):
+    def __init__(self, record_type, **values):
         '''Init
         
-        @param schema: The Schema this record is being created to match
+        @param record_type: Type of record (information only, no type checking)
         @param values: Initial values
         '''
+        self.__record_type = record_type
         self.__values = dict()
         self.__serial = EtlRecordSerial()
         self.__frozen = False
@@ -55,19 +52,35 @@ class EtlRecord:
         self.__from_records = list()
         self.__size_cache = None
 
-        self.__frozen_data = None
+        self.__frozen_json = None
 
         if values is not None:
             for k, v in list(values.items()):
                 self[k] = v
 
 
-    def clone_for_edit(self):
-        if self.__frozen_data is not None:
-            copy = pickle.loads(self.__frozen_data)
+    @property
+    def record_type(self):
+        return self.__record_type
+    # TODO: Allow changes to record type?
+
+
+    def freeze(self):
+        self.assert_not_frozen()
+        self.__frozen = True
+        self.__frozen_json = json.dumps({
+            'type':   self.__record_type,
+            'serial': str(self.__serial),
+            'values': self.__values})
+
+
+    def copy(self):
+        if self.__frozen_json is not None:
+            info = json.loads(self.__frozen_json)
+            copy = EtlRecord(info['type'], **info['values'])
             copy.__serial = EtlRecordSerial()
             return copy
-        return EtlRecord(self.__values)
+        raise Exception("Freeze record before copy()")
         # TODO: automatically associate derived record?
 
 
@@ -90,6 +103,7 @@ class EtlRecord:
         '''Serial codes of records that helped generate this record'''
         return self.__from_records[:]
 
+
     # -- Handling fields ------------------------------------------------------
 
     def __setitem__(self, name, value):
@@ -97,7 +111,11 @@ class EtlRecord:
         self.__values[name] = value
 
     def __getitem__(self, name):
-        return self.__values[name]
+        try:
+            return self.__values[name]
+        except KeyError:
+            raise InvalidEtlRecordKey("%s record has no '%s' attribute" % (
+                self.record_type, name))
 
 
     # -- Source processor -----------------------------------------------------
@@ -131,12 +149,6 @@ class EtlRecord:
 
     def keys(self):
         return self.field_names()
-
-
-    def freeze(self):
-        self.assert_not_frozen()
-        self.__frozen = True
-        self.__frozen_data = pickle.dumps(self)
 
 
     @property

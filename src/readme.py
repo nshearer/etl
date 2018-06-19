@@ -115,7 +115,7 @@ def get_class_method_doc(class_obj):
 
 if __name__ == '__main__':
 
-    tpl_path = os.path.join(os.path.dirname(__file__), '..', 'readme.tpl')
+    tpl_path = os.path.join(os.path.dirname(__file__), '..', 'readme.tpl.md')
     tpl_path = os.path.abspath(tpl_path)
     if not os.path.exists(tpl_path):
         abort("Template file missing: " + tpl_path)
