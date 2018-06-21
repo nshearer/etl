@@ -1,6 +1,6 @@
 import os
 from sys import stdout, stderr
-from threading import Lock
+from threading import Thread, Lock
 from zlib import compressobj
 from tempfile import mkdtemp
 import shutil
@@ -41,7 +41,7 @@ class GZOutputWriter:
         self.fh = None
 
 
-class EtlTracer(EtlComponent):
+class EtlTracer(Thread):
     '''
     ETL Component added to workflows to trace records being processed to file
 
@@ -51,22 +51,23 @@ class EtlTracer(EtlComponent):
     trace_input = EtlInput()
 
     def __init__(self, wf_context):
-        self.__mute_lock = Lock()
 
+        # Init thread
+        super(EtlTracer, self).__init__()
+
+        # Tracer variables
+        self.__mute_lock = Lock()
+        self.__wf_context = wf_context
+        self.__output_tmp_dir = None
+        self.__log_fh = None
+        self.__trace_file_path = None
+        self.__trace_db = None
+        self.__started = False
+
+        # Tracer settings
         self.console_log_level = None
         self.console_dev = stdout
         self.error_console_dev = stderr
-
-        self.__wf_context = wf_context
-        self.__trace_file_path = None
-
-        self.__started = False
-
-        # File Handles
-        self.__output_tmp_dir = None
-        self.__record_trace = None
-        self.__record_index_trace = None
-        self.__log_file = None
 
 
     def set_trace_path(self, path):

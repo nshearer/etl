@@ -7,15 +7,34 @@ class EltOutputConnection:
         self.tok = None
 
 
-class EtlOutput:
+class EtlRecordEnvelope:
+    '''Wrapper around records specifying where they came from, and where they're going'''
+
+
+class EtlPort:
+
+    PORT_ID_LOCK = Lock()
+    NEXT_PORT_ID = 0
+
+    @staticmethod
+    def new_unique_id():
+        '''Get a unique port ID (used for outputs and inputs)'''
+        with EtlPort.PORT_ID_LOCK:
+            uid = EtlPort.NEXT_PORT_ID
+            EtlPort.NEXT_PORT_ID += 1
+        return uid
+
+
+
+class EtlOutput(EtlPort):
     '''
     Defines an output channel for a component to send processed records out on
     '''
 
-
     def __init__(self):
         self.__mute_lock = Lock()
         self.__connections = list()
+        self.__id = self.new_unique_id()
 
         # See EtlComponent.setup()
         self._src_component_name = None
