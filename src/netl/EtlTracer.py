@@ -1,146 +1,210 @@
+'''
+ETL Tracer Functionality
+
+This module provides a singleton like interface for the entire workflow to record
+what's happening.  The primary goal of this functionality doesn't assist with the
+execution of the workflow in anyway, but rather records information useful to
+monitoring the workflow, debugging, and tracing how data flows through ETL.
+
+Because many ETL objects want to tace data, I'm avoid passing the tracer to every
+component, connection, and data record produced by using a singleton instance.
+
+See https://stackoverflow.com/questions/31875/is-there-a-simple-elegant-way-to-define-singletons
+
+1) The module itself holds all of the singleton members
+2) There is a class which proxies access to the module functions just for convience
+
+'''
 import os
-from sys import stdout, stderr
-from threading import Thread, Lock
-from zlib import compressobj
-from tempfile import mkdtemp
+from threading import Lock
+from tempfile import NamedTemporaryFile
 import shutil
+import sqlite3
 
 from .constants import *
-from .exceptions import NoMoreData
 
-from .EtlComponent import EtlComponent
-from .EtlInput import EtlInput
-from .EtlRecord import EtlRecord
-from .EtlOutput import EtlOutput
+# Tracing settings
+ETL_TRACER_SETTINGS = object()
+ETL_TRACER_SETTINGS.lock = Lock()
+ETL_TRACER_SETTINGS.enabled = False
 
-class GZOutputWriter:
+# Workflow Data
+ETL_TRACER_SETTINGS.wf_context = None
+ETL_TRACER_SETTINGS.output_tmp_dir = None
+
+# Trace Output
+ETL_TRACER_SETTINGS.trace_path = None
+ETL_TRACER_SETTINGS.trace_db = None
+ETL_TRACER_SETTINGS.keep_trace = False
+
+# Constants
+ETL_TRACER_LARGE_RECORD_LIMIT = 1024 * 1024 # 1 MiB
+ETL_TRACER_COMMIT_REC_EVERY = 1024
+
+# Counters
+ETL_TRACER_SETTINGS.commit_rec_in = ETL_TRACER_COMMIT_REC_EVERY
+
+
+def setup_tracer(path=None, overwrite=False, keep=None):
     '''
-    File output that is compresses with gzip
-    '''
+    Setup tracer for receiving data
 
-    def __init__(self, path):
-        self.path = path
-        self.fh = open(path, 'wb')
-        self.compressor = compressobj()
-
-    def write(self, data, flush=False):
-        if self.compressor is None:
-            raise Exception("File closed")
-        data = self.compressor.compress(data)
-        if flush:
-            data += self.compressor.flush()
-        self.fh.write(data)
-        if flush:
-            self.fh.flush()
-            os.fsync(self.fh.fileno())
-
-    def close(self):
-        self.fh.write(self.compressor.flush())
-        self.compressor = None
-        self.fh.close()
-        self.fh = None
-
-
-class EtlTracer(Thread):
-    '''
-    ETL Component added to workflows to trace records being processed to file
-
-    Used to enable status checking and debugging, as well as console logging
+    :param path: Path to save trace information to (sqlite3 db)
+    :param overwrite: If true, will delete existing trace file if exists
+    :param keep: If true, will not delete trace file when ETL completes
     '''
 
-    trace_input = EtlInput()
+    with ETL_TRACER_SETTINGS.lock:
 
-    def __init__(self, wf_context):
+        # Determine path to trace to
+        if os.path.exists(path):
+            if overwrite:
+                os.unlink(path)
+            else:
+                raise Exception("Trace file already exists: "+path)
+        if path is None:
+            ETL_TRACER_SETTINGS.trace_path = NamedTemporaryFile(delete=False)
+            ETL_TRACER_SETTINGS.trace_path.close()
+            ETL_TRACER_SETTINGS.trace_path = path.name
 
-        # Init thread
-        super(EtlTracer, self).__init__()
+            if keep is None:
+                ETL_TRACER_SETTINGS.keep_trace = False
+            else:
+                ETL_TRACER_SETTINGS.keep_trace = keep
+        else:
+            ETL_TRACER_SETTINGS.trace_path = path
 
-        # Tracer variables
-        self.__mute_lock = Lock()
-        self.__wf_context = wf_context
-        self.__output_tmp_dir = None
-        self.__log_fh = None
-        self.__trace_file_path = None
-        self.__trace_db = None
-        self.__started = False
+            if keep is None:
+                ETL_TRACER_SETTINGS.keep_trace = True
+            else:
+                ETL_TRACER_SETTINGS.keep_trace = keep
 
-        # Tracer settings
-        self.console_log_level = None
-        self.console_dev = stdout
-        self.error_console_dev = stderr
+        # Create DB file to trace to
+        ETL_TRACER_SETTINGS.trace_db = sqlite3.connect(ETL_TRACER_SETTINGS.trace_path)
+        db = ETL_TRACER_SETTINGS.trace_db
+
+        # ETL Status Table: Single record representing status of the ETL
+        db.cursor().execute("""
+            create table status(
+              state_code  text)
+        """)
+
+        # Component Status Table: One record per component in the ETL
+        db.cursor().execute("""
+            create table components (
+              id          int primary key,
+              name        text,
+              class       text,
+              state_code  text)
+        """)
+
+        # Component Port Table: One record per component input or output port
+        db.cursor().execute("""
+            create table component_ports (
+              comp_id     int,
+              id          int primary key,
+              name        text,
+              state_code  text)
+        """)
+
+        # Record Data Table: One record per component in the ETL
+        db.cursor().execute("""
+            create table records (
+              id                int primary key,
+              origin_component  int,
+              large_record      int,
+              data              text)
+        """)
+
+        # Record Trace Table: Records are sent from one component to another
+        db.cursor().execute("""
+            create table records (
+              id                int primary key,
+              record_id         int,
+              from_port_id      int,
+              to_port_id        int)
+        """)
+
+        # Record Derivation Trace Table: Trace when one record value is referenced to calucate the value of another
+        db.cursor().execute("""
+            create table record_derivation (
+              ref_record_id     int,
+              ref_record_attr   text,
+              calc_record_id    int,
+              calc_record_attr  text)
+        """)
+
+        # Component Status Table: Large record storage
+        db.cursor().execute("""
+            create table large_records (
+              id                int primary key)
+        """)
+        db.cursor().execute("""
+            create table large_record_data (
+              large_rec_id      int,
+              chunk_num         int,
+              data              text)
+        """)
+
+        # Allow trace operations to start
+        ETL_TRACER_SETTINGS.enabled = True
 
 
-    def set_trace_path(self, path):
-        '''Set the path'''
-        with self.__mute_lock:
-            if self.__started:
-                raise Exception("Can't set trace path after workflow is started")
-            self.__trace_file_path = path
+def stop_tracer():
+    '''
+    Close the trace DB
+    '''
+
+    with ETL_TRACER_SETTINGS.lock:
+        ETL_TRACER_SETTINGS.enabled = False
+        ETL_TRACER_SETTINGS.trace_db.close()
+        ETL_TRACER_SETTINGS.trace_db = None
+        if not ETL_TRACER_SETTINGS.keep_trace:
+            os.unlink(ETL_TRACER_SETTINGS.trace_path)
 
 
+class EtlTracer:
+    '''Tracer logic that uses the global trace variables'''
 
-    def run(self):
+    def check_enabled(self):
+        '''Check to see if tracing is enabled'''
+        if ETL_TRACER_SETTINGS.enabled:
+            if ETL_TRACER_SETTINGS.trace_db is not None:
+                return True
 
-        # Starting
+    def new_component(self, component_id, name, clsname, state):
+        '''
+        Tell the tracer about a component
 
-        with self.__mute_lock:
+        :param component_id: Unique, integer ID for this component
+        :param name: Name of the component
+        :param clsname: Class name of the component
+        :param state: Code that represents the state of the component
+        '''
+        with ETL_TRACER_SETTINGS.lock:
+            if self.check_enabled():
+                db = ETL_TRACER_SETTINGS.trace_db
+                db.cursor().execute("""
+                    insert into components (id, name, class, state_code)
+                    values (?, ?, ?, ?)
+                    """, (int(component_id), name, clsname, state))
+                db.commit()
 
-            if self.__started:
-                raise Exception("Already started")
+    def component_state_change(self, component_id, state):
+        '''
+        Update the status of the component
 
-            # If trace path specified, open file handles
-            if self.__trace_file_path is not None:
-                self.__output_tmp_dir = mkdtemp()
+        :param component_id: nique, integer ID for this component
+        :param state: New state code
+        '''
+        with ETL_TRACER_SETTINGS.lock:
+            if self.check_enabled():
+                db = ETL_TRACER_SETTINGS.trace_db
+                db.cursor().execute("""
+                    update components
+                    set state = ?
+                    where id = ?
+                    """, (state, int(component_id)))
+                db.commit()
 
-                self.__record_trace = GZOutputWriter(os.path.join(self.__output_tmp_dir, 'records.gz'))
-                self.__record_index_trace = GZOutputWriter(os.path.join(self.__output_tmp_dir, 'index.gz'))
-                self.__log_file = GZOutputWriter(os.path.join(self.__output_tmp_dir, 'log.gz'))
-
-            self.__started = True
-
-
-        # Tracing
-        try:
-            for event in self.trace_input.all():
-
-                # TODO: Trace records to disk
-
-                # Print to console
-                if self.console_log_level is not None:
-                    if event.record_type == 'log':
-                        if event['level'] >= self.console_log_level:
-                            print(event['message'])
-
-        except NoMoreData:
-            pass
-
-            # Close
-            # TODO: commit trace data
-
-        finally:
-            # Cleanup
-            if self.__record_trace is not None:
-                self.__record_trace.close()
-            if self.__record_index_trace is not None:
-                self.__record_index_trace.close()
-            if self.__log_file is not None:
-                self.__log_file.close()
-            if self.__output_tmp_dir is not None:
-                if os.path.exists(self.__output_tmp_dir):
-                    shutil.rmtree(self.__output_tmp_dir)
-
-
-
-class EtlTraceHandle(EtlOutput):
-    '''Handle given to other components to interact with the tracer'''
-
-    def __init__(self, tracer):
-        super(EtlTraceHandle, self).__init__()
-        self.connect(tracer.trace_input)
-
-    def log(self, message, level=LOG_INFO):
-        self.output(EtlRecord(
-            record_type = 'log',
-            level = level,
-            message = message))
 

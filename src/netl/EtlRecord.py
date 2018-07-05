@@ -4,7 +4,11 @@ Created on Dec 27, 2012
 @author: nshearer
 '''
 from threading import Lock
-import ujson as json
+
+try:
+    import ujson as json
+except:
+    import json
 
 from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
 
