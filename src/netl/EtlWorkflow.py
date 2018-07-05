@@ -57,11 +57,11 @@ class EtlWorkflow:
         self.__runners = list()
 
 
-    def trace_to(self, path):
+    def trace_to(self, path, overwrite=False, keep=True):
         '''
         Sets the path where trace files will be written to
         '''
-        self.tracer.set_trace_path(path)
+        self.session.tracer.setup(path, overwrite, keep)
 
 
     def log_to_console(self, level=LOG_INFO):

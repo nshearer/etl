@@ -22,10 +22,10 @@ class EtlTracer:
         self.enabled = False
 
         # Tracer settings
-        self.path = path
-        self.overwrite = overwrite
-        self.keep_trace = keep
-        
+        self.path = None
+        self.overwrite = None
+        self.keep_trace = None
+
         # Workflow Data
         self.wf_context = None
         self.output_tmp_dir = None
@@ -111,7 +111,7 @@ class EtlTracer:
     
             # Record Trace Table: Records are sent from one component to another
             db.cursor().execute("""
-                create table records (
+                create table envelopes (
                   id                int primary key,
                   record_id         int,
                   from_port_id      int,

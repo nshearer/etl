@@ -131,7 +131,7 @@ if __name__ == '__main__':
     wf.save = Save()
     wf.save.records.connect(wf.join.joined)
 
-    wf.trace_to('test.trace.zip')
+    wf.trace_to('test.trace', overwrite=True)
     wf.log_to_console(LOG_DEBUG)
 
     wf.start()
