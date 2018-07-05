@@ -3,6 +3,7 @@ from threading import Lock
 from queue import Queue
 
 from .EtlOutput import EtlPort
+from .exceptions import NoMoreData
 
 class EtlInput(EtlPort):
     '''
@@ -18,7 +19,7 @@ class EtlInput(EtlPort):
     a connection it has clossed.
 
     Closed Inputs:
-    Once all of teh outputs that have connected to this input have signaled that they are
+    Once all of the outputs that have connected to this input have signaled that they are
     "closing" the connected (i.e.: will not send any more records), then this input is
     considered closed and will not accept any additional records.
 
@@ -31,6 +32,7 @@ class EtlInput(EtlPort):
     CLOSED = 'X'        # All components
 
     def __init__(self, maxsize=DEFAULT_MAXSIZE):
+        super(EtlInput, self).__init__()
         self.__id = self.new_unique_id()
         self.__mute_lock = Lock()
         self._queue = Queue(maxsize)
@@ -38,16 +40,30 @@ class EtlInput(EtlPort):
         self.__connection_tokens = set()
         self.__next_token = 0
 
+        # See EtlComponent.setup()
+        self._component_name = None
+        self._port_name = None
+
 
     @property
-    def port_type(self):
+    def etl_port_type(self):
         return 'i'
 
 
     def connect(self, output):
         '''Connect an output to this input'''
-        if output.port_type == 'i':
-            raise Exception("Can't connect an input to an input")
+        try:
+            if output.is_etl_input_port:
+                raise Exception("Can't connect an input to an input")
+        except AttributeError:
+            pass
+
+        try:
+            if not output.is_etl_output_port:
+                raise Exception("Can't connect an input to non-output port")
+        except AttributeError:
+            raise Exception("Can't connect an input to a %s" % (output.__class__.__name__))
+
         output.connect(self) # Do all connections output -> input
 
 
@@ -62,12 +78,37 @@ class EtlInput(EtlPort):
             return tok
 
 
-    def all(self):
+    def all(self, envelope=False):
         '''Return all records'''
-        while True:
-            yield self._queue.get()
+        try:
+            while True:
+                yield self.get(envelope)
+        except NoMoreData:
+            return
 
 
-    def get(self):
+    def get(self, envelope=False):
         '''Return a single record'''
-        return self._queue.get()
+
+        unwrap = not envelope
+
+        # Make sure we have a connection
+        if len(self.__connection_tokens) == 0:
+            raise NoMoreData("Input has no open connections")
+
+        envelope = self._queue.get()
+        envelope.note_receiver(self._component_name, self._port_name)
+
+        if envelope.msg_type == 'record':
+            self.session.tracer.trace_record_rcvd(envelope)
+            if unwrap:
+                return envelope.record
+            else:
+                return envelope
+
+        elif envelope.msg_type == 'close':
+            connection_token = envelope.record
+            self.__connection_tokens.remove(connection_token)
+            return self.get(not unwrap) # Will raise InputClossed() if no more connections
+
+

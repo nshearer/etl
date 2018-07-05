@@ -3,7 +3,7 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
-import os
+import logging
 
 from .EtlComponentRunner import EtlComponentRunner
 from .EtlSession import EtlSession
@@ -61,11 +61,7 @@ class EtlWorkflow:
         '''
         Sets the path where trace files will be written to
         '''
-        self.session.tracer.setup(path, overwrite, keep)
-
-
-    def log_to_console(self, level=LOG_INFO):
-        self.tracer.console_log_level = level
+        self.session.tracer.setup_tracer(path, overwrite, keep)
 
 
     @property
@@ -81,10 +77,27 @@ class EtlWorkflow:
                     pass
 
 
+    def std_logging(self, level=logging.INFO):
+        '''Setup Standard logging'''
+        logger = self.session.get_logger()
+
+        logger.setLevel(level)
+        formatter = logging.Formatter('%(levelname)-8s %(name)s - %(message)s')
+        console = logging.StreamHandler()
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+
+        return logger
+
+
     def start(self):
         '''Begin the workflow execution'''
 
-        # Attach context and tracer to each component
+        # Start the tracer
+        if self.session.tracer.tracing_enabled:
+            self.session.tracer.start()
+
+        # Attach ETL session to each component
         for comp in self.components:
             comp.setup_etl(self.session)
 
@@ -106,3 +119,17 @@ class EtlWorkflow:
             runner = self.__runners.pop(0)
             runner.join() # Wait again.  Runner should be finished
 
+    def finish(self):
+        '''Shutdown the workflow (will wait until all components have finished)'''
+        self.wait()
+        if self.session.tracer.tracing_running:
+            self.session.tracer.stop_tracer()
+
+
+    @property
+    def logger(self):
+        try:
+            return self.__logger
+        except AttributeError:
+            self.__logger = self.session.get_logger('WF')
+            return self.__logger

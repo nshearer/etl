@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+import logging
 
 from .resources import EtlResourceCollection
 from .EtlTracer import EtlTracer
+
+from .serial import EtlSerial
 
 class EtlSession:
     '''Holds information for a single execution of an ETL that is needed by all components'''
@@ -9,7 +12,26 @@ class EtlSession:
     def __init__(self):
         self.run_dir = None
         self.tracer = EtlTracer()
+        self.tracer.logger = self.get_logger('TRACE')
         self.resources = EtlResourceCollection()
+
+
+    @property
+    def session_id(self):
+        '''Unique ID for this session (in case you get multiple ETLs running'''
+        try:
+            return self.__session_id
+        except AttributeError:
+            self.__session_id = int(str(EtlSerial()))
+            return self.__session_id
+
+
+    def get_logger(self, name=None):
+        '''Get a logger for this session'''
+        if name is None:
+            return logging.getLogger('etl.%d' % (self.session_id))
+        return logging.getLogger('etl.%d.%s' % (self.session_id, name))
+
 
 
 class EtlObject(ABC):
@@ -42,3 +64,5 @@ class EtlObject(ABC):
     @abstractmethod
     def _child_etl_objects(self):
         '''List sub objects that also need to have setup_etl() called (or None)'''
+
+

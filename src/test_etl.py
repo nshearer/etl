@@ -14,7 +14,7 @@ Simple testing workflow
     +------+
 
 '''
-
+import logging
 
 from netl import EtlWorkflow, EtlComponent, EtlInput, EtlOutput, EtlRecord, NoMoreData, LOG_DEBUG
 
@@ -132,10 +132,12 @@ if __name__ == '__main__':
     wf.save.records.connect(wf.join.joined)
 
     wf.trace_to('test.trace', overwrite=True)
-    wf.log_to_console(LOG_DEBUG)
+    wf.std_logging(logging.DEBUG)
+
+    # Debug to console
 
     wf.start()
-    wf.wait()
+    wf.finish()
 
     print("Finished")
 

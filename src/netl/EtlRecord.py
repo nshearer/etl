@@ -11,28 +11,7 @@ except:
     import json
 
 from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
-
-NEXT_ETL_RECORD_SERIAL = 0
-NEXT_ETL_RECORD_LOCK = Lock()
-
-class EtlRecordSerial(object):
-    '''Unique identification for EtlRecords'''
-    
-    def __init__(self):
-        global NEXT_ETL_RECORD_SERIAL, NEXT_ETL_RECORD_LOCK
-        with NEXT_ETL_RECORD_LOCK:
-            self.__value = NEXT_ETL_RECORD_SERIAL
-            NEXT_ETL_RECORD_SERIAL += 1
-
-    def __str__(self):
-        return str(self.__value)
-    
-    def __eq__(self, serial):
-        return self.__value == serial.__value
-    
-    def __hash__(self):
-        return hash(self.__value) # May change to string in the future
-        
+from .serial import EtlSerial
 
 class EtlRecord:
     '''Container for values for a single record
@@ -41,26 +20,34 @@ class EtlRecord:
     of a component.
     '''
 
-    def __init__(self, record_type, **values):
+    def __init__(self, record_type, serial='NEXT', **values):
         '''Init
         
         @param record_type: Type of record (information only, no type checking)
         @param values: Initial values
         '''
+        self.__serial = None
         self.__record_type = record_type
         self.__values = dict()
-        self.__serial = EtlRecordSerial()
         self.__frozen = False
         self.__src_processor = None
         self.__src_port = None
         self.__from_records = list()
         self.__size_cache = None
 
+        if serial == 'NEXT':
+            self.__serial = EtlSerial()
+
         self.__frozen_json = None
 
         if values is not None:
             for k, v in list(values.items()):
                 self[k] = v
+
+
+    @property
+    def is_etl_record(self):
+        return True
 
 
     @property
@@ -81,17 +68,10 @@ class EtlRecord:
     def copy(self):
         if self.__frozen_json is not None:
             info = json.loads(self.__frozen_json)
-            copy = EtlRecord(info['type'], **info['values'])
-            copy.__serial = EtlRecordSerial()
+            copy = EtlRecord(info['type'], serial=EtlSerial(), **info['values'])
             return copy
         raise Exception("Freeze record before copy()")
         # TODO: automatically associate derived record?
-
-
-    @property
-    def serial(self):
-        '''Unique identification of this record'''
-        return self.__serial
 
 
     # -- Source record linking.  TODO: Move? ----------------------------------

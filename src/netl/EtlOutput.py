@@ -1,20 +1,60 @@
+from abc import abstractmethod
 
 from threading import Lock
+from .EtlSession import EtlObject
+
+class OutputClossed(Exception): pass
 
 class EltOutputConnection:
     def __init__(self, input):
         self.input = input
         self.tok = None
 
-
 class EtlRecordEnvelope:
     '''Wrapper around records specifying where they came from, and where they're going'''
+    def __init__(self, msg_type, from_comp, from_port, record):
+        self.__msg_type = msg_type
+        self.__from_comp = from_comp
+        self.__from_port = from_port
+        self.__record = record
+        self.__to_comp = None
+        self.__to_port = None
+    def note_receiver(self, comp_name, port_name):
+        self.__to_comp = comp_name
+        self.__to_port = port_name
+    def __str__(self):
+        return "%s.%s -> %s.%s" % (self.from_comp, self.from_port, self.to_comp or '?', self.to_port or '?')
+    @property
+    def msg_type(self):
+        return self.__msg_type
+    @property
+    def from_comp(self):
+        return self.__from_comp
+    @property
+    def from_port(self):
+        return self.__from_port
+    @property
+    def to_comp(self):
+        return self.__to_comp
+    @property
+    def to_port(self):
+        return self.__to_port
+    @property
+    def record(self):
+        return self.__record
 
 
-class EtlPort:
+class EtlPort(EtlObject):
 
     PORT_ID_LOCK = Lock()
     NEXT_PORT_ID = 0
+
+
+    def __init__(self):
+        # See EtlComponent.setup()
+        self._component_name = None
+        self._port_name = None
+
 
     @staticmethod
     def new_unique_id():
@@ -25,6 +65,34 @@ class EtlPort:
         return uid
 
 
+    @property
+    def component_name(self):
+        return self._component_name
+
+    @property
+    def name(self):
+        return self._port_name
+
+
+    def _child_etl_objects(self):
+        return None
+
+    @property
+    def is_etl_port(self):
+        return True
+
+    @property
+    @abstractmethod
+    def etl_port_type(self):
+        '''Input or output'''
+
+    @property
+    def is_etl_input_port(self):
+        return self.etl_port_type == 'i'
+    @property
+    def is_etl_output_port(self):
+        return self.etl_port_type == 'o'
+
 
 class EtlOutput(EtlPort):
     '''
@@ -32,27 +100,26 @@ class EtlOutput(EtlPort):
     '''
 
     def __init__(self):
+        super(EtlOutput, self).__init__()
         self.__mute_lock = Lock()
         self.__connections = list()
         self.__id = self.new_unique_id()
-
-        # See EtlComponent.setup()
-        self._src_component_name = None
-        self._output_name = None
+        self.__closed = False
 
 
     @property
-    def is_etl_output_port(self):
-        return True
-    @property
-    def port_type(self):
+    def etl_port_type(self):
         return 'o'
 
 
     def connect(self, input):
         '''Connect to the input of a component'''
-        if input.port_type == 'o':
-            raise Exception("Can't connect an output to an output")
+        try:
+            if not input.is_etl_input_port:
+                raise Exception("Can't connect an output to an output")
+        except AttributeError:
+            raise Exception("Can't connect an output to %s" % (input.__class__.__name__))
+
         with self.__mute_lock:
             conn = EltOutputConnection(input)
             conn.tok = input._new_connection_token()
@@ -60,7 +127,39 @@ class EtlOutput(EtlPort):
 
 
     def output(self, record):
+        '''Send a record out on this output to any connected inputs'''
+
+        if self.__closed:
+            raise OutputClossed("Output %s.%s has been closed" % (
+                self._component_name, self._port_name))
+
+        try:
+            if not record.is_etl_record:
+                raise AttributeError()
+        except AttributeError:
+            raise Exception("Expected an EtlRecord, got %s" % (str(type(record))))
+
         record.freeze()
-        record.set_source(self._src_component_name, self._output_name)
+
         for conn in self.__connections:
-            conn.input._queue.put(record)
+            # Note: Not specifying receiver names here because receiving component
+            #       may not have been started yet.  See EtlInput.get()
+            conn.input._queue.put(EtlRecordEnvelope(
+                msg_type    = 'record',
+                from_comp   = self._component_name,
+                from_port   = self._port_name,
+                record      = record,
+            ))
+
+
+    def close(self):
+        '''Close down output and signal connected inputs that no more records will be sent'''
+
+        self.__closed = True
+        for conn in self.__connections:
+              conn.input._queue.put(EtlRecordEnvelope(
+                msg_type    = 'close',
+                from_comp   = self.component_name,
+                from_port   = self.name,
+                record      = conn.tok,
+            ))
