@@ -3,11 +3,11 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
-from abc import ABC, abstractmethod
 
 from .constants import *
+from .EtlSession import EtlObject
 
-class EtlComponent(ABC):
+class EtlComponent(EtlObject):
     '''
     Takes 0 or more inputs and generates 0 or more outputs
 
@@ -51,11 +51,6 @@ class EtlComponent(ABC):
     '''
 
 
-    def __init__(self):
-        self.context = None
-        self.trace = None
-
-
     @property
     def name(self):
         return self.__class__.__name__
@@ -74,15 +69,34 @@ class EtlComponent(ABC):
                     pass
 
 
-    def setup(self, context, trace):
-        '''Called by workflow just prior to starting'''
-        self.context = context
-        self.trace = trace
+    @property
+    def inputs(self):
+        '''All output ports (name, port)'''
+        for name in dir(self):
+            if name[0] != '_':
+                try:
+                    attr = getattr(self, name)
+                    if attr.is_etl_input_port:
+                        yield name, attr
+                except AttributeError:
+                    pass
+
+
+    def setup_etl(self, session):
+
+        super(EtlComponent, self, )
 
         # Setup output connections to tag outbound records
         for name, port in self.outputs:
             port._src_component_name = self.name
             port._output_name = name
+
+
+    def _child_etl_objects(self):
+        for port in self.outputs:
+            yield port
+        for port in self.inputs:
+            yield port
 
 
     def _execute(self):

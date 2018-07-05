@@ -5,9 +5,8 @@ Created on Dec 27, 2012
 '''
 import os
 
-from .EtlContext import EtlContext
-from .EtlTracer import EtlTracer, EtlTraceHandle
 from .EtlComponentRunner import EtlComponentRunner
+from .EtlSession import EtlSession
 
 from .constants import LOG_INFO
 
@@ -53,10 +52,7 @@ class EtlWorkflow:
     
     def __init__(self):
 
-        self.context = EtlContext()
-
-        self.tracer = EtlTracer(self.context)
-        self.tracer = self.tracer
+        self.session = EtlSession()
 
         self.__runners = list()
 
@@ -90,10 +86,7 @@ class EtlWorkflow:
 
         # Attach context and tracer to each component
         for comp in self.components:
-            comp.setup(
-                context = self.context,
-                trace = EtlTraceHandle(self.tracer),
-            )
+            comp.setup_etl(self.session)
 
         # Start each component
         for comp in self.components:
