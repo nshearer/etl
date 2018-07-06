@@ -6,6 +6,7 @@ from .PortTrace import PortTrace
 from .EnvelopeTrace import EnvelopeTrace
 from .RecordTrace import RecordTrace
 
+
 class TraceDB:
     '''Record of ETL progress'''
 
@@ -31,6 +32,8 @@ class TraceDB:
 
         if mode == 'r':
             self.__readonly = True
+            if not os.path.exists(path):
+                raise Exception("TraceDB %s doesn't exist" % (path))
         elif mode == 'rw':
             self.__readonly = False
         else:
@@ -77,6 +80,12 @@ class TraceDB:
 
         db.close()
         return TraceDB(path)
+
+
+
+    def list_components(self):
+        return ComponentTrace.list_components(self)
+
 
 
     # == Tracing methods ==============================================

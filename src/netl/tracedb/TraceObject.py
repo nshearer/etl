@@ -17,3 +17,10 @@ class TraceObject:
             raise Exception("Database open for read only")
 
 
+def row_dict_factory(cursor, row):
+    '''Convert sqlite3 result row into a dict'''
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+

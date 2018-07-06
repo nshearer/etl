@@ -7,3 +7,5 @@ from .EtlRecord import EtlRecord
 
 from .exceptions import *
 from .constants import *
+
+from .tracedb import TraceDB

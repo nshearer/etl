@@ -1,6 +1,6 @@
 
 
-from .TraceObject import TraceObject
+from .TraceObject import TraceObject, row_dict_factory
 
 class ComponentTrace(TraceObject):
     '''A component in the ETL'''
@@ -17,8 +17,9 @@ class ComponentTrace(TraceObject):
         """,
     )
 
-    def __init__(self, db, ):
+    def __init__(self, db, **attrs):
         self.trace_db = db
+        self.__dict__.update(attrs)
 
     @staticmethod
     def trace_new_component(trace_db, component_id, name, clsname, state):
@@ -42,3 +43,13 @@ class ComponentTrace(TraceObject):
             where id = ?
             """, (state_code, int(component_id)))
         trace_db.sqlite3db.commit()
+
+
+    @staticmethod
+    def list_components(trace_db):
+
+        curs = trace_db.sqlite3db.cursor()
+        curs.execute("select * from components")
+        for row in curs:
+            yield ComponentTrace(trace_db, **row_dict_factory(curs, row))
+
