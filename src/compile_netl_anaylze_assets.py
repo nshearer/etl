@@ -43,9 +43,8 @@ if __name__ == '__main__':
             
             _NETL_ANALYZE_ZIP_BINARY = BytesIO(b64decode('''
             {b64zip}
-                ''').strip().replace("\\n", ""))
+                '''.strip().replace("\\n", "")))
             NETL_ANALYZE_HTML = ZipFile(_NETL_ANALYZE_ZIP_BINARY, 'r')
-            
             """).format(
                 b64zip = "\n".join(['    ' + line for line in b64zip])
             ))

@@ -28,8 +28,6 @@ class TraceDB:
 
 
     def __init__(self, path, mode='r'):
-        self.__db = sqlite3.connect(path)
-
         if mode == 'r':
             self.__readonly = True
             if not os.path.exists(path):
@@ -38,6 +36,8 @@ class TraceDB:
             self.__readonly = False
         else:
             raise Exception("mode must be r or rw")
+
+        self.__db = sqlite3.connect(path)
 
 
     @property
