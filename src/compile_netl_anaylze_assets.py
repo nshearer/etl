@@ -1,5 +1,5 @@
 import os, sys
-from zipfile import ZipFile, ZIP_BZIP2
+from zipfile import ZipFile, ZIP_DEFLATED
 from tempfile import TemporaryFile
 from base64 import b64encode
 from textwrap import dedent
@@ -24,8 +24,8 @@ if __name__ == '__main__':
                 path = os.path.join(dirpath, filename)
                 name = path[len(html_path)+1:]
                 print(name)
-                zip.write(path, name, ZIP_BZIP2)
-    print()
+                zip.write(path, name, ZIP_DEFLATED)
+    print('')
 
     # Encapsulate data into a Python Module
     zip_fh.seek(0)

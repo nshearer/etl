@@ -1,4 +1,6 @@
+import os
 from abc import ABC, abstractmethod
+
 from jinja2 import Environment, select_autoescape
 from jinja2 import BaseLoader, TemplateNotFound
 
@@ -18,7 +20,11 @@ class TemplateLoader(BaseLoader):
         source = self.SOURCE.get(template)
         source = source.decode('utf-8')
 
-        return source, template, lambda: True
+        source_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                   '..', 'html_content.py'))
+        mtime = os.path.getmtime(source_path)
+
+        return source, source_path, lambda: mtime == os.path.getmtime(source_path)
 
 
 class ViewObject:
