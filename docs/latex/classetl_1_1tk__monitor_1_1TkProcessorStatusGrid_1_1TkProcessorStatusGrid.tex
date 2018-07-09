@@ -1,0 +1,61 @@
+\hypertarget{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid}{\section{etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid Class Reference}
+\label{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid}\index{etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid@{etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid}}
+}
+Inheritance diagram for etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_ade5afc25ec51148040cfb25eb33684fe}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_ade5afc25ec51148040cfb25eb33684fe}
+
+\item 
+def \hyperlink{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_ac27896e2b7af840fc8caa646ad0f3763}{get\-\_\-labels\-\_\-for\-\_\-grid}
+\item 
+def \hyperlink{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_a836630b3c2d0588bcbf19c344c285d37}{get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}A scrollable grid showing the status of all processors\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\hypertarget{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_ac27896e2b7af840fc8caa646ad0f3763}{\index{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid}!get\-\_\-labels\-\_\-for\-\_\-grid@{get\-\_\-labels\-\_\-for\-\_\-grid}}
+\index{get\-\_\-labels\-\_\-for\-\_\-grid@{get\-\_\-labels\-\_\-for\-\_\-grid}!etl::tk_monitor::TkProcessorStatusGrid::TkProcessorStatusGrid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid}}
+\subsubsection[{get\-\_\-labels\-\_\-for\-\_\-grid}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid.\-get\-\_\-labels\-\_\-for\-\_\-grid (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_ac27896e2b7af840fc8caa646ad0f3763}
+\begin{DoxyVerb}Return label widgets to place on grid in format
+
+Keep in mind structure is 1 processor to many dataports
+The current layout is:
+    prc_fields    dataport_fields
+          dataport_fields
+    prc_fields    dataport_fields
+          dataport_fields
+          dataport_fields
+          
+@return list of fields with None where no label should be placed
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_a836630b3c2d0588bcbf19c344c285d37}{\index{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid}!get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid@{get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid}}
+\index{get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid@{get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid}!etl::tk_monitor::TkProcessorStatusGrid::TkProcessorStatusGrid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Processor\-Status\-Grid\-::\-Tk\-Processor\-Status\-Grid}}
+\subsubsection[{get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-tk\-\_\-monitor.\-Tk\-Processor\-Status\-Grid.\-Tk\-Processor\-Status\-Grid.\-get\-\_\-labels\-\_\-for\-\_\-prc\-\_\-on\-\_\-grid (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{prc\-\_\-comp}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1tk__monitor_1_1TkProcessorStatusGrid_1_1TkProcessorStatusGrid_a836630b3c2d0588bcbf19c344c285d37}
+\begin{DoxyVerb}Return label widgets to place on grid for all dataport for a prc
+
+This returns just the dataport field labels\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/tk\-\_\-monitor/Tk\-Processor\-Status\-Grid.\-py\end{DoxyCompactItemize}

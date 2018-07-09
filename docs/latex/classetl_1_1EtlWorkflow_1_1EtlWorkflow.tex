@@ -1,0 +1,157 @@
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow}{\section{etl.\-Etl\-Workflow.\-Etl\-Workflow Class Reference}
+\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow}\index{etl.\-Etl\-Workflow.\-Etl\-Workflow@{etl.\-Etl\-Workflow.\-Etl\-Workflow}}
+}
+Inheritance diagram for etl.\-Etl\-Workflow.\-Etl\-Workflow\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classetl_1_1EtlWorkflow_1_1EtlWorkflow}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a1966fd97419f8ccaf6363c4b05fbce3c}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a1966fd97419f8ccaf6363c4b05fbce3c}
+
+\item 
+def \hyperlink{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a0027ab0811e6b677f28ca6d58f28f823}{add\-\_\-processor}
+\item 
+def \hyperlink{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a008c9d5aafebcce7b0aab326b1c51e6b}{connect}
+\item 
+def \hyperlink{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a4f71423ab6481714ba85cfe16291bd42}{execute}
+\item 
+def \hyperlink{classetl_1_1EtlWorkflow_1_1EtlWorkflow_aae398dcde51ad92c1592a548f71657b6}{save\-\_\-records}
+\item 
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a85e71dd38d728fbe563577f38d332c29}{def {\bfseries list\-\_\-prc\-\_\-names}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a85e71dd38d728fbe563577f38d332c29}
+
+\item 
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a9f0f6e2d6be094538942928106c1f180}{def {\bfseries get\-\_\-prc}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a9f0f6e2d6be094538942928106c1f180}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a331fee0c614841321d0fb719a58f7135}{{\bfseries default\-\_\-data\-\_\-directory}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a331fee0c614841321d0fb719a58f7135}
+
+\item 
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a9f952af1fcc8d93985c84c83485318e0}{{\bfseries temp\-\_\-directory}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a9f952af1fcc8d93985c84c83485318e0}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Encapsulates an ETL workflow
+
+This class is used to organize all of the components in the workflow.
+It is itself a processor in the ETL Workflow, refered to as the root
+processor.  Unlike child processors based on EtlProcessor, though,
+this root processor runs in the same thread as the invoking code.
+
+Definition of ETL:
+------------------
+from [Wikipedia](http://en.wikipedia.org/wiki/Extract,_transform,_load)
+
+In computing, Extract, Transform and Load (ETL) refers to a process in
+database usage and especially in data warehousing that:
+
+Extracts data from homogeneous or heterogeneous data sources Transforms the
+data for storing it in proper format or structure for querying and analysis
+purpose Loads it into the final target (database, more specifically,
+operational data store, data mart, or data warehouse) Usually all the three
+phases execute in parallel since the data extraction takes time, so while
+the data is being pulled another transformation process executes, processing
+the already received data and prepares the data for loading and as soon as
+there is some data ready to be loaded into the target, the data loading
+kicks off without waiting for the completion of the previous phases.
+
+ETL systems commonly integrate data from multiple applications(systems),
+typically developed and supported by different vendors or hosted on separate
+computer hardware. The disparate systems containing the original data are
+frequently managed and operated by different employees. For example a cost
+accounting system may combine data from payroll, sales and purchasing.
+
+
+Creating an ETL Process
+-----------------------
+
+In order to define an ETL process, the developer is encouraged to
+subclass this class and then define and connect the processors.
+This class does not need to be subclassed to create an ETL process,
+though, as you can just instantiate it and call the methods.
+
+ 1) Define your processors by subclassing EtlProcessor, or using the
+    common processors under etl.common
+
+ 2) Call add_processor() to add your processors to the Workflow
+
+ 3) Call connect() to connect the output ports of processors to the
+    input ports of other processors
+
+ 4) Call assign_processor_output() to connect the output ports of
+    processors to an input port of this Workflow object.  This allows
+    you to define a path for records to exit the ETL workflow and
+    be returned to the calling code.  When you call the workflow.
+    execute() method to run the ETL process, and records dispatched
+    on the specified port will be yielded back to the calling function.
+
+  5) Call exectue() - Run the workflow to generate the desired output. 
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a0027ab0811e6b677f28ca6d58f28f823}{\index{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}!add\-\_\-processor@{add\-\_\-processor}}
+\index{add\-\_\-processor@{add\-\_\-processor}!etl::EtlWorkflow::EtlWorkflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}}
+\subsubsection[{add\-\_\-processor}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Workflow.\-Etl\-Workflow.\-add\-\_\-processor (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{name, }
+\item[{}]{prc}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a0027ab0811e6b677f28ca6d58f28f823}
+\begin{DoxyVerb}Add a processor to the workflow
+
+@param name: Name to identify this processor
+@param prc: EtlProcessor class
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a008c9d5aafebcce7b0aab326b1c51e6b}{\index{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}!connect@{connect}}
+\index{connect@{connect}!etl::EtlWorkflow::EtlWorkflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}}
+\subsubsection[{connect}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Workflow.\-Etl\-Workflow.\-connect (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{from\-\_\-prc\-\_\-name, }
+\item[{}]{output\-\_\-name, }
+\item[{}]{to\-\_\-prc\-\_\-name, }
+\item[{}]{input\-\_\-name = {\ttfamily None}}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a008c9d5aafebcce7b0aab326b1c51e6b}
+\begin{DoxyVerb}Connect the output from one processor to the input of another
+
+@param from_prc_name: Name of processor producing data
+@param output_name: Name identifying dataset generated by from_prc
+@param to_prc_name: Name of processor consuming data
+@param input_name: Name of input port on to_prc to provide data on
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a4f71423ab6481714ba85cfe16291bd42}{\index{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}!execute@{execute}}
+\index{execute@{execute}!etl::EtlWorkflow::EtlWorkflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}}
+\subsubsection[{execute}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Workflow.\-Etl\-Workflow.\-execute (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{prc\-\_\-name}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_a4f71423ab6481714ba85cfe16291bd42}
+\begin{DoxyVerb}Execute the processor (and any dependency processors) and return\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlWorkflow_1_1EtlWorkflow_aae398dcde51ad92c1592a548f71657b6}{\index{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}!save\-\_\-records@{save\-\_\-records}}
+\index{save\-\_\-records@{save\-\_\-records}!etl::EtlWorkflow::EtlWorkflow@{etl\-::\-Etl\-Workflow\-::\-Etl\-Workflow}}
+\subsubsection[{save\-\_\-records}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Workflow.\-Etl\-Workflow.\-save\-\_\-records (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{prc\-\_\-name, }
+\item[{}]{output\-\_\-name, }
+\item[{}]{filename}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlWorkflow_1_1EtlWorkflow_aae398dcde51ad92c1592a548f71657b6}
+\begin{DoxyVerb}Output records to a file from a processor for review\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/Etl\-Workflow.\-py\end{DoxyCompactItemize}

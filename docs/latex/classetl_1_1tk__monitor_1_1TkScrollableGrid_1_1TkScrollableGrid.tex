@@ -1,0 +1,103 @@
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid}{\section{etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid Class Reference}
+\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid}\index{etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid@{etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid}}
+}
+Inheritance diagram for etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ac88cc63c49d0bed587f27fd4d57a3dea}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ac88cc63c49d0bed587f27fd4d57a3dea}
+
+\item 
+def \hyperlink{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ac2c2852e023f92cd0d5ddfab66720171}{add\-\_\-column}
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a45efa9c10db2ec8ca90669eef8747162}{def {\bfseries get\-\_\-col\-\_\-name\-\_\-by\-\_\-pos}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a45efa9c10db2ec8ca90669eef8747162}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_adcc4c0fee7d02a920da8cd70e59d69f5}{def {\bfseries add\-\_\-row}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_adcc4c0fee7d02a920da8cd70e59d69f5}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ae802ce49a5413708c74ec1bfe3a24329}{def {\bfseries set\-\_\-value}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ae802ce49a5413708c74ec1bfe3a24329}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_abf5fff1a9640616ef7d97e07b251b53b}{def {\bfseries build\-\_\-grid}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_abf5fff1a9640616ef7d97e07b251b53b}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a748bdbfb1107b8059323181e1b580ac3}{def {\bfseries has\-\_\-header}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a748bdbfb1107b8059323181e1b580ac3}
+
+\item 
+def \hyperlink{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a6a2b518d0136338ef137bb5465e271e7}{parent\-\_\-for\-\_\-value}
+\item 
+def \hyperlink{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a29cb817d23e79595b7fdda17470a5e52}{On\-Frame\-Configure}
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a9c7dceb3951354ae371dc9459ed4df74}{{\bfseries canvas}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a9c7dceb3951354ae371dc9459ed4df74}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a863f018920fef2aeadc595b2b45dc267}{{\bfseries frame}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a863f018920fef2aeadc595b2b45dc267}
+
+\item 
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a4ff041cebfd288257c28582a8678ef93}{{\bfseries vsb}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a4ff041cebfd288257c28582a8678ef93}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Create a scrollable grid / table of data
+
+This implementation is intended for a static table (no new columns or rows
+after .build_grid())
+
+Call these methods to build out the table:
+  .add_column(name, header)
+  .add_row() -> row_num
+  .set_value(row_num, col_name, tk_widget)
+  
+Then call .pack()
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ac2c2852e023f92cd0d5ddfab66720171}{\index{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}!add\-\_\-column@{add\-\_\-column}}
+\index{add\-\_\-column@{add\-\_\-column}!etl::tk_monitor::TkScrollableGrid::TkScrollableGrid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}}
+\subsubsection[{add\-\_\-column}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid.\-add\-\_\-column (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{name, }
+\item[{}]{header = {\ttfamily None}, }
+\item[{}]{width = {\ttfamily None}}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_ac2c2852e023f92cd0d5ddfab66720171}
+\begin{DoxyVerb}Add a column to the table.
+
+@param name: Name to reference the column
+@param header: If set, will create a header row to the table
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a29cb817d23e79595b7fdda17470a5e52}{\index{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}!On\-Frame\-Configure@{On\-Frame\-Configure}}
+\index{On\-Frame\-Configure@{On\-Frame\-Configure}!etl::tk_monitor::TkScrollableGrid::TkScrollableGrid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}}
+\subsubsection[{On\-Frame\-Configure}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid.\-On\-Frame\-Configure (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{event}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a29cb817d23e79595b7fdda17470a5e52}
+\begin{DoxyVerb}Reset the scroll region to encompass the inner frame\end{DoxyVerb}
+ \hypertarget{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a6a2b518d0136338ef137bb5465e271e7}{\index{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}!parent\-\_\-for\-\_\-value@{parent\-\_\-for\-\_\-value}}
+\index{parent\-\_\-for\-\_\-value@{parent\-\_\-for\-\_\-value}!etl::tk_monitor::TkScrollableGrid::TkScrollableGrid@{etl\-::tk\-\_\-monitor\-::\-Tk\-Scrollable\-Grid\-::\-Tk\-Scrollable\-Grid}}
+\subsubsection[{parent\-\_\-for\-\_\-value}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-tk\-\_\-monitor.\-Tk\-Scrollable\-Grid.\-Tk\-Scrollable\-Grid.\-parent\-\_\-for\-\_\-value (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1tk__monitor_1_1TkScrollableGrid_1_1TkScrollableGrid_a6a2b518d0136338ef137bb5465e271e7}
+\begin{DoxyVerb}Use this if constructing your own widgets to place in the grid\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/tk\-\_\-monitor/Tk\-Scrollable\-Grid.\-py\end{DoxyCompactItemize}

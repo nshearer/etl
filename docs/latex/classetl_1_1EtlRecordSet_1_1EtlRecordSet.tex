@@ -1,0 +1,124 @@
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet}{\section{etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set Class Reference}
+\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet}\index{etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set@{etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set}}
+}
+Inheritance diagram for etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classetl_1_1EtlRecordSet_1_1EtlRecordSet}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_add892dc0a0c458744ff3fd1cc5fc184b}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_add892dc0a0c458744ff3fd1cc5fc184b}
+
+\item 
+def \hyperlink{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a7152530996477950371bd69e9da21298}{add\-\_\-record}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a18701c73a7da83c098ad4b5cdc79741f}{def {\bfseries convert\-\_\-to\-\_\-disk\-\_\-storage}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a18701c73a7da83c098ad4b5cdc79741f}
+
+\item 
+def \hyperlink{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab01685a2baef3ee4527c005f02122d37}{get\-\_\-record}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aec9eb92e017bccdd3402515c079e8af6}{def {\bfseries has\-\_\-record}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aec9eb92e017bccdd3402515c079e8af6}
+
+\item 
+def \hyperlink{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab9bfa74fe26ed32b1c6185cb8b7a42c7}{find\-\_\-records\-\_\-with\-\_\-tag}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a51f38f33e821fd3313667b67f7df638d}{def {\bfseries has\-\_\-record\-\_\-with\-\_\-tag}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a51f38f33e821fd3313667b67f7df638d}
+
+\item 
+def \hyperlink{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aceadc74e6289bbe236ee369d5fdde291}{remove\-\_\-record}
+\item 
+def \hyperlink{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a8bcedcafdc2bafd912eb289335ac129f}{size}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ac7bda13fe8cd3ba9bdd8b3dd3ce6b840}{def {\bfseries count}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ac7bda13fe8cd3ba9bdd8b3dd3ce6b840}
+
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a0f95a3a7a85b22f50e14ec3e29de83c7}{def {\bfseries on\-\_\-disk}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a0f95a3a7a85b22f50e14ec3e29de83c7}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aca88b5e66d61ff58dfc9c1265dcff8d7}{{\bfseries max\-\_\-size\-\_\-until\-\_\-disk}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aca88b5e66d61ff58dfc9c1265dcff8d7}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Encapsulate a set of records
+
+This object can be used to store multiple records.  If the volume stays
+small (under a configurable limit) the records will be stored in memory.
+If, however, the number of records based on estimated record size, then
+the records will be moved off to disk.
+
+Additionally, indexes can be added for retrieving records by values other
+than the record serial
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a7152530996477950371bd69e9da21298}{\index{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}!add\-\_\-record@{add\-\_\-record}}
+\index{add\-\_\-record@{add\-\_\-record}!etl::EtlRecordSet::EtlRecordSet@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}}
+\subsubsection[{add\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set.\-add\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{etl\-\_\-rec, }
+\item[{}]{tags = {\ttfamily None}}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a7152530996477950371bd69e9da21298}
+\begin{DoxyVerb}Add a record to the collection
+
+Use indexes to index this 
+
+@param etl_rec: Record to store
+@param tags: List of optional additional tags to be used for retrieving
+    this record.  Record must be convertible to a string with str()
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab9bfa74fe26ed32b1c6185cb8b7a42c7}{\index{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}!find\-\_\-records\-\_\-with\-\_\-tag@{find\-\_\-records\-\_\-with\-\_\-tag}}
+\index{find\-\_\-records\-\_\-with\-\_\-tag@{find\-\_\-records\-\_\-with\-\_\-tag}!etl::EtlRecordSet::EtlRecordSet@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}}
+\subsubsection[{find\-\_\-records\-\_\-with\-\_\-tag}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set.\-find\-\_\-records\-\_\-with\-\_\-tag (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{tag}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab9bfa74fe26ed32b1c6185cb8b7a42c7}
+\begin{DoxyVerb}Find records that have a given tag\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab01685a2baef3ee4527c005f02122d37}{\index{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}!get\-\_\-record@{get\-\_\-record}}
+\index{get\-\_\-record@{get\-\_\-record}!etl::EtlRecordSet::EtlRecordSet@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}}
+\subsubsection[{get\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set.\-get\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{serial}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_ab01685a2baef3ee4527c005f02122d37}
+\begin{DoxyVerb}Retrieve a record
+
+@param serical:
+    Record identifier
+@return EtlRecord
+\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aceadc74e6289bbe236ee369d5fdde291}{\index{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}!remove\-\_\-record@{remove\-\_\-record}}
+\index{remove\-\_\-record@{remove\-\_\-record}!etl::EtlRecordSet::EtlRecordSet@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}}
+\subsubsection[{remove\-\_\-record}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set.\-remove\-\_\-record (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{serial}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_aceadc74e6289bbe236ee369d5fdde291}
+\begin{DoxyVerb}Drop a record from the collection\end{DoxyVerb}
+ \hypertarget{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a8bcedcafdc2bafd912eb289335ac129f}{\index{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}!size@{size}}
+\index{size@{size}!etl::EtlRecordSet::EtlRecordSet@{etl\-::\-Etl\-Record\-Set\-::\-Etl\-Record\-Set}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}def etl.\-Etl\-Record\-Set.\-Etl\-Record\-Set.\-size (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classetl_1_1EtlRecordSet_1_1EtlRecordSet_a8bcedcafdc2bafd912eb289335ac129f}
+\begin{DoxyVerb}Estimated size of the record set\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/etl/Etl\-Record\-Set.\-py\end{DoxyCompactItemize}
