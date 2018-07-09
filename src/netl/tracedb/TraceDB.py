@@ -1,16 +1,60 @@
 import os
 import sqlite3
+from threading import Lock
 
 from .ComponentTrace import ComponentTrace
 from .PortTrace import PortTrace
 from .EnvelopeTrace import EnvelopeTrace
 from .RecordTrace import RecordTrace
 
+from ..utils import ResultBuffer
+
 
 class TraceDB:
-    '''Record of ETL progress'''
+    '''
+    Interface to the ETL tracing database tracking ETL progress
+
+    This object serves as a single handle to the database connection
+    to use is a multi-threaded environment for both updating the database
+    with new events and reading the trace data.
+
+    According to the manual for sqlite3:
+
+        By default, check_same_thread is True and only the creating
+        thread may use the connection. If set False, the returned
+        connection may be shared across multiple threads. When
+        using multiple threads with the same connection writing
+        operations should be serialized by the user to avoid
+        data corruption.
+
+    Also note that not committing will lock the database:
+
+        When a database is accessed by multiple connections, and
+        one of the processes modifies the database, the SQLite
+        database is locked until that transaction is committed.
+
+
+    +-------------+   TraceAction*      +-----------+
+    | ETL Threads +------------------Q--> EtlTracer |
+    | (multiple)  |                     |  Thread   |
+    +-------------+                     +-----------+
+                                        |  TraceDB  |
+                                        +--+--------+
+                                           |
+                                        +--v--------+
+                                        | Database  |
+                                        +--+--------+
+                                           |
+                                           |
+    +-------------+                     +--+--------+
+    |  Analyze    <---------------------+  TraceDB  |
+    |  Threads    |                     | TraceData |
+    +-------------+                     +-----------+
+
+    '''
 
     VERSION='dev'
+
 
     CREATE_STATEMENTS = (
         """\
@@ -21,13 +65,8 @@ class TraceDB:
     )
 
 
-    INIT_STATE = 'init'
-    RUNNING_STATE = 'running'
-    FINISHED_STATE = 'finshed'
-    ERROR_SATE = 'error'
-
-
     def __init__(self, path, mode='r'):
+
         if mode == 'r':
             self.__readonly = True
             if not os.path.exists(path):
@@ -38,13 +77,72 @@ class TraceDB:
             raise Exception("mode must be r or rw")
 
         self.__db = sqlite3.connect(path)
+        self.__db_lock = Lock()
 
 
-    @property
-    def sqlite3db(self):
-        if self.__db is None:
-            raise Exception("Database closed")
-        return self.__db
+    # === sqlite3 DB access methods protected by lock =====================
+
+    def execute_select(self, sql, parms=None, return_dict=True):
+        '''
+        Execute SQL to select data from the database (no modifications)
+
+        execute_select("""
+            select name_last, age
+            from people
+            where name_last=:who and age=:age
+            """,  {"who": who, "age": age})
+
+        Note: theoretically sqlite3 supports multiple cursors open at once,
+        but I've had trouble with such.  So this method retrieves all results,
+        closes the cursor, and returns the results.
+        '''
+
+        with self.__db_lock:
+            cursor = self.__db.cursor()
+            results = ResultBuffer()
+
+            if parms:
+                cursor.execute(sql, parms)
+            else:
+                cursor.execute(sql)
+
+            for row in cursor:
+                if return_dict:
+                    d = {}
+                    for idx, col in enumerate(cursor.description):
+                        d[col[0]] = row[idx]
+                    row = d
+                results.add(row)
+
+        # Stream back results (lock released)
+        for row in results.all():
+            yield row
+
+
+    def execute_update(self, sql, parms=None, commit=True):
+        '''Execute SQL that writes to the DB'''
+        self.assert_readwrite()
+        with self.__db_lock:
+
+            if parms is None:
+                self.__db.execute(sql)
+            else:
+                self.__db.execute(sql, parms)
+
+            if commit:
+                self.__db.commit()
+
+
+
+
+    # === Trace DB logic and structure ====================================
+
+
+    # @property
+    # def sqlite3db(self):
+    #     if self.__db is None:
+    #         raise Exception("Database closed")
+    #     return self.__db
 
 
     @property

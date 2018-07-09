@@ -8,6 +8,8 @@ from .constants import *
 from .EtlSession import EtlObject
 from .serial import EtlSerial
 
+from .tracedb import ComponentTrace, TraceNewComponent, TraceComponentStateChange
+
 class EtlComponent(EtlObject):
     '''
     Takes 0 or more inputs and generates 0 or more outputs
@@ -145,11 +147,12 @@ class EtlComponent(EtlObject):
             port._port_name = name
 
         # Trace the existance of the component
-        self.session.tracer.new_component(
-            self.component_id,
-            self.name,
-            self.__class__.__name__,
-            self.session.tracer.INIT_STATE)
+        self.session.tracer.trace(TraceNewComponent(
+            component_id = self.component_id,
+            name = self.name,
+            clsname = self.__class__.__name__,
+            state = ComponentTrace.INIT_STATE
+        ))
 
 
     def _child_etl_objects(self):
@@ -161,15 +164,15 @@ class EtlComponent(EtlObject):
         '''Top level method in running thread / process'''
         self._startup()
 
-        self.session.tracer.component_state_change(
-            self.component_id,
-            self.session.tracer.RUNNING_STATE)
+        self.session.tracer.trace(TraceComponentStateChange(
+            component_id = self.component_id,
+            state = ComponentTrace.RUNNING_STATE))
 
         self.run()
 
-        self.session.tracer.component_state_change(
-            self.component_id,
-            self.session.tracer.FINISHED_STATE)
+        self.session.tracer.trace(TraceComponentStateChange(
+            component_id = self.component_id,
+            state = ComponentTrace.FINISHED_STATE))
 
         self._finish()
 

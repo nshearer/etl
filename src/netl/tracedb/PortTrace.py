@@ -1,8 +1,8 @@
 
 
-from .TraceObject import TraceObject
+from .TraceObject import TraceData
 
-class PortTrace(TraceObject):
+class PortTrace(TraceData):
     '''A port on a component in the ETL'''
 
     TABLE = 'component_ports'

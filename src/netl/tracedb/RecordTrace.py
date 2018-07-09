@@ -1,8 +1,8 @@
 
 
-from .TraceObject import TraceObject
+from .TraceObject import TraceData
 
-class RecordTrace(TraceObject):
+class RecordTrace(TraceData):
     '''A record in the ETL'''
 
     TABLE = 'records'

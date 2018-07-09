@@ -1,8 +1,8 @@
 
 
-from .TraceObject import TraceObject
+from .TraceObject import TraceData
 
-class EnvelopeTrace(TraceObject):
+class EnvelopeTrace(TraceData):
     '''A transmission trace for a record in the ETL'''
 
     TABLE = 'envelopes'

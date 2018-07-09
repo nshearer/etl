@@ -2,12 +2,11 @@ import os
 from threading import Lock
 from queue import Queue
 from tempfile import NamedTemporaryFile
-import sqlite3
-from threading import Thread
+from threading import Thread, Lock
 from pprint import pformat
 import traceback
 
-from .tracedb import TraceDB
+from .tracedb import TraceDB, ComponentTrace
 
 class EtlTracer(Thread):
     '''
@@ -17,12 +16,6 @@ class EtlTracer(Thread):
     # Constants
     LARGE_RECORD_LIMIT = 1024 * 1024 # 1 MiB
     COMMIT_REC_EVERY = 1024    
-
-    # STATE CONSTANTS
-    INIT_STATE = TraceDB.INIT_STATE
-    RUNNING_STATE = TraceDB.RUNNING_STATE
-    FINISHED_STATE = TraceDB.FINISHED_STATE
-    ERROR_SATE = TraceDB.ERROR_SATE
 
     def __init__(self):
 
@@ -36,9 +29,6 @@ class EtlTracer(Thread):
         self.__trace_path = None
         self.__overwrite = None
         self.__keep_trace = None
-
-        # Counters
-        self.__commit_rec_in = self.COMMIT_REC_EVERY
 
         self.logger = None # Will get passed in from EtlSession
 
@@ -114,22 +104,20 @@ class EtlTracer(Thread):
             # Watch the input queue and respond
             while True:
                 event = self.__trace_queue.get()
+                code = None
 
                 try:
-                    code = event['event']
-                    del event['event']
 
-                    if code == 'stop':
+                    if event['event'] == 'activity':
+                        event['activity'].record(db)
+
+                    elif event['event'] == 'stop':
                         self.logger.debug("Got stop command")
                         db.close()
                         return
 
                     else:
-                        trace_func = getattr(db, code)
-                        trace_func(**event)
-
-                    # else:
-                    #     self.logger.error("Got invalid trace code '%s': %s" % (code, pformat(event)))
+                        self.logger.error("Got invalid trace code '%s': %s" % (event['event'], pformat(event)))
 
                 except Exception as e:
                     emsg = traceback.format_stack()
@@ -155,38 +143,13 @@ class EtlTracer(Thread):
 
     # === Tracing methods ===================================================
 
-    def new_component(self, component_id, name, clsname, state):
-        '''
-        Tell the tracer about a component
 
-        :param component_id: Unique, integer ID for this component
-        :param name: Name of the component
-        :param clsname: Class name of the component
-        :param state: Code that represents the state of the component
-        '''
+    def trace(self, activity):
         if self.tracing_running:
             self.__trace_queue.put({
-                'event':        'trace_new_component',
-                'component_id': component_id,
-                'name':         name,
-                'clsname':      clsname,
-                'state':        state,
-                })
-
-
-    def component_state_change(self, component_id, state):
-        '''
-        Update the status of the component
-
-        :param component_id: nique, integer ID for this component
-        :param state: New state code
-        '''
-        if self.tracing_running:
-            self.__trace_queue.put({
-                'event':        'trace_component_state_change',
-                'component_id': component_id,
-                'state_code':   state,
-                })
+                'event': 'activity',
+                'activity': activity,
+            })
 
 
     def trace_record_rcvd(self, envilope):

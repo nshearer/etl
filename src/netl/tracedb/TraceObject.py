@@ -1,26 +1,27 @@
+from abc import ABC, abstractmethod
+from datetime import datetime
 
-
-class TraceObject:
+class TraceData:
     '''An object stored in the trace database'''
 
-    def __init__(self, db):
-        self.trace_db = db
+    def __init__(self, trace_db):
+        self.db = trace_db
 
 
-    @property
-    def sqlite3db(self):
-        return self.trace_db.sqlite3db
+class TraceAction(ABC):
+    '''Object to trace activity while ETL is running'''
 
+    def __init__(self):
+        self.ts = datetime.now()
 
-    def assert_readwrite(self):
-        if self.trace_db.__readonly:
-            raise Exception("Database open for read only")
+    # @abstractmethod
+    # def __str__(self):
+    #     '''Description of the traced activity'''
 
+    @abstractmethod
+    def record(self, trace_db):
+        '''
+        Record the trace to DB
 
-def row_dict_factory(cursor, row):
-    '''Convert sqlite3 result row into a dict'''
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
+        :poaram trace_db: TraceDB
+        '''
