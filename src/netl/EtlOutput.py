@@ -49,20 +49,19 @@ class EtlPort(EtlObject):
     PORT_ID_LOCK = Lock()
     NEXT_PORT_ID = 0
 
-
     def __init__(self):
         # See EtlComponent.setup()
         self._component_name = None
         self._port_name = None
 
-
-    @staticmethod
-    def new_unique_id():
-        '''Get a unique port ID (used for outputs and inputs)'''
         with EtlPort.PORT_ID_LOCK:
-            uid = EtlPort.NEXT_PORT_ID
+            self.__port_id = EtlPort.NEXT_PORT_ID
             EtlPort.NEXT_PORT_ID += 1
-        return uid
+
+
+    @property
+    def port_id(self):
+        return self.__port_id
 
 
     @property
@@ -103,7 +102,6 @@ class EtlOutput(EtlPort):
         super(EtlOutput, self).__init__()
         self.__mute_lock = Lock()
         self.__connections = list()
-        self.__id = self.new_unique_id()
         self.__closed = False
 
 

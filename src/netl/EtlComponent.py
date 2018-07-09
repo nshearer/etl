@@ -9,6 +9,7 @@ from .EtlSession import EtlObject
 from .serial import EtlSerial
 
 from .tracedb import ComponentTrace, TraceNewComponent, TraceComponentStateChange
+from .tracedb import TraceComponentPortExists
 
 class EtlComponent(EtlObject):
     '''
@@ -141,11 +142,6 @@ class EtlComponent(EtlObject):
 
         super(EtlComponent, self).setup_etl(session)
 
-        # Push some component info into connections to assist with tracing
-        for name, port in self.ports:
-            port._component_name = self.name
-            port._port_name = name
-
         # Trace the existance of the component
         self.session.tracer.trace(TraceNewComponent(
             component_id = self.component_id,
@@ -153,6 +149,18 @@ class EtlComponent(EtlObject):
             clsname = self.__class__.__name__,
             state = ComponentTrace.INIT_STATE
         ))
+
+        # Push some component info into connections to assist with tracing
+        for name, port in self.ports:
+            port._component_name = self.name
+            port._port_name = name
+
+            # Record port name in trace
+            self.session.tracer.trace(TraceComponentPortExists(
+                component_id = self.component_id,
+                port_id = port.port_id,
+                name = name,
+                port_type = port.etl_port_type))
 
 
     def _child_etl_objects(self):

@@ -33,7 +33,6 @@ class EtlInput(EtlPort):
 
     def __init__(self, maxsize=DEFAULT_MAXSIZE):
         super(EtlInput, self).__init__()
-        self.__id = self.new_unique_id()
         self.__mute_lock = Lock()
         self._queue = Queue(maxsize)
         self.__state = self.UNCONNECTED

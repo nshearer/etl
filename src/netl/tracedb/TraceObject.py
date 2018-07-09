@@ -4,8 +4,9 @@ from datetime import datetime
 class TraceData:
     '''An object stored in the trace database'''
 
-    def __init__(self, trace_db):
+    def __init__(self, trace_db, **attrs):
         self.db = trace_db
+        self.__dict__.update(attrs)
 
 
 class TraceAction(ABC):

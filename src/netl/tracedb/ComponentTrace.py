@@ -24,11 +24,6 @@ class ComponentTrace(TraceData):
     FINISHED_STATE = 'finshed'
     ERROR_SATE = 'error'
 
-    def __init__(self, db, **attrs):
-        self.trace_db = db
-        self.__dict__.update(attrs)
-
-
     @staticmethod
     def list_components(trace_db):
         results = trace_db.execute_select("select * from components")
