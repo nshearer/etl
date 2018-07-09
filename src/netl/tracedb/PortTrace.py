@@ -55,3 +55,24 @@ class TraceComponentPortExists(TraceAction):
                 self.state,
                 self.port_type))
 
+
+class TracePortClosed(TraceAction):
+    '''Record that a port was closed'''
+
+    def __init__(self, port_id):
+        '''
+        Tell the tracer about a component
+
+        :param component_id: Unique, integer ID for the component this port is on
+        :param port_id: Unique integer ID for this port
+        '''
+        super(TracePortClosed, self).__init__()
+        self.port_id = port_id
+
+    def record(self, trace_db):
+        trace_db.execute_update("""
+            update component_ports
+            set state_code = ?
+            where id = ?
+            """, (PortTrace.PORT_CLOSED, self.port_id))
+

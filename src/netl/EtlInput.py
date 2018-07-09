@@ -4,6 +4,7 @@ from queue import Queue
 
 from .EtlOutput import EtlPort
 from .exceptions import NoMoreData
+from .tracedb import TracePortClosed
 
 class EtlInput(EtlPort):
     '''
@@ -93,6 +94,7 @@ class EtlInput(EtlPort):
 
         # Make sure we have a connection
         if len(self.__connection_tokens) == 0:
+            self.session.tracer.trace(TracePortClosed(port_id=self.port_id))
             raise NoMoreData("Input has no open connections")
 
         envelope = self._queue.get()
@@ -108,6 +110,6 @@ class EtlInput(EtlPort):
         elif envelope.msg_type == 'close':
             connection_token = envelope.record
             self.__connection_tokens.remove(connection_token)
-            return self.get(not unwrap) # Will raise InputClossed() if no more connections
+            return self.get(not unwrap) # Will raise NoMoreData() if no more connections
 
 

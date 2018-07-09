@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 from threading import Lock
 from .EtlSession import EtlObject
+from .tracedb import TracePortClosed
 
 class OutputClossed(Exception): pass
 
@@ -161,3 +162,4 @@ class EtlOutput(EtlPort):
                 from_port   = self.name,
                 record      = conn.tok,
             ))
+        self.session.tracer.trace(TracePortClosed(port_id=self.port_id))
