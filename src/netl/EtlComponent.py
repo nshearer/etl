@@ -9,7 +9,7 @@ from .EtlSession import EtlObject
 from .serial import EtlSerial
 
 from .tracedb import ComponentTrace, TraceNewComponent, TraceComponentStateChange
-from .tracedb import TraceComponentPortExists
+from .tracedb import TraceComponentPortExists, TraceConnection
 
 class EtlComponent(EtlObject):
     '''
@@ -138,7 +138,7 @@ class EtlComponent(EtlObject):
         return filter(lambda p: p.is_etl_input_port, [t[1] for t in self.ports])
 
 
-    def setup_etl(self, session):
+    def setup_etl(self, session): # TODO: Should probably rename setup_etl() to bootstrap_etl()
 
         super(EtlComponent, self).setup_etl(session)
 
@@ -161,6 +161,13 @@ class EtlComponent(EtlObject):
                 port_id = port.port_id,
                 name = name,
                 port_type = port.etl_port_type))
+
+            # Trace connections now that session has been attached to ports
+            if port.is_etl_output_port:
+                port.trace_connections()
+
+
+
 
 
     def _child_etl_objects(self):

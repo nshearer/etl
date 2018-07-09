@@ -13,3 +13,4 @@ class EtlRecordFrozen(Exception):
         super(EtlRecordFrozen, self).__init__(msg)        
 
 
+class SessionNotCreatedYet(Exception): pass

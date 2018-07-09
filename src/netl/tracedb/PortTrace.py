@@ -10,6 +10,9 @@ class PortTrace(TraceData):
     PORT_OPEN = 'open'
     PORT_CLOSED = 'closed'
 
+    CONN_OPEN = 'open'
+    CONN_CLOSED = 'closed'
+
     INPUT_PORT = 'i'
     OUTPUT_PORT = 'o'
 
@@ -22,6 +25,34 @@ class PortTrace(TraceData):
               port_type   text,
               state_code  text)
         """,
+        """\
+            create table connections (
+              output_port_id    int,
+              input_port_id     int,
+              state_code        text)
+        """,
+        """\
+            create view connection_detail as
+            select
+              fc.id           as from_comp_id,
+              fc.name         as from_comp_name,
+              fc.state_code   as from_comp_state,
+              fp.id           as from_port_id,
+              fp.name         as from_port_name,
+              fp.state_code   as from_port_state,
+              c.state_code    as conn_state,
+              tc.id           as to_comp_id,
+              tc.name         as to_comp_name,
+              tc.state_code   as to_comp_state,
+              tp.id           as to_port_id,
+              tp.name         as to_port_name,
+              tp.state_code   as to_port_state
+            from connections c
+            left join component_ports fp on fp.id = c.output_port_id
+            left join components fc on fc.id = fp.comp_id
+            left join component_ports tp on tp.id = c.input_port_id
+            left join components tc on tc.id = tp.comp_id
+        """
     )
 
 
@@ -30,8 +61,6 @@ class TraceComponentPortExists(TraceAction):
 
     def __init__(self, component_id, port_id, name, port_type):
         '''
-        Tell the tracer about a component
-
         :param component_id: Unique, integer ID for the component this port is on
         :param port_id: Unique integer ID for this port
         :param name: Name of the port
@@ -61,8 +90,6 @@ class TracePortClosed(TraceAction):
 
     def __init__(self, port_id):
         '''
-        Tell the tracer about a component
-
         :param component_id: Unique, integer ID for the component this port is on
         :param port_id: Unique integer ID for this port
         '''
@@ -76,3 +103,49 @@ class TracePortClosed(TraceAction):
             where id = ?
             """, (PortTrace.PORT_CLOSED, self.port_id))
 
+
+class TraceConnection(TraceAction):
+    '''Record that the output of one component was connected to an input on another'''
+
+    def __init__(self, from_port_id, to_port_id):
+        '''
+        :param from_port_id: Unique integer ID of the output port being
+        :param to_port_id: Unique integer ID for the input port
+        '''
+        super(TraceConnection, self).__init__()
+        self.from_port_id = from_port_id
+        self.to_port_id = to_port_id
+
+    def record(self, trace_db):
+        trace_db.execute_update("""
+            insert into connections (output_port_id, input_port_id, state_code)
+            values (?, ?, ?)
+            """, (
+                int(self.from_port_id),
+                int(self.to_port_id),
+                PortTrace.CONN_OPEN))
+
+
+class TraceConnectionClosed(TraceAction):
+    '''Record that the output of one component was connected to an input on another'''
+
+    def __init__(self, from_port_id, to_port_id):
+        '''
+        :param from_port_id: Unique integer ID of the output port being
+        :param to_port_id: Unique integer ID for the input port
+        '''
+        super(TraceConnectionClosed, self).__init__()
+        self.from_port_id = from_port_id
+        self.to_port_id = to_port_id
+
+    def record(self, trace_db):
+        trace_db.execute_update("""
+            update connections
+            set state_code = ?
+            where output_port_id = ?
+              and input_port_id = ?
+            """, (
+                PortTrace.CONN_CLOSED,
+                int(self.from_port_id),
+                int(self.to_port_id),
+                ))

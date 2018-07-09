@@ -5,6 +5,7 @@ from .resources import EtlResourceCollection
 from .EtlTracer import EtlTracer
 
 from .serial import EtlSerial
+from .exceptions import SessionNotCreatedYet
 
 class EtlSession:
     '''Holds information for a single execution of an ETL that is needed by all components'''
@@ -43,7 +44,7 @@ class EtlObject(ABC):
         try:
             return self.__session
         except AttributeError:
-            raise Exception("No session supplied.  was setup_etl() called?")
+            raise SessionNotCreatedYet("No session supplied.  was setup_etl() called?")
 
 
     def setup_etl(self, session):

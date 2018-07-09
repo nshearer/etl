@@ -2,14 +2,18 @@ from abc import abstractmethod
 
 from threading import Lock
 from .EtlSession import EtlObject
-from .tracedb import TracePortClosed
+from .tracedb import TracePortClosed, TraceConnection, TraceConnectionClosed
+from .exceptions import SessionNotCreatedYet
 
 class OutputClossed(Exception): pass
 
 class EltOutputConnection:
     def __init__(self, input):
-        self.input = input
+        self.to_port = input
         self.tok = None
+        self.traced = False
+# TODO: Add connection ID in case someone wants to connect two ports twice?
+#       Would need to update traces too
 
 class EtlRecordEnvelope:
     '''Wrapper around records specifying where they came from, and where they're going'''
@@ -105,7 +109,6 @@ class EtlOutput(EtlPort):
         self.__connections = list()
         self.__closed = False
 
-
     @property
     def etl_port_type(self):
         return 'o'
@@ -123,6 +126,20 @@ class EtlOutput(EtlPort):
             conn = EltOutputConnection(input)
             conn.tok = input._new_connection_token()
             self.__connections.append(conn)
+
+
+    def trace_connections(self):
+        try:
+            for conn in self.__connections:
+                if not conn.traced:
+                    self.session.tracer.trace(TraceConnection(
+                        from_port_id = self.port_id,
+                        to_port_id = conn.to_port.port_id))
+                    conn.traced = True
+        except SessionNotCreatedYet:
+            # Session isn't created yet when most connections are made (ETL not started)
+            # Called just in case a new connection is made after ETL is started
+            pass
 
 
     def output(self, record):
@@ -143,7 +160,7 @@ class EtlOutput(EtlPort):
         for conn in self.__connections:
             # Note: Not specifying receiver names here because receiving component
             #       may not have been started yet.  See EtlInput.get()
-            conn.input._queue.put(EtlRecordEnvelope(
+            conn.to_port._queue.put(EtlRecordEnvelope(
                 msg_type    = 'record',
                 from_comp   = self._component_name,
                 from_port   = self._port_name,
@@ -156,10 +173,13 @@ class EtlOutput(EtlPort):
 
         self.__closed = True
         for conn in self.__connections:
-              conn.input._queue.put(EtlRecordEnvelope(
+              conn.to_port._queue.put(EtlRecordEnvelope(
                 msg_type    = 'close',
                 from_comp   = self.component_name,
                 from_port   = self.name,
                 record      = conn.tok,
-            ))
+              ))
+              self.session.tracer.trace(TraceConnectionClosed(
+                  from_port_id=self.port_id,
+                  to_port_id=conn.to_port.port_id))
         self.session.tracer.trace(TracePortClosed(port_id=self.port_id))
