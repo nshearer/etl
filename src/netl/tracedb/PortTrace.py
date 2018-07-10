@@ -56,6 +56,24 @@ class PortTrace(TraceData):
     )
 
 
+    @staticmethod
+    def list_ports_for(trace_db, component_id, port_type=None):
+        results = trace_db.execute_select("""\
+          select *
+          from component_ports
+          where comp_id = :comp_id
+            and (:port_type is null or port_type = :port_type)
+          """, {
+            'comp_id': component_id,
+            'port_type': port_type,
+        })
+        for row in results:
+            yield PortTrace(trace_db, row)
+
+
+
+
+
 class TraceComponentPortExists(TraceAction):
     '''Record the name of a port on a component'''
 

@@ -184,6 +184,9 @@ class TraceDB:
     def list_components(self):
         return ComponentTrace.list_components(self)
 
+    def list_ports_for(self, component_id, port_type=None):
+        return PortTrace.list_ports_for(component_id, port_type)
+
 
 
     # == Tracing methods ==============================================

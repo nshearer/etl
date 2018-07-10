@@ -10,8 +10,12 @@ from . import views
 
 class EtlAnalyzeHandler(BaseHTTPRequestHandler):
 
-    DB_POOL = DatabaseServicePool(r'G:\Projects\netl\src\test.trace')
+    DB_POOL = None
     SOURCE = WebSource()
+
+    @staticmethod
+    def set_trace_path(path):
+        EtlAnalyzeHandler.DB_POOL = DatabaseServicePool(path)
 
 
     def _get_view_classes(self):
