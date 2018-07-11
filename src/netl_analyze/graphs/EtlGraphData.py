@@ -1,7 +1,10 @@
 from bunch import Bunch
 from graphviz import Digraph
 from threading import Lock
+import re
+import string
 
+from jinja2 import Template
 
 class EtlGraphData:
     '''
@@ -63,16 +66,25 @@ class EtlGraphData:
 
         :param trace_db: TraceDB with trace data from executed ETL
         '''
-        data = EtlGraphData()
+        graph = EtlGraphData()
 
         for comp in trace_db.list_components():
-            data.add_component(
+            graph.add_component(
                 comp_id = comp.id,
                 name = comp.name,
                 inputs = [p.name for p in comp.list_input_ports()],
                 outputs = [p.name for p in comp.list_output_ports()],
                 state = comp.state_code,
             )
+
+        for conn in trace_db.list_connections():
+            graph.add_connection(
+                from_comp_id = conn.from_comp_id,
+                from_port = conn.from_port_name,
+                to_comp_id = conn.to_comp_id,
+                to_port = conn.to_port_name)
+
+        return graph
 
 
     def structure_hash(self):
@@ -86,10 +98,17 @@ class EtlGraphData:
         None-structural data is not included because it is passed to the template.
         '''
         hashstr = '|'.join((
-            '|'.join([(str(c.comp_id), c.name, '|'.join(c.inputs), '|'.join(c.outputs)) for c in self.components]),
-            '|'.join([(str(c.from_comp_id), c.from_port, str(c.to_comp_id), c.to_port) for c in self.connections]),
+            '|'.join(['|'.join((str(c.comp_id), c.name, '|'.join(c.inputs), '|'.join(c.outputs))) for c in self.components]),
+            '|'.join(['|'.join((str(c.from_comp_id), c.from_port, str(c.to_comp_id), c.to_port)) for c in self.connections]),
         ))
         return hash(hashstr)
+
+
+    UNSAFE_NAME_CHARS = re.compile(r'[^a-zA-Z0-9_-]')
+
+    @staticmethod
+    def sanitize_gv_name(name):
+        return re.sub(EtlGraphData.UNSAFE_NAME_CHARS, '', name)
 
 
     def _compile_gv_svg(self):
@@ -99,12 +118,62 @@ class EtlGraphData:
         :return: SVG bytes
         '''
 
+        sn = EtlGraphData.sanitize_gv_name
+
         # Build graph
-        dot = Digraph(comment='ETL', format='svg')
+        dot = Digraph(comment='ETL', format='svg', graph_attr={'rankdir': "LR", })
 
         for comp in self.components:
-            dot.node('comp_'+str(comp.comp_id), comp.name)
+            dot.node('comp_'+str(comp.comp_id), label=EtlGraphData.format_node_label(comp), shape='Mrecord')
+
+        for conn in self.connections:
+            dot.edge('%s:%s' % ('comp_'+str(conn.from_comp_id), 'o_' + sn(conn.from_port)),
+                     '%s:%s' % ('comp_'+str(conn.to_comp_id), 'i_' + sn(conn.to_port)),)
 
         # Call Graphviz
         return dot.pipe()
 
+
+    @staticmethod
+    def format_node_label(component):
+        '''
+        Form label of a component
+
+        Nodes:
+           +---------+
+           |Component|
+           +---------+
+           |in1 |out1|
+           +---------+
+           |in2 |    |
+           +----+----+
+
+        struct1 [shape=Mrecord, label="<f0> Component | { { <in1> in1 | <in2> in2 } | { <out1> out1 |  } } "];
+
+        :param component: Component data from this class
+        :return: string to use as graphviz label for a Mrecord
+        '''
+
+        sn = EtlGraphData.sanitize_gv_name
+
+        comp_label =  '%s' % (component.name)
+
+        input_labels = ' | '.join(["<i_%s> %s" % (sn(name), name) for name in component.inputs])
+        output_labels = ' | '.join(["<o_%s> %s" % (sn(name), name) for name in component.outputs])
+
+        return "%s | { { %s } | { %s } }" % (comp_label, input_labels, output_labels)
+
+
+    def get_gv_svg(self):
+        '''
+        Get SVG source from Graphviz
+
+        Includes template variables for filling in dynamic data and colors.
+
+        :return: SVG bytes
+        '''
+        cur_hash = self.structure_hash()
+        with EtlGraphData.CACHE_LOCK:
+            if EtlGraphData.TPL_CACHE_HASH is None or EtlGraphData.TPL_CACHE_HASH != cur_hash:
+                EtlGraphData.TPL_CACHE = self._compile_gv_svg()
+            return EtlGraphData.TPL_CACHE

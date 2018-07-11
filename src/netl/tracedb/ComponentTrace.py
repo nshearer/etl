@@ -26,9 +26,9 @@ class ComponentTrace(TraceData):
 
     @staticmethod
     def list_components(trace_db):
-        return trace_db.execute_select("select * from components")
+        results = trace_db.execute_select("select * from components")
         for row in results:
-            yield ComponentTrace(trace_db, row)
+            yield ComponentTrace(trace_db, **row)
 
 
     def list_ports(self):

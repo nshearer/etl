@@ -6,6 +6,7 @@ from .ComponentTrace import ComponentTrace
 from .PortTrace import PortTrace
 from .EnvelopeTrace import EnvelopeTrace
 from .RecordTrace import RecordTrace
+from .ConnectionTrace import ConnectionTrace
 
 from ..utils import ResultBuffer
 
@@ -76,7 +77,7 @@ class TraceDB:
         else:
             raise Exception("mode must be r or rw")
 
-        self.__db = sqlite3.connect(path)
+        self.__db = sqlite3.connect(path, check_same_thread=False)
         self.__db_lock = Lock()
 
 
@@ -170,6 +171,7 @@ class TraceDB:
         create_statments = list(TraceDB.CREATE_STATEMENTS)
         create_statments.extend(ComponentTrace.CREATE_STATEMENTS)
         create_statments.extend(PortTrace.CREATE_STATEMENTS)
+        create_statments.extend(ConnectionTrace.CREATE_STATEMENTS)
         create_statments.extend(EnvelopeTrace.CREATE_STATEMENTS)
         create_statments.extend(RecordTrace.CREATE_STATEMENTS)
 
@@ -185,8 +187,10 @@ class TraceDB:
         return ComponentTrace.list_components(self)
 
     def list_ports_for(self, component_id, port_type=None):
-        return PortTrace.list_ports_for(component_id, port_type)
+        return PortTrace.list_ports_for(self, component_id, port_type)
 
+    def list_connections(self):
+        return ConnectionTrace.list_connections(self)
 
 
     # == Tracing methods ==============================================

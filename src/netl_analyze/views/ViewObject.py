@@ -30,8 +30,8 @@ class TemplateLoader(BaseLoader):
 class ViewObject:
     '''Base class for dynamic html'''
 
-    def __init__(self, db_pool, sources):
-        self.db_pool = db_pool
+    def __init__(self, trace_db, sources):
+        self.trace_db = trace_db
         self.sources = sources
 
 
@@ -53,3 +53,8 @@ class ViewObject:
         )
         tpl = env.get_template(tpl_name)
         return tpl.render(**parms)
+
+
+    def encode_output(self, output):
+        # Assume generate html string.  Convert to bytes
+        return output.encode('utf-8')

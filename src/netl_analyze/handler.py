@@ -1,21 +1,22 @@
+import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from mimetypes import guess_type
 from textwrap import dedent
-import logging
+import traceback
 
-from .database import DatabaseServicePool
+from netl import TraceDB
 from .source import WebSource
 from . import views
 
 class EtlAnalyzeHandler(BaseHTTPRequestHandler):
 
-    DB_POOL = None
+    DB = None
     SOURCE = WebSource()
 
     @staticmethod
     def set_trace_path(path):
-        EtlAnalyzeHandler.DB_POOL = DatabaseServicePool(path)
+        EtlAnalyzeHandler.DB = TraceDB(path, mode='r')
 
 
     def _get_view_classes(self):
@@ -48,11 +49,13 @@ class EtlAnalyzeHandler(BaseHTTPRequestHandler):
         for cls in self._get_view_classes():
             m = cls.PAT.match(path)
             if m:
-                view = cls(self.DB_POOL, self.SOURCE)
+                view = cls(self.DB, self.SOURCE)
                 try:
                     html = view.render(url = url, matches = m)
 
                 except Exception as e:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+
                     self.send_response(500)
                     self.send_header('Content-Type', 'text/html')
                     self.end_headers()
@@ -62,10 +65,12 @@ class EtlAnalyzeHandler(BaseHTTPRequestHandler):
                         <head><title>Error</title></head>
                         <body>
                         <h1>Error: {ecls}</h1>
-                        <pre>{error}</pre>
+                        <div>{tb}</div>
+                        </body></html>
                     """).format(
                         ecls = e.__class__.__name__,
-                        error = str(e)
+                        tb = "\n".join(["<div><pre>%s</prd></div>" % (l) for l in traceback.format_exception(
+                            exc_type, exc_value, exc_traceback)])
                     ).encode('utf-8'))
 
                     return
@@ -76,6 +81,6 @@ class EtlAnalyzeHandler(BaseHTTPRequestHandler):
                     self.send_header(header, value)
                 self.end_headers()
 
-                self.wfile.write(html.encode('utf-8'))
+                self.wfile.write(view.encode_output(html))
 
 
