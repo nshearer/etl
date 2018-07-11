@@ -41,6 +41,18 @@ class ComponentTrace(TraceData):
         return self.db.list_ports_for(self.id, port_type='o')
 
 
+    STATE_COLORS = {
+        INIT_STATE:     '#FFC107', # yellow
+        RUNNING_STATE:  '#08B530', # green
+        FINISHED_STATE: '#007BFF', # blue
+        ERROR_SATE:     '#DC3545', # red
+    }
+    @property
+    def state_color(self):
+        try:
+            return self.STATE_COLORS[self.state_code]
+        except KeyError:
+            return '#000000'
 
 
 class TraceNewComponent(TraceAction):

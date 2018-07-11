@@ -11,5 +11,6 @@ class IndexView(ViewObject):
     def render(self, url, matches):
 
         return self.render_template(
-            tpl_name = 'index.j2.html'
+            tpl_name = 'index.j2.html',
+            components = self.trace_db.list_components(),
         )
