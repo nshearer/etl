@@ -18,10 +18,5 @@ class EtlGraphView(ViewObject):
     def render(self, url, matches):
 
         graph = EtlGraphData.build_graph_data_for(self.trace_db)
-        svg = graph.get_gv_svg()
+        svg = graph.get_svg()
         return svg
-
-
-    def encode_output(self, output):
-        # Output is already in bytes
-        return output
