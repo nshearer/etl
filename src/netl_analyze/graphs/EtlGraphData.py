@@ -60,12 +60,16 @@ class EtlGraphData:
         :param to_comp_id: ID of component receiving data
         :param to_port: Name of input port
         '''
+        conn_id = len(self.connections)
         self.connections.append(Bunch(
-            from_comp_id   = from_comp_id,
-            from_port      = from_port,
-            to_comp_id     = to_comp_id,
-            to_port        = to_port,
+            from_comp_id    = from_comp_id,
+            from_port       = from_port,
+            to_comp_id      = to_comp_id,
+            to_port         = to_port,
+            rec_count_var   = 'c%dc' % (conn_id), # Short to make labels not space out to much
+            rec_rate_var    = 'c%dr' % (conn_id), # Short to make labels not space out to much
         ))
+
 
 
     @staticmethod
@@ -92,7 +96,8 @@ class EtlGraphData:
                 from_comp_id = conn.from_comp_id,
                 from_port = conn.from_port_name,
                 to_comp_id = conn.to_comp_id,
-                to_port = conn.to_port_name)
+                to_port = conn.to_port_name,
+            )
 
         return graph
 
@@ -142,7 +147,9 @@ class EtlGraphData:
         for conn in self.connections:
             dot.edge('%s:%s' % ('comp_'+str(conn.from_comp_id), 'o_' + sn(conn.from_port)),
                      '%s:%s' % ('comp_'+str(conn.to_comp_id), 'i_' + sn(conn.to_port)),
-                     arrowhead = 'open', arrowsize = '0.5')
+                     arrowhead = 'open', arrowsize = '0.5',
+                     label = "{{%s}} rec\\n({{%s}}/s)" % (conn.rec_count_var, conn.rec_rate_var),
+                     fontsize = "7")
 
         # Call Graphviz
         return dot.pipe()
@@ -215,6 +222,11 @@ class EtlGraphData:
 
         for component in self.components:
             parms[component.color_parm] = component.color
+
+        for conn in self.connections:
+            parms[conn.rec_count_var] = 0
+            parms[conn.rec_rate_var] = 0
+
 
         try:
             return tpl.render(**parms)
