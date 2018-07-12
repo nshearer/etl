@@ -26,32 +26,24 @@
             <div class="col-12">
                 <div class="card-header"><i class="fa fa-cogs"></i> Components</div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <div id="dataTable_wrapper" class="dataTables_wrapper container-fluid dt-bootstrap4">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
-                                    <thead>
-                                        <tr role="row">
-                                            <th class="sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 264px;">Name</th>
-                                            <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Class: activate to sort column ascending" style="width: 393px;">Class</th>
-                                            <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Status: activate to sort column ascending" style="width: 194px;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                      {% for component in components %}
-                                        <tr role="row" class="{{ loop.cycle('odd', 'even') }}">
-                                            <td class="sorting_1">{{ component.name }}</td>
-                                            <td>{{ component.class }}</td>
-                                            <td><span style="color: {{ component.state_color }}">{{ component.state_code }}</span></td>
-                                        </tr>
-                                      {% endfor %}
-                                    </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <table class="table table-bordered" width="100%" cellspacing="0" role="grid" style="width: 100%;">
+                    <thead>
+                        <tr role="row">
+                            <th class="sorting_asc" tabindex="0" rowspan="1" colspan="1" >Name</th>
+                            <th class="sorting" tabindex="0" rowspan="1" colspan="1">Class</th>
+                            <th class="sorting" tabindex="0" rowspan="1" colspan="1">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      {% for component in components %}
+                        <tr role="row" class="{{ loop.cycle('odd', 'even') }}">
+                            <td class="sorting_1">{{ component.name }}</td>
+                            <td>{{ component.class }}</td>
+                            <td><span style="color: {{ component.state_color }}">{{ component.state_code }}</span></td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                    </table>
                 </div>
                 <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
             </div>
@@ -63,7 +55,4 @@
 {% endblock %}
 
 {% block pagescripts %}
-    <script src="vendor/datatables/jquery.dataTables.js"></script>
-    <script src="vendor/datatables/dataTables.bootstrap4.js"></script>
-    <script src="js/sb-admin-datatables.min.js"></script>
 {% endblock %}
