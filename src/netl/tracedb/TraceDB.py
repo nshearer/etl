@@ -201,16 +201,8 @@ class TraceDB:
     def list_connections(self):
         return ConnectionTrace.list_connections(self)
 
-
-    # == Tracing methods ==============================================
-
-    def trace_new_component(self, **attrs):
-        attrs['trace_db'] = self
-        ComponentTrace.trace_new_component(**attrs)
-
-    def trace_component_state_change(self, **attrs):
-        attrs['trace_db'] = self
-        ComponentTrace.trace_state_change(**attrs)
+    def get_connection_stats(self):
+        return EnvelopeTrace.get_connection_stats(self)
 
 
 

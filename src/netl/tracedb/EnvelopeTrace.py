@@ -1,6 +1,10 @@
-
+from bunch import Bunch
 
 from .TraceObject import TraceData, TraceAction
+
+
+class ConnectionStats(Bunch): pass
+
 
 class EnvelopeTrace(TraceData):
     '''A transmission trace for a record in the ETL'''
@@ -14,7 +18,40 @@ class EnvelopeTrace(TraceData):
               from_port_id      int,
               to_port_id        int)
         """,
+        """\
+            create view v_connection_stats as
+            select
+              c.from_comp_id,
+              c.from_comp_name,
+              c.from_port_id,
+              c.from_port_name,
+              c.to_comp_id,
+              c.to_comp_name,
+              c.to_port_id,
+              c.to_port_name,
+              count(*)    rec_count
+            from v_connection_detail c
+            left join record_dispatch d on d.from_port_id = c.from_port_id
+                                       and d.to_port_id = c.to_port_id
+            group by
+              c.from_comp_id,
+              c.from_comp_name,
+              c.from_port_id,
+              c.from_port_name,
+              c.to_comp_id,
+              c.to_comp_name,
+              c.to_port_id,
+              c.to_port_name
+        """
     )
+
+
+    @staticmethod
+    def get_connection_stats(trace_db):
+        '''Get some stats on messages sent on connections'''
+        for row in trace_db.execute_select("select * from v_connection_stats"):
+            yield ConnectionStats(**row)
+
 
 
 class TraceRecordDispatch(TraceAction):

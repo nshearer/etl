@@ -66,6 +66,7 @@ class EtlGraphData:
             from_port       = from_port,
             to_comp_id      = to_comp_id,
             to_port         = to_port,
+            rec_count       = 0,
             rec_count_var   = 'c%dc' % (conn_id), # Short to make labels not space out to much
             rec_rate_var    = 'c%dr' % (conn_id), # Short to make labels not space out to much
         ))
@@ -98,6 +99,14 @@ class EtlGraphData:
                 to_comp_id = conn.to_comp_id,
                 to_port = conn.to_port_name,
             )
+
+        # Attach connection stats
+        stats = {(s.from_comp_id, s.from_port_name, s.to_comp_id, s.to_port_name): s
+                 for s in trace_db.get_connection_stats()}
+        for conn in graph.connections:
+            key = (conn.from_comp_id, conn.from_port, conn.to_comp_id, conn.to_port)
+            if key in stats:
+                conn.rec_count = stats[key].rec_count
 
         return graph
 
@@ -224,7 +233,7 @@ class EtlGraphData:
             parms[component.color_parm] = component.color
 
         for conn in self.connections:
-            parms[conn.rec_count_var] = 0
+            parms[conn.rec_count_var] = conn.rec_count
             parms[conn.rec_rate_var] = 0
 
 
