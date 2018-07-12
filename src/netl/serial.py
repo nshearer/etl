@@ -23,3 +23,7 @@ class EtlSerial(object):
 
     def __hash__(self):
         return hash(self.__value) # May change to string in the future
+
+
+    def __int__(self):
+        return self.__value

@@ -20,9 +20,11 @@ class TraceAction(ABC):
     #     '''Description of the traced activity'''
 
     @abstractmethod
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         '''
         Record the trace to DB
 
-        :poaram trace_db: TraceDB
+        :param trace_db: TraceDB
+        :param commit:
+            Advice whether it's time to commit after this operation
         '''

@@ -57,7 +57,7 @@ class TraceComponentPortExists(TraceAction):
         self.state = PortTrace.PORT_OPEN
         self.port_type = port_type
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             insert into component_ports (comp_id, id, name, state_code, port_type)
             values (?, ?, ?, ?, ?)
@@ -66,7 +66,8 @@ class TraceComponentPortExists(TraceAction):
                 self.port_id,
                 self.name,
                 self.state,
-                self.port_type))
+                self.port_type),
+            commit = commit)
 
 
 class TracePortClosed(TraceAction):
@@ -80,11 +81,12 @@ class TracePortClosed(TraceAction):
         super(TracePortClosed, self).__init__()
         self.port_id = port_id
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             update component_ports
             set state_code = ?
             where id = ?
-            """, (PortTrace.PORT_CLOSED, self.port_id))
+            """, (PortTrace.PORT_CLOSED, self.port_id),
+        commit = commit)
 
 

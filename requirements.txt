@@ -2,3 +2,4 @@ ujson
 Jinja2
 graphviz
 bunch
+frozendict

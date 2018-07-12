@@ -72,11 +72,12 @@ class TraceNewComponent(TraceAction):
         self.clsname = clsname
         self.state = state
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             insert into components (id, name, class, state_code, started_at)
             values (?, ?, ?, ?, ?)
-            """, (int(self.component_id), self.name, self.clsname, self.state, self.ts))
+            """, (int(self.component_id), self.name, self.clsname, self.state, self.ts),
+                                commit=commit)
 
 
 class TraceComponentStateChange(TraceAction):
@@ -92,15 +93,15 @@ class TraceComponentStateChange(TraceAction):
         self.component_id = component_id
         self.state_code = state
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             update components
             set state_code = ?
             where id = ?
-            """, (self.state_code, int(self.component_id)))
+            """, (self.state_code, int(self.component_id)), commit=commit)
         if self.state_code in (ComponentTrace.FINISHED_STATE, ComponentTrace.ERROR_SATE):
             trace_db.execute_update("""
                 update components
                 set ended_at = ?
                 where id = ?
-                """, (self.ts, int(self.component_id)))
+                """, (self.ts, int(self.component_id)), commit=commit)

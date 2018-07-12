@@ -3,6 +3,7 @@ from abc import abstractmethod
 from threading import Lock
 from .EtlSession import EtlObject
 from .tracedb import TracePortClosed, TraceConnection, TraceConnectionClosed
+from .tracedb import TraceRecord
 from .exceptions import SessionNotCreatedYet
 
 class OutputClossed(Exception): pass
@@ -55,7 +56,9 @@ class EtlPort(EtlObject):
     NEXT_PORT_ID = 0
 
     def __init__(self):
+
         # See EtlComponent.setup()
+        self._component_id = None
         self._component_name = None
         self._port_name = None
 
@@ -145,6 +148,8 @@ class EtlOutput(EtlPort):
     def output(self, record):
         '''Send a record out on this output to any connected inputs'''
 
+        # Check connection state
+
         if self.__closed:
             raise OutputClossed("Output %s.%s has been closed" % (
                 self._component_name, self._port_name))
@@ -155,7 +160,12 @@ class EtlOutput(EtlPort):
         except AttributeError:
             raise Exception("Expected an EtlRecord, got %s" % (str(type(record))))
 
-        record.freeze()
+        # Freeze the record
+        if not record.frozen:
+            record.set_source(self._component_id, self._component_name, self._port_name)
+            record.freeze(self.session.freezer)
+            self.session.tracer.trace(TraceRecord(record))
+
 
         for conn in self.__connections:
             # Note: Not specifying receiver names here because receiving component

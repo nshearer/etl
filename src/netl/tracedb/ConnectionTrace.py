@@ -21,7 +21,7 @@ class ConnectionTrace(TraceData):
               state_code        text)
         """,
         """\
-            create view connection_detail as
+            create view v_connection_detail as
             select
               fc.id           as from_comp_id,
               fc.name         as from_comp_name,
@@ -63,14 +63,15 @@ class TraceConnection(TraceAction):
         self.from_port_id = from_port_id
         self.to_port_id = to_port_id
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             insert into connections (output_port_id, input_port_id, state_code)
             values (?, ?, ?)
             """, (
                 int(self.from_port_id),
                 int(self.to_port_id),
-                ConnectionTrace.CONN_OPEN))
+                ConnectionTrace.CONN_OPEN),
+            commit=commit)
 
 
 class TraceConnectionClosed(TraceAction):
@@ -85,7 +86,7 @@ class TraceConnectionClosed(TraceAction):
         self.from_port_id = from_port_id
         self.to_port_id = to_port_id
 
-    def record(self, trace_db):
+    def record_trace_to_db(self, trace_db, commit):
         trace_db.execute_update("""
             update connections
             set state_code = ?
@@ -95,4 +96,5 @@ class TraceConnectionClosed(TraceAction):
                 ConnectionTrace.CONN_CLOSED,
                 int(self.from_port_id),
                 int(self.to_port_id),
-                ))
+                ),
+            commit = commit)

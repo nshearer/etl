@@ -152,6 +152,7 @@ class EtlComponent(EtlObject):
 
         # Push some component info into connections to assist with tracing
         for name, port in self.ports:
+            port._component_id = self.component_id
             port._component_name = self.name
             port._port_name = name
 

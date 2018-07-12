@@ -120,6 +120,11 @@ class TraceDB:
             yield row
 
 
+    def execute_count(self, sql, parms=None):
+        for row in self.execute_select(sql, parms, return_dict=False):
+            return row[0]
+
+
     def execute_update(self, sql, parms=None, commit=True):
         '''Execute SQL that writes to the DB'''
         self.assert_readwrite()
@@ -134,6 +139,11 @@ class TraceDB:
                 self.__db.commit()
 
 
+    def commit(self):
+        '''Request a commit to DB'''
+        self.assert_readwrite()
+        with self.__db_lock:
+            self.__db.commit()
 
 
     # === Trace DB logic and structure ====================================

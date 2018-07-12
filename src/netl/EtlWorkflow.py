@@ -93,6 +93,9 @@ class EtlWorkflow:
     def start(self):
         '''Begin the workflow execution'''
 
+        # Update freezer
+        self.session.freezer.mark_started()
+
         # Start the tracer
         if self.session.tracer.tracing_enabled:
             self.session.tracer.start()

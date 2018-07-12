@@ -1,10 +1,11 @@
-import os
+import os, sys
 from threading import Lock
 from queue import Queue
 from tempfile import NamedTemporaryFile
 from threading import Thread, Lock
 from pprint import pformat
 import traceback
+from datetime import datetime, timedelta
 
 from .tracedb import TraceDB, ComponentTrace
 
@@ -14,8 +15,8 @@ class EtlTracer(Thread):
     '''
     
     # Constants
-    LARGE_RECORD_LIMIT = 1024 * 1024 # 1 MiB
-    COMMIT_REC_EVERY = 1024    
+    AUTO_COMMIT_EVERY = timedelta(seconds=2)
+
 
     def __init__(self):
 
@@ -29,6 +30,9 @@ class EtlTracer(Thread):
         self.__trace_path = None
         self.__overwrite = None
         self.__keep_trace = None
+
+        # Auto commit tracking
+        self.__next_autocommit = None
 
         self.logger = None # Will get passed in from EtlSession
 
@@ -90,6 +94,34 @@ class EtlTracer(Thread):
                 self.__trace_path = None
 
 
+    def should_auto_commit(self):
+        '''
+        Should we commit our changes.
+
+        Auto commit looks at the number of incoming messages and tries to commit
+        every so often.
+
+        :return: bool
+        '''
+
+        if self.__next_autocommit is None:
+            commit = True
+
+        elif datetime.now() >= self.__next_autocommit:
+            commit = True
+
+        # Peak at the queue to see if more trace events are coming
+        elif self.__trace_queue.empty():
+            commit = True
+
+        else:
+            commit = False
+
+
+        if commit:
+            self.__next_autocommit = datetime.now() + self.AUTO_COMMIT_EVERY
+
+
     def run(self):
         '''Thread execution'''
         with self.__lock:
@@ -104,15 +136,15 @@ class EtlTracer(Thread):
             # Watch the input queue and respond
             while True:
                 event = self.__trace_queue.get()
-                code = None
 
                 try:
 
                     if event['event'] == 'activity':
-                        event['activity'].record(db)
+                        event['activity'].record_trace_to_db(db, self.should_auto_commit())
 
                     elif event['event'] == 'stop':
                         self.logger.debug("Got stop command")
+                        db.commit()
                         db.close()
                         return
 
@@ -120,10 +152,12 @@ class EtlTracer(Thread):
                         self.logger.error("Got invalid trace code '%s': %s" % (event['event'], pformat(event)))
 
                 except Exception as e:
-                    emsg = traceback.format_stack()
-                    emsg.append("Encountered %s: %s" % (e.__class__.__name__, str(e)))
-                    self.logger.error("Encountered exception when executing trace code %s: %s\n%s" % (
-                        code, pformat(event), "\n".join([s.strip() for s in emsg])+"\n"))
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    emsg = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                    emsg.append("Encountered %s: %s with trace event %s\n %s" % (
+                        e.__class__.__name__, str(e), pformat(event),
+                        "".join(emsg)))
+                    self.logger.error(emsg)
 
 
 
