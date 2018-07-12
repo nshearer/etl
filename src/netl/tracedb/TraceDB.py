@@ -46,7 +46,6 @@ class TraceDB:
                                         | Database  |
                                         +--+--------+
                                            |
-                                           |
     +-------------+                     +--+--------+
     |  Analyze    <---------------------+  TraceDB  |
     |  Threads    |                     | TraceData |
