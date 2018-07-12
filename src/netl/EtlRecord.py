@@ -132,8 +132,6 @@ class EtlRecord:
         return self.__values.items()
 
 
-
-
     # -- Source processor -----------------------------------------------------
 
     def set_source(self, comp_id, comp_name, output_port_name):

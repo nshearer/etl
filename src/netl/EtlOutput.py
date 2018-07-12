@@ -4,6 +4,7 @@ from threading import Lock
 from .EtlSession import EtlObject
 from .tracedb import TracePortClosed, TraceConnection, TraceConnectionClosed
 from .tracedb import TraceRecord
+from .tracedb import TraceRecordDispatch
 from .exceptions import SessionNotCreatedYet
 
 class OutputClossed(Exception): pass
@@ -166,16 +167,24 @@ class EtlOutput(EtlPort):
             record.freeze(self.session.freezer)
             self.session.tracer.trace(TraceRecord(record))
 
-
+        # Send the record
         for conn in self.__connections:
             # Note: Not specifying receiver names here because receiving component
             #       may not have been started yet.  See EtlInput.get()
+
+            # Wrap record in envelope for target component and send
             conn.to_port._queue.put(EtlRecordEnvelope(
                 msg_type    = 'record',
                 from_comp   = self._component_name,
                 from_port   = self._port_name,
                 record      = record,
             ))
+
+            # Trace message
+            self.session.tracer.trace(TraceRecordDispatch(
+                record_id = record.serial,
+                from_port_id = self.port_id,
+                to_port_id = conn.to_port.port_id))
 
 
     def close(self):
