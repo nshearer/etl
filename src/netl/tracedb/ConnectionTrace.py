@@ -47,7 +47,7 @@ class ConnectionTrace(TraceData):
 
     @staticmethod
     def list_connections(trace_db):
-        for row in trace_db.execute_select("select * from connection_detail"):
+        for row in trace_db.execute_select("select * from v_connection_detail"):
             yield ConnectionTrace(trace_db, **row)
 
 
