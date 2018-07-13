@@ -119,9 +119,14 @@ class TraceDB:
             yield row
 
 
+    def execute_select_one(self, sql, parms=None, return_dict=True):
+        for row in self.execute_select(sql, parms, return_dict):
+            return row
+
+
     def execute_count(self, sql, parms=None):
-        for row in self.execute_select(sql, parms, return_dict=False):
-            return row[0]
+        row = self.execute_select_one(sql, parms, return_dict=False)
+        return row[0]
 
 
     def execute_update(self, sql, parms=None, commit=True):
@@ -190,7 +195,10 @@ class TraceDB:
         db.close()
         return TraceDB(path)
 
+    # -- Queries -----------------------------------------------------------------------
 
+    def etl_status(self):
+        return self.execute_select_one("select state_code from etl")['state_code']
 
     def list_components(self):
         return ComponentTrace.list_components(self)

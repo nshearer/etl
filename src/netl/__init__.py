@@ -8,4 +8,6 @@ from .EtlRecord import EtlRecord
 from .exceptions import *
 from .constants import *
 
+from .resources import EtlResource
+
 from .tracedb import TraceDB

@@ -15,7 +15,7 @@ class EtlTracer(Thread):
     '''
     
     # Constants
-    AUTO_COMMIT_EVERY = timedelta(seconds=2)
+    AUTO_COMMIT_EVERY = timedelta(seconds=5)
 
 
     def __init__(self):
@@ -120,6 +120,7 @@ class EtlTracer(Thread):
 
         if commit:
             self.__next_autocommit = datetime.now() + self.AUTO_COMMIT_EVERY
+        return commit
 
 
     def run(self):

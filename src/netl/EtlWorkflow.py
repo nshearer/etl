@@ -13,7 +13,7 @@ from .constants import LOG_INFO
 class EtlWorkflow:
     '''
     Defines the ETL components and record passing paths for
-    
+
     This class is used to organize all of the components in the workflow.
 
     Definition of ETL:
@@ -49,7 +49,7 @@ class EtlWorkflow:
     TODO: Add example
 
     '''
-    
+
     def __init__(self):
 
         self.session = EtlSession()
@@ -75,6 +75,15 @@ class EtlWorkflow:
                         yield attr
                 except AttributeError:
                     pass
+
+
+    def add_resource(self, resource):
+        '''
+        Add a shared resource that can be used by components
+
+        :param resource: EtlResource object
+        '''
+        self.session.resources.add(resource)
 
 
     def std_logging(self, level=logging.INFO):

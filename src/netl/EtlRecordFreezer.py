@@ -53,11 +53,14 @@ class EtlRecordFreezer:
         self.add_freezer_func(cls, func=None)
 
 
-    IMMUTABLE_TYPES = (bool, int, float, str, None)
+    IMMUTABLE_TYPES = (bool, int, float, str)
     IMMUTABLE_COLLECTIONS = (tuple, frozendict, frozenset)
 
 
     def _check_already_frozen(self, value):
+
+        if value is None:
+            return True
 
         if value.__class__ in self.IMMUTABLE_TYPES:
             return True

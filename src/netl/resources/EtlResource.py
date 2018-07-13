@@ -19,7 +19,7 @@ class EtlResourceHandle:
     def release(self):
         '''Release the resource so that it is no longer in use'''
 
-        # Use EtlResourcePool condition Nto otify anyone waiting for this resource that it is available
+        # Use EtlResourcePool condition to notify anyone waiting for this resource that it is available
         with self.__pool.resource_avail_cond:
             self.__resource_wrapper._released()
             self.__pool.resource_avail_cond.notify()
@@ -32,9 +32,23 @@ class EtlResourceHandle:
             raise Exception("Resource has been released")
         return self.__resource_wrapper.resource
 
+
+    # Shortcuts to use the resource
+
     @property
-    def v(self):
+    def r(self):
         return self.__resource_wrapper.resource
+
+    # Context handler
+
+    def __enter__(self):
+        # Do nothing.  Handled in init
+        return self.resource
+
+    def __exit__(self, *args):
+        self.release()
+
+
 
 
 class EtlResource:
@@ -69,6 +83,10 @@ class EtlResource:
     def resource(self):
         return self.__resource
 
+    @property
+    def key(self):
+        return self.__key
+
 
     def peak_available(self):
         '''
@@ -79,14 +97,14 @@ class EtlResource:
         return not self.__locked
 
 
-    def grab_handle(self):
+    def grab_handle(self, pool):
         '''Attempt to get this resource'''
         with self.__lock:
             if not self.__locked:
                 # Successfully grabed
                 if not self.__safe:
                     self.__locked = True
-                return EtlResourceHandle(self)
+                return EtlResourceHandle(self, pool)
 
         # Failed to get handle
         return None
@@ -131,7 +149,7 @@ class EtlResourceCollection:
         # Get the pool
         with self.__lock:
             try:
-                pool = self.__resources[key]
+                pool = self.__pools[key]
             except KeyError:
                 raise KeyError("Invalid resource key requested: " + str(key))
 
@@ -141,9 +159,10 @@ class EtlResourceCollection:
             while handle is None:
                 # Pick a random availble resource
                 avail = [r for r in pool.resources if r.peak_available()]
-                if len(avail) > 1:
-                    for resource in list(shuffle(avail)):
-                        handle = resource.grab_handle()
+                if len(avail) > 0:
+                    shuffle(avail)
+                    for resource in avail:
+                        handle = resource.grab_handle(pool)
                         if handle is not None:
                             break
 

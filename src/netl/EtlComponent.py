@@ -210,3 +210,9 @@ class EtlComponent(EtlObject):
     @property
     def is_etl_component(self):
         return True
+
+
+    # == Convenience / proxy methods =========================================
+
+    def get_service(self, service_name):
+        return self.session.resources.get(service_name)
