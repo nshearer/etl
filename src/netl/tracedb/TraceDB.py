@@ -2,6 +2,8 @@ import os
 import sqlite3
 from threading import Lock
 
+from .TraceObject import TraceAction
+
 from .ComponentTrace import ComponentTrace
 from .PortTrace import PortTrace
 from .EnvelopeTrace import EnvelopeTrace
@@ -55,6 +57,10 @@ class TraceDB:
 
     VERSION='dev'
 
+    INIT_STATE = 'init'
+    RUNNING_STATE = 'running'
+    FINISHED_STATE = 'finished'
+    ERROR_STATE = 'error'
 
     CREATE_STATEMENTS = (
         """\
@@ -122,6 +128,7 @@ class TraceDB:
     def execute_select_one(self, sql, parms=None, return_dict=True):
         for row in self.execute_select(sql, parms, return_dict):
             return row
+        raise Exception("SQL statement returned no results: " + sql)
 
 
     def execute_count(self, sql, parms=None):
@@ -148,6 +155,19 @@ class TraceDB:
         self.assert_readwrite()
         with self.__db_lock:
             self.__db.commit()
+
+
+    @property
+    def etl_state_desc(self):
+        code = self.etl_status()
+        if code == self.INIT_STATE:
+            return "Initializing"
+        elif code == self.RUNNING_STATE:
+            return "Running"
+        elif code == self.FINISHED_STATE:
+            return "Finished"
+        elif code == self.ERROR_STATE:
+            return "Error"
 
 
     # === Trace DB logic and structure ====================================
@@ -192,6 +212,12 @@ class TraceDB:
         for sql in create_statments:
             db.cursor().execute(sql)
 
+        db.cursor().execute("""
+            insert into etl (state_code, db_ver)
+            values (?, ?)
+            """, (TraceDB.INIT_STATE, TraceDB.VERSION))
+
+        db.commit()
         db.close()
         return TraceDB(path)
 
@@ -212,6 +238,24 @@ class TraceDB:
     def get_connection_stats(self):
         return EnvelopeTrace.get_connection_stats(self)
 
+
+
+class TraceETLStateChange(TraceAction):
+
+    def __init__(self, state):
+        '''
+        Update the status of the ETL
+
+        :param state: New state code
+        '''
+        super(TraceETLStateChange, self).__init__()
+        self.state_code = state
+
+    def record_trace_to_db(self, trace_db, commit):
+        trace_db.execute_update("""
+            update etl
+            set state_code = ?
+            """, (self.state_code, ), commit=True)
 
 
 # TODO: Extra trace objects

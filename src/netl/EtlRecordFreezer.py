@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, date, timedelta
 
 from .exceptions import NoFreezeFunction, ValueFreezeFailed
 
@@ -53,7 +54,7 @@ class EtlRecordFreezer:
         self.add_freezer_func(cls, func=None)
 
 
-    IMMUTABLE_TYPES = (bool, int, float, str)
+    IMMUTABLE_TYPES = (bool, int, float, str, datetime, date, timedelta)
     IMMUTABLE_COLLECTIONS = (tuple, frozendict, frozenset)
 
 

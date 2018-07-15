@@ -7,6 +7,7 @@ import logging
 
 from .EtlComponentRunner import EtlComponentRunner
 from .EtlSession import EtlSession
+from .tracedb import TraceDB, TraceETLStateChange
 
 from .constants import LOG_INFO
 
@@ -118,6 +119,11 @@ class EtlWorkflow:
             runner = EtlComponentRunner(comp)
             self.__runners.append(runner)
 
+        # Log that we started
+        self.session.tracer.trace(TraceETLStateChange(
+            state = TraceDB.RUNNING_STATE
+        ))
+
 
     def wait(self):
         '''Wait until all components are finished'''
@@ -131,11 +137,22 @@ class EtlWorkflow:
             runner = self.__runners.pop(0)
             runner.join() # Wait again.  Runner should be finished
 
+        # Log that we finshed
+        self.session.tracer.trace(TraceETLStateChange(
+            state = TraceDB.FINISHED_STATE
+        ))
+
+
     def finish(self):
         '''Shutdown the workflow (will wait until all components have finished)'''
         self.wait()
         if self.session.tracer.tracing_running:
             self.session.tracer.stop_tracer()
+
+        # Log that we finshed
+        self.session.tracer.trace(TraceETLStateChange(
+            state = TraceDB.FINISHED_STATE
+        ))
 
 
     @property

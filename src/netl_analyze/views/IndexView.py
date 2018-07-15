@@ -12,6 +12,6 @@ class IndexView(ViewObject):
 
         return self.render_template(
             tpl_name = 'index.j2.html',
-            status = self.trace_db.etl_status(),
+#            status = self.trace_db.etl_status(),
             components = self.trace_db.list_components(),
         )
