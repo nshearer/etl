@@ -77,6 +77,9 @@ class EtlRecord:
         return self.__record_type
     # TODO: Allow changes to record type?
 
+    @property
+    def rectype(self):
+        return self.record_type
 
     @property
     def serial(self):
@@ -263,6 +266,10 @@ class EtlRecord:
         return self.field_names()
 
 
+    def items(self):
+        return self.__values.items()
+
+
     @property
     def frozen(self):
         return self.__frozen
@@ -275,3 +282,5 @@ class EtlRecord:
 
     def __eq__(self, record):
         raise NotImplementedError("TODO")
+
+
