@@ -19,16 +19,26 @@ class EltOutputConnection:
 
 class EtlRecordEnvelope:
     '''Wrapper around records specifying where they came from, and where they're going'''
-    def __init__(self, msg_type, from_comp, from_port, record):
+    def __init__(self, msg_type, from_comp_name, from_comp_id, from_port_name, from_port_id, record):
         self.__msg_type = msg_type
-        self.__from_comp = from_comp
-        self.__from_port = from_port
+        self.__from_comp_name = from_comp_name
+        self.__from_comp_id = from_comp_id
+        self.__from_port_id = from_port_id
+        self.__from_port_name = from_port_id
+
         self.__record = record
-        self.__to_comp = None
-        self.__to_port = None
-    def note_receiver(self, comp_name, port_name):
-        self.__to_comp = comp_name
-        self.__to_port = port_name
+
+        self.__to_comp_name = None
+        self.__to_comp_id = None
+        self.__to_port_name = None
+        self.__to_port_id = None
+
+    def note_receiver(self, comp_name, comp_id, port_name, port_id):
+        self.__to_comp_name = comp_name
+        self.__to_comp_id = comp_id
+        self.__to_port_name = port_name
+        self.__to_port_id = port_id
+
     def __str__(self):
         return "%s.%s -> %s.%s" % (self.from_comp, self.from_port, self.to_comp or '?', self.to_port or '?')
     @property
@@ -174,10 +184,12 @@ class EtlOutput(EtlPort):
 
             # Wrap record in envelope for target component and send
             conn.to_port._queue.put(EtlRecordEnvelope(
-                msg_type    = 'record',
-                from_comp   = self._component_name,
-                from_port   = self._port_name,
-                record      = record,
+                msg_type        = 'record',
+                from_comp_name  = self._component_name,
+                from_comp_id    = self._component_id,
+                from_port_name  = self._port_name,
+                from_port_id    = self._port_id,
+                record          = record,
             ))
 
             # Trace message

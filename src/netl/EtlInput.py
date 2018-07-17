@@ -98,7 +98,11 @@ class EtlInput(EtlPort):
             raise NoMoreData("Input has no open connections")
 
         envelope = self._queue.get()
-        envelope.note_receiver(self._component_name, self._port_name)
+        envelope.note_receiver(
+            comp_name  = self._component_name,
+            comp_id    = self._component_id,
+            port_name  = self._port_name,
+            port_id    = self._port_id)
 
         if envelope.msg_type == 'record':
             self.session.tracer.trace_record_rcvd(envelope)

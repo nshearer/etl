@@ -8,8 +8,6 @@ except ImportError:
 from netl import EtlComponent, EtlInput
 from netl.utils.GZOutputWriter import GZOutputWriter
 
-from netl.EtlRecord import repr_attr_value
-
 class TestRecordDump(EtlComponent):
     '''
     Test sending records to file
@@ -41,7 +39,7 @@ class TestRecordDump(EtlComponent):
             rec = {
                 'serial': str(envl.record.serial),
                 'type': str(envl.record.record_type),
-                'attrs': {k: repr_attr_value(v) for (k, v) in envl.record.items()},
+                'attrs': {k: v for (k, v) in envl.record.repr_attrs()},
             }
             rec = json.dumps(rec) + "\n"
             recs_fh.write(rec.encode('utf-8'))

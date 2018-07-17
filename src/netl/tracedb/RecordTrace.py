@@ -2,7 +2,6 @@ from hashlib import md5
 import struct
 
 from .TraceObject import TraceData, TraceAction
-from ..EtlRecord import repr_attr_value
 
 class RecordTrace(TraceData):
     '''A record in the ETL'''
@@ -67,54 +66,54 @@ class TraceRecord(TraceAction):
         self.record = record
 
 
-    def record_trace_to_db(self, trace_db, commit):
-
-        return
-
-        # Record Record
-        trace_db.execute_update("""
-            insert into records (id, rectype, origin_component_id)
-            values (?, ?, ?)
-            """, (
-                int(self.record.serial),
-                self.record.record_type,
-                int(self.record.origin_component_id)))
-
-        # Put attribute values into the DB
-        pos = -1
-        for key, value in self.record.attributes:
-            pos += 1
-
-            # Record attribute value
-            value_repr = repr_attr_value(value)
-
-            # Hash value
-            # sqlite supports up to 62 bits.  Using 32 bit hash (4 bytes)
-            value_hash = struct.unpack("L", md5(value_repr.encode('utf-8')).digest()[:4])[0]
-
-            exist = trace_db.execute_count("""\
-                select count(*) from record_data
-                where value_hash = ?
-                """, (value_hash, ))
-
-            if exist == 0:
-                trace_db.execute_update("""
-                    insert into record_data (value_hash, value)
-                    values (?, ?)
-                    """, (value_hash, value_repr))
-
-            # Associate record attribute with value
-
-            trace_db.execute_update("""
-                insert into record_attributes (rec_id, attr_name, value_hash, sort)
-                values (?, ?, ?, ?)
-                """, (int(self.record.serial),
-                      key,
-                      value_hash,
-                      pos))
-
-
-        if commit:
-            trace_db.commit()
-
-
+    # def record_trace_to_db(self, trace_db, commit):
+    #
+    #     return
+    #
+    #     # Record Record
+    #     trace_db.execute_update("""
+    #         insert into records (id, rectype, origin_component_id)
+    #         values (?, ?, ?)
+    #         """, (
+    #             int(self.record.serial),
+    #             self.record.record_type,
+    #             int(self.record.origin_component_id)))
+    #
+    #     # Put attribute values into the DB
+    #     pos = -1
+    #     for key, value in self.record.attributes:
+    #         pos += 1
+    #
+    #         # Record attribute value
+    #         value_repr = repr_attr_value(value)
+    #
+    #         # Hash value
+    #         # sqlite supports up to 62 bits.  Using 32 bit hash (4 bytes)
+    #         value_hash = struct.unpack("L", md5(value_repr.encode('utf-8')).digest()[:4])[0]
+    #
+    #         exist = trace_db.execute_count("""\
+    #             select count(*) from record_data
+    #             where value_hash = ?
+    #             """, (value_hash, ))
+    #
+    #         if exist == 0:
+    #             trace_db.execute_update("""
+    #                 insert into record_data (value_hash, value)
+    #                 values (?, ?)
+    #                 """, (value_hash, value_repr))
+    #
+    #         # Associate record attribute with value
+    #
+    #         trace_db.execute_update("""
+    #             insert into record_attributes (rec_id, attr_name, value_hash, sort)
+    #             values (?, ?, ?, ?)
+    #             """, (int(self.record.serial),
+    #                   key,
+    #                   value_hash,
+    #                   pos))
+    #
+    #
+    #     if commit:
+    #         trace_db.commit()
+    #
+    #

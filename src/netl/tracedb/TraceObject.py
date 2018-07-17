@@ -20,7 +20,7 @@ class TraceAction(ABC):
     #     '''Description of the traced activity'''
 
     @abstractmethod
-    def record_trace_to_db(self, trace_db, commit):
+    def save_trace_data(self, trace_db):
         '''
         Record the trace to DB
 
