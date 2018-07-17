@@ -4,10 +4,35 @@ Created on Dec 27, 2012
 @author: nshearer
 '''
 from collections import OrderedDict
+from pprint import pformat
 
 from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
 from .exceptions import NoFreezeFunction, ValueFreezeFailed
 from .serial import EtlSerial
+from datetime import datetime, date
+
+
+def repr_attr_value(value):
+    '''
+    Create a representation of the value of an attribute for the TraceDB
+
+    Since the TraceDB is only used for monitoring and debugging, this needs
+    to turn each value into a string a person can understand.
+
+    :param value:
+    :return: str
+    '''
+
+    if value is None:
+        return 'none'
+
+    if value.__class__ is datetime:
+        return value.strftime("%Y-%m-%d %H:%M:%S")
+    elif value.__class__ is date:
+        return value.strftime("%Y-%m-%d")
+
+    return pformat(value).strip("'")
+
 
 class EtlRecord:
     '''Container for values for a single record
@@ -161,6 +186,73 @@ class EtlRecord:
     def create_msg(self, msg):
         '''Generate a message about this record'''
         return "%s: %s: Record[[%s]]" % (msg, self.__serial, str(self.__values))
+
+
+    def format(self, width=80, header=True, border=True):
+        '''
+        Create a nice, multiline, printable representation of the record
+
+        :param width: Max width to use for formatting record
+        :param header: Whether to include record header (else, just values)
+        :param border: Whether to wrap record in a boarder
+        :return: str
+        '''
+        rtn = list()
+
+        attrs = [(k, repr_attr_value(v)) for (k, v) in self.__values.items()]
+
+        max_key_len = max([len(t[0]) for t in attrs])
+
+        max_value_len = min((width - max_key_len, max([len(t[1]) for t in attrs])))
+        if border:
+            max_value_len -= 7
+
+        line_len = max_key_len + max_value_len
+        if border:
+            line_len += 7 # '| ' + ' | ' + ' |'
+        else:
+            line_len += 2 # ': ' between
+
+        if border:
+            border = "+-" + '-'*(max_key_len) + '-+-' + '-'*(max_value_len) + '-+'
+
+        if header:
+            if border:
+                rtn.append(border)
+
+            header = "%s [%s]" % (self.record_type, self.serial)
+            if len(header) < line_len - 4:
+                header += " "*(line_len - len(header) - 4)
+            if border:
+                rtn.append('| ' + header + ' |')
+        else:
+            header = None
+
+        if border:
+            rtn.append(border)
+
+        for key, value in attrs:
+            if not border:
+                key += ':'
+            key = key + " "*(max_key_len-len(key))
+
+            if len(value) > max_value_len:
+                value = value[:max_value_len-2] + '..'
+            else:
+                value = value + " "*(max_value_len-len(value))
+
+            if border:
+                rtn.append("| %s | %s |" % (key, value))
+            else:
+                rtn.append("%s %s" % (key, value))
+
+        if border:
+            rtn.append(border)
+
+        return "\n".join(rtn)
+
+
+    # -- Attributes -----------------------------------------------------------
 
 
     def set(self, name, value):

@@ -1,34 +1,8 @@
-from pprint import pformat
 from hashlib import md5
 import struct
 
 from .TraceObject import TraceData, TraceAction
-
-
-def repr_attr_value(value):
-    '''
-    Create a representation of the value of an attribute for the TraceDB
-
-    Since the TraceDB is only used for monitoring and debugging, this needs
-    to turn each value into a string a person can understand.
-
-    Also will return a hash to index the value with for checking the DB
-    to see if value is aleady there.
-
-    :param value:
-    :return: str, value_hash
-    '''
-
-    if value is None:
-        return None, None
-
-    s = pformat(value).strip("'")
-
-    # sqlite supports up to 62 bits.  Using 32 bit hash (4 bytes)
-    h = struct.unpack("L", md5(s.encode('utf-8')).digest()[:4])[0]
-
-    return s, h
-
+from ..EtlRecord import repr_attr_value
 
 class RecordTrace(TraceData):
     '''A record in the ETL'''
@@ -95,6 +69,8 @@ class TraceRecord(TraceAction):
 
     def record_trace_to_db(self, trace_db, commit):
 
+        return
+
         # Record Record
         trace_db.execute_update("""
             insert into records (id, rectype, origin_component_id)
@@ -110,8 +86,11 @@ class TraceRecord(TraceAction):
             pos += 1
 
             # Record attribute value
+            value_repr = repr_attr_value(value)
 
-            value_repr, value_hash = repr_attr_value(value)
+            # Hash value
+            # sqlite supports up to 62 bits.  Using 32 bit hash (4 bytes)
+            value_hash = struct.unpack("L", md5(value_repr.encode('utf-8')).digest()[:4])[0]
 
             exist = trace_db.execute_count("""\
                 select count(*) from record_data

@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-from netl.EtlProcessor import EtlProcessor
-from netl.recshelf.RecordShelf import RecordShelf
+from ..EtlComponent import EtlComponent
 
-class JoinProcessor(EtlProcessor):
+
+class JoinComponent(EtlComponent):
     '''Join each record on the right to one on the left
     
                        +----------------+                                     
@@ -14,24 +14,22 @@ class JoinProcessor(EtlProcessor):
                        |                +--->  right_not_joined               
                        +----------------+
 
-    This is a key utility processor which joins records coming in on one input
-    to the records on another input.
+    The three outputs are:
     
-    The three key outputs are:
-    
-    joined: Contains each of the right records joined to a single matching left
+      joined: Contains each of the right records joined to a single matching left
         record if one was found to join to.
             
-    left_not_joined: Contains each of the left records that was not matched to
+      left_not_joined: Contains each of the left records that was not matched to
         any record on the right input
                      
-    right_not_joined: Contains each of the right records that was not matched to
+      right_not_joined: Contains each of the right records that was not matched to
         any record on the left input
-                      
-    To use, you must subclass and implement:
-      - calc_left_join_key()
-      - calc_right_join_key()
-      - join_left_to_right() 
+
+    Joining is done by indexing all records on the left by the join key, and
+    then processing right records and joining them.  If you have more records
+    expected on one input than the other, put the input with fewer records into
+    left.
+
     '''
     __metacass__ = ABCMeta
     

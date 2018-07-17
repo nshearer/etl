@@ -6,6 +6,7 @@ from threading import Thread, Lock
 from pprint import pformat
 import traceback
 from datetime import datetime, timedelta
+from random import randint
 
 from .tracedb import TraceDB, ComponentTrace
 
@@ -117,9 +118,9 @@ class EtlTracer(Thread):
         else:
             commit = False
 
-
         if commit:
             self.__next_autocommit = datetime.now() + self.AUTO_COMMIT_EVERY
+            self.logger.debug("COMMIT")
         return commit
 
 
@@ -137,6 +138,9 @@ class EtlTracer(Thread):
             # Watch the input queue and respond
             while True:
                 event = self.__trace_queue.get()
+
+                if randint(0, 20) == 0:
+                    self.logger.debug("%d trace events to go" % (self.__trace_queue.qsize()))
 
                 try:
 
