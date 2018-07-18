@@ -10,7 +10,5 @@ from .constants import *
 
 from .resources import EtlResource
 
-from .tracedb import TraceDB
-
 from .common_prc.DebugRecords import DebugRecords
 from .common_prc.TestRecordDump import TestRecordDump

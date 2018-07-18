@@ -8,8 +8,8 @@ from .constants import *
 from .EtlSession import EtlObject
 from .serial import EtlSerial
 
-from .tracedb import ComponentTrace, TraceNewComponent, TraceComponentStateChange
-from .tracedb import TraceComponentPortExists, TraceConnection
+from .tracefile import TraceNewComponent, TraceComponentStateChange
+from .tracefile import TracePort, TraceConnection
 
 class EtlComponent(EtlObject):
     '''
@@ -147,7 +147,7 @@ class EtlComponent(EtlObject):
             component_id = self.component_id,
             name = self.name,
             clsname = self.__class__.__name__,
-            state = ComponentTrace.INIT_STATE
+            state = TraceNewComponent.INIT_STATE
         ))
 
         # Push some component info into connections to assist with tracing
@@ -157,7 +157,7 @@ class EtlComponent(EtlObject):
             port._port_name = name
 
             # Record port name in trace
-            self.session.tracer.trace(TraceComponentPortExists(
+            self.session.tracer.trace(TracePort(
                 component_id = self.component_id,
                 port_id = port.port_id,
                 name = name,
@@ -182,13 +182,13 @@ class EtlComponent(EtlObject):
 
         self.session.tracer.trace(TraceComponentStateChange(
             component_id = self.component_id,
-            state = ComponentTrace.RUNNING_STATE))
+            state = TraceNewComponent.RUNNING_STATE))
 
         self.run()
 
         self.session.tracer.trace(TraceComponentStateChange(
             component_id = self.component_id,
-            state = ComponentTrace.FINISHED_STATE))
+            state = TraceNewComponent.FINISHED_STATE))
 
         self._finish()
 

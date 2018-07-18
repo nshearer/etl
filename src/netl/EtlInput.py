@@ -4,7 +4,7 @@ from queue import Queue
 
 from .EtlOutput import EtlPort
 from .exceptions import NoMoreData
-from .tracedb import TracePortClosed
+from .tracefile import TracePortClosed
 
 class EtlInput(EtlPort):
     '''
@@ -102,7 +102,7 @@ class EtlInput(EtlPort):
             comp_name  = self._component_name,
             comp_id    = self._component_id,
             port_name  = self._port_name,
-            port_id    = self._port_id)
+            port_id    = self.port_id)
 
         if envelope.msg_type == 'record':
             self.session.tracer.trace_record_rcvd(envelope)

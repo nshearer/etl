@@ -30,12 +30,14 @@ class TraceDumpFileWriter:
 
     '''
 
+    VERSION='dev'
+
     def __init__(self, path):
         self.__fh = GZOutputWriter(self.__path)
         self.__new_data = False
 
 
-    def add(self, entry_code, data):
+    def write(self, entry_code, data):
         '''
         Add data to the file
 
@@ -53,85 +55,85 @@ class TraceDumpFileWriter:
         self.__new_data = True
 
 
-    def add_trace_header(self, trace_port):
-        '''
-        Information about the running process so that monitor apps can connect
-
-        :param trace_port: Port the ETL program is listening for status requests on
-        '''
-        self.add(
-            "TRACER",
-            {
-                'port': int(trace_port),
-            }
-        )
-
-
-    def add_log_msg(self, logger_name, severity, msg):
-        '''
-        Save a log message
-
-        :param logger_name: Name of the logger being used
-        :param severity: Message severity
-        :param msg: Actual message
-        '''
-        self.add(
-            "LOG",
-            {
-                'name': logger_name,
-                'severity': severity,
-                'msg': msg,
-            }
-        )
-
-    def add_record(self, record):
-        '''
-        Save a record
-
-        :param record: EtlRecord
-        '''
-        self.add(
-            "REC",
-            {
-                'type': record.record_type,
-                'serial': str(record.serial),
-                'attrs': {k: v for (k, v) in record.repr_attrs()},
-            }
-        )
-
-    def add_record_sent(self, envl, from_comp_id, to_comp_id):
-        '''
-        Note that a record was sent out of a component
-
-        :param envl: EtlEnvilope with message dispatch details
-        :param from_comp_id:
-        '''
-        self.add(
-            "ENVL",
-            {
-                 'msg_type': envl.msg_type,
-                 'from_comp_name': envl.from_comp_name,
-                 'from_comp_id': envl.from_comp_id,
-                 'from_port_id': envl.from_port_id,
-                 'from_port_name': envl.from_port_name,
-                 'record_id': str(envl.record.serial),
-                 'to_comp_name': envl.to_comp_name,
-                 'to_comp_id': envl.to_comp_id,
-                 'to_port_name': envl.to_port_name,
-                 'to_port_id': envl.to_port_id,
-                 'to_comp_name': envl.to_comp_name,
-                 'to_comp_id': envl.to_comp_id,
-                 'to_port_name': envl.to_port_name,
-                 'to_port_id': envl.to_port_id,
-            }
-        )
-
-
-    def flush(self):
-        '''Make sure written data is flushed out to disk'''
-        if self.__new_data:
-            self.__fh.flush()
-            self.__new_data = False
+#     def add_trace_header(self, trace_port):
+#         '''
+#         Information about the running process so that monitor apps can connect
+#
+#         :param trace_port: Port the ETL program is listening for status requests on
+#         '''
+#         self.add(
+#             "TRACER",
+#             {
+#                 'port': int(trace_port),
+#             }
+#         )
+#
+#
+#     def add_log_msg(self, logger_name, severity, msg):
+#         '''
+#         Save a log message
+#
+#         :param logger_name: Name of the logger being used
+#         :param severity: Message severity
+#         :param msg: Actual message
+#         '''
+#         self.add(
+#             "LOG",
+#             {
+#                 'name': logger_name,
+#                 'severity': severity,
+#                 'msg': msg,
+#             }
+#         )
+#
+#     def add_record(self, record):
+#         '''
+#         Save a record
+#
+#         :param record: EtlRecord
+#         '''
+#         self.add(
+#             "REC",
+#             {
+#                 'type': record.record_type,
+#                 'serial': str(record.serial),
+#                 'attrs': {k: v for (k, v) in record.repr_attrs()},
+#             }
+#         )
+#
+#     def add_record_sent(self, envl, from_comp_id, to_comp_id):
+#         '''
+#         Note that a record was sent out of a component
+#
+#         :param envl: EtlEnvilope with message dispatch details
+#         :param from_comp_id:
+#         '''
+#         self.add(
+#             "ENVL",
+#             {
+#                  'msg_type': envl.msg_type,
+#                  'from_comp_name': envl.from_comp_name,
+#                  'from_comp_id': envl.from_comp_id,
+#                  'from_port_id': envl.from_port_id,
+#                  'from_port_name': envl.from_port_name,
+#                  'record_id': str(envl.record.serial),
+#                  'to_comp_name': envl.to_comp_name,
+#                  'to_comp_id': envl.to_comp_id,
+#                  'to_port_name': envl.to_port_name,
+#                  'to_port_id': envl.to_port_id,
+#                  'to_comp_name': envl.to_comp_name,
+#                  'to_comp_id': envl.to_comp_id,
+#                  'to_port_name': envl.to_port_name,
+#                  'to_port_id': envl.to_port_id,
+#             }
+#         )
+#
+#
+#     def flush(self):
+#         '''Make sure written data is flushed out to disk'''
+#         if self.__new_data:
+#             self.__fh.flush()
+#             self.__new_data = False
 
 
 class TraceDumpFileReader:

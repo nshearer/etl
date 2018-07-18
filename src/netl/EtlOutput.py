@@ -2,9 +2,9 @@ from abc import abstractmethod
 
 from threading import Lock
 from .EtlSession import EtlObject
-from .tracedb import TracePortClosed, TraceConnection, TraceConnectionClosed
-from .tracedb import TraceRecord
-from .tracedb import TraceRecordDispatch
+from .tracefile import TracePortClosed, TraceConnection, TraceConnectionClosed
+from .tracefile import TraceRecord
+from .tracefile import TraceRecordDispatch
 from .exceptions import SessionNotCreatedYet
 
 class OutputClossed(Exception): pass
@@ -175,7 +175,10 @@ class EtlOutput(EtlPort):
         if not record.frozen:
             record.set_source(self._component_id, self._component_name, self._port_name)
             record.freeze(self.session.freezer)
-            self.session.tracer.trace(TraceRecord(record))
+            self.session.tracer.trace(TraceRecord(
+                type=   record.record_type,
+                serial= int(str(record.serial)),
+                attrs=  record.repr_attrs()))
 
         # Send the record
         for conn in self.__connections:
@@ -188,15 +191,23 @@ class EtlOutput(EtlPort):
                 from_comp_name  = self._component_name,
                 from_comp_id    = self._component_id,
                 from_port_name  = self._port_name,
-                from_port_id    = self._port_id,
+                from_port_id    = self.port_id,
                 record          = record,
             ))
 
             # Trace message
             self.session.tracer.trace(TraceRecordDispatch(
-                record_id = record.serial,
-                from_port_id = self.port_id,
-                to_port_id = conn.to_port.port_id))
+                from_comp_name  = self._component_name,
+                from_comp_id    = self._component_id,
+                from_port_name  = self._port_name,
+                from_port_id    = self.port_id,
+                record_id       = record.serial,
+                to_comp_id      = conn.to_port._component_id,
+                to_comp_name    = conn.to_port._component_name,
+                to_port_name    = conn.to_port._port_name,
+                to_port_id      = conn.to_port.port_id))
+
+
 
 
     def close(self):

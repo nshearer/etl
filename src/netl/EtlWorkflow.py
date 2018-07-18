@@ -7,9 +7,7 @@ import logging
 
 from .EtlComponentRunner import EtlComponentRunner
 from .EtlSession import EtlSession
-from .tracedb import TraceDB, TraceETLStateChange
-
-from .constants import LOG_INFO
+from .tracefile import TraceEtlState
 
 class EtlWorkflow:
     '''
@@ -120,8 +118,8 @@ class EtlWorkflow:
             self.__runners.append(runner)
 
         # Log that we started
-        self.session.tracer.trace(TraceETLStateChange(
-            state = TraceDB.RUNNING_STATE
+        self.session.tracer.trace(TraceEtlState(
+            state = TraceEtlState.RUNNING_STATE
         ))
 
 
@@ -138,8 +136,8 @@ class EtlWorkflow:
             runner.join() # Wait again.  Runner should be finished
 
         # Log that we finshed
-        self.session.tracer.trace(TraceETLStateChange(
-            state = TraceDB.FINISHED_STATE
+        self.session.tracer.trace(TraceEtlState(
+            state = TraceEtlState.FINISHED_STATE
         ))
 
 
@@ -150,8 +148,8 @@ class EtlWorkflow:
             self.session.tracer.stop_tracer()
 
         # Log that we finshed
-        self.session.tracer.trace(TraceETLStateChange(
-            state = TraceDB.FINISHED_STATE
+        self.session.tracer.trace(TraceEtlState(
+            state = TraceEtlState.FINISHED_STATE
         ))
 
 

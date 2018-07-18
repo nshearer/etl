@@ -8,7 +8,7 @@ import traceback
 from datetime import datetime, timedelta
 from random import randint
 
-from .tracedb import TraceDB, ComponentTrace
+from .tracefile import TraceDumpFileWriter, ComponentTrace
 
 class EtlTracer(Thread):
     '''
@@ -17,7 +17,6 @@ class EtlTracer(Thread):
     
     # Constants
     AUTO_COMMIT_EVERY = timedelta(seconds=5)
-
 
     def __init__(self):
 
@@ -48,11 +47,11 @@ class EtlTracer(Thread):
         return self.__configured and self.isAlive()
 
 
-    def setup_tracer(self, path=None, overwrite=False, keep=None):
+    def setup_tracer(self, path, overwrite=False, keep=None):
         '''
         Setup tracer to begin receiving data
 
-        :param path: Path to save trace information to (sqlite3 db)
+        :param path: Path to save trace information to
         :param overwrite: If true, will delete existing trace file if exists
         :param keep: If true, will not delete trace file when ETL completes
         '''
@@ -66,33 +65,22 @@ class EtlTracer(Thread):
                         os.unlink(path)
                     else:
                         raise Exception("Trace file already exists: "+path)
-                if path is None:
-                    self.__trace_path = NamedTemporaryFile(delete=False)
-                    self.__trace_path.close()
-                    self.__trace_path = path.name
 
-                    if keep is None:
-                        self.__keep_trace = False
-                    else:
-                        self.__keep_trace = keep
+                self.__trace_path = path
+
+                if keep is None:
+                    self.__keep_trace = True
                 else:
-                    self.__trace_path = path
-
-                    if keep is None:
-                        self.__keep_trace = True
-                    else:
-                        self.__keep_trace = keep
-
-                TraceDB.create(path)
+                    self.__keep_trace = keep
 
                 # Allow trace operations to start
                 self.__configured = True
 
             except Exception as e:
-                self.logger.error("Failed to setup trace DB: %s" % (str(e)))
-                self.__configured = False
-                self.__keep_trace = True
-                self.__trace_path = None
+                raise Exception("Failed to setup trace file: %s" % (str(e)))
+                # self.__configured = False
+                # self.__keep_trace = True
+                # self.__trace_path = None
 
 
     def should_auto_commit(self):
@@ -133,24 +121,28 @@ class EtlTracer(Thread):
                 return
 
             # Open Trace DB
-            db = TraceDB(self.__trace_path, mode='rw')
+            tracefile = TraceDumpFileWriter(self.__trace_path)
 
             # Watch the input queue and respond
             while True:
                 event = self.__trace_queue.get()
 
+                # debug
                 if randint(0, 20) == 0:
                     self.logger.debug("%d trace events to go" % (self.__trace_queue.qsize()))
 
                 try:
 
                     if event['event'] == 'activity':
-                        event['activity'].record_trace_to_db(db, self.should_auto_commit())
+                        tracefile.write(
+                            entry_code = event['activity'].__class__.__name__,
+                            data = event['activity'].data_json)
+                        if self.should_auto_commit():
+                            tracefile.flush()
 
                     elif event['event'] == 'stop':
                         self.logger.debug("Got stop command")
-                        db.commit()
-                        db.close()
+                        tracefile.close()
                         return
 
                     else:
