@@ -169,7 +169,7 @@ class EtlResourceCollection:
                 # If couldn't get a handle, wait for one to become available
                 if handle is None:
                     while len([r for r in pool.resources if r.peak_available()]) == 0:
-                        self.resource_avail_cond.wait()
+                        pool.resource_avail_cond.wait()
 
                 else:
                     return handle
