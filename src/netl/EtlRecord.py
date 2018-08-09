@@ -12,28 +12,6 @@ from .serial import EtlSerial
 from datetime import datetime, date
 
 
-def repr_attr_value(value):
-    '''
-    Create a representation of the value of an attribute for the TraceDB
-
-    Since the TraceDB is only used for monitoring and debugging, this needs
-    to turn each value into a string a person can understand.
-
-    :param value:
-    :return: str
-    '''
-
-    if value is None:
-        return 'none'
-
-    if value.__class__ is datetime:
-        return value.strftime("%Y-%m-%d %H:%M:%S")
-    elif value.__class__ is date:
-        return value.strftime("%Y-%m-%d")
-
-    return pformat(value).strip("'")
-
-
 class EtlRecord:
     '''Container for values for a single record
     
@@ -191,6 +169,32 @@ class EtlRecord:
         return "%s: %s: Record[[%s]]" % (msg, self.__serial, str(self.__values))
 
 
+    def repr_attrs(self):
+        '''
+        Create string representaiton of field values for user readability
+
+        :return: key, value pairs for each attribute
+        '''
+        for key, value in self.__values.items():
+
+            try:
+                if value is None:
+                    value = 'none'
+
+                elif value.__class__ is datetime:
+                    value = value.strftime("%Y-%m-%d %H:%M:%S")
+
+                elif value.__class__ is date:
+                    return value.strftime("%Y-%m-%d")
+
+                else:
+                    value = pformat(value).strip("'")
+            except Exception as e:
+                value = "Failed to represent value: %s" % (str(e))
+
+            yield key, value
+
+
     def format(self, width=80, header=True, border=True):
         '''
         Create a nice, multiline, printable representation of the record
@@ -202,7 +206,7 @@ class EtlRecord:
         '''
         rtn = list()
 
-        attrs = [(k, repr_attr_value(v)) for (k, v) in self.__values.items()]
+        attrs = list(self.repr_attrs())
 
         max_key_len = max([len(t[0]) for t in attrs])
 

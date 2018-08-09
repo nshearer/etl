@@ -10,8 +10,6 @@ from .constants import *
 
 from .resources import EtlResource
 
-from .tracedb import TraceDB
-
 from .common_prc.DebugRecords import DebugRecords
 from .common_prc.TestRecordDump import TestRecordDump
 from .common_prc.EtlFilter import EtlFilter

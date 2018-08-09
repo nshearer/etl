@@ -5,7 +5,6 @@ from mimetypes import guess_type
 from textwrap import dedent
 import traceback
 
-from netl import TraceDB
 from .source import WebSource
 from . import views
 
