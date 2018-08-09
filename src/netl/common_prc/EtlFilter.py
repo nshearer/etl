@@ -22,6 +22,10 @@ class EtlFilter(EtlComponent):
 
         self.__filter_func = filter_func
 
+        # Call last because this init adds outputs
+        super(EtlFilter, self).__init__()
+
+
 
     def run(self):
         for rec in self.input.all():

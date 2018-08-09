@@ -55,6 +55,13 @@ class EtlComponent(EtlObject):
     '''
 
 
+    def __init__(self):
+
+        # Make instance ports
+        for port_name, port_obj in self.ports:
+            setattr(self, port_name, port_obj.create_instance_port())
+
+
     @property
     def name(self):
         return self.__class__.__name__
@@ -105,7 +112,8 @@ class EtlComponent(EtlObject):
 
         # Mask out a set of attributes to not attempt to query to see if it's a port
         mask_out = set(('ports', 'outputs', 'inputs', 'setup_etl', 'is_etl_component',
-                        'name', 'mask_port_attrs', 'logger'))
+                        'name', 'mask_port_attrs', 'logger', 'run', 'get_service',
+                        'session'))
         try:
             for attr in self.__masked_port_attrs:
                 mask_out.add(attr)

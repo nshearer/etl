@@ -32,17 +32,25 @@ class EtlInput(EtlPort):
     CONNECTED = 'C'     # At least 1 output has been connected to this input
     CLOSED = 'X'        # All components
 
-    def __init__(self, maxsize=DEFAULT_MAXSIZE):
-        super(EtlInput, self).__init__()
-        self.__mute_lock = Lock()
-        self._queue = Queue(maxsize)
-        self.__state = self.UNCONNECTED
-        self.__connection_tokens = set()
-        self.__next_token = 0
+    def __init__(self, maxsize=DEFAULT_MAXSIZE, class_port=True):
+        super(EtlInput, self).__init__(class_port=class_port)
+
+        self.__max_queue_size = maxsize
+
+        if not self.is_class_port:
+            self.__mute_lock = Lock()
+            self._queue = Queue(maxsize)
+            self.__state = self.UNCONNECTED
+            self.__connection_tokens = set()
+            self.__next_token = 0
 
         # See EtlComponent.setup()
         self._component_name = None
         self._port_name = None
+
+
+    def create_instance_port(self):
+        return EtlInput(maxsize=self.__max_queue_size, class_port=False)
 
 
     @property
@@ -52,6 +60,9 @@ class EtlInput(EtlPort):
 
     def connect(self, output):
         '''Connect an output to this input'''
+
+        self.assert_is_instance_port()
+
         try:
             if output.is_etl_input_port:
                 raise Exception("Can't connect an input to an input")
@@ -71,6 +82,7 @@ class EtlInput(EtlPort):
         '''
         Request a connection token to "connect" to this input.  Called by EtlOutput
         '''
+        self.assert_is_instance_port()
         with self.__mute_lock:
             tok = self.__next_token
             self.__next_token += 1
@@ -89,6 +101,8 @@ class EtlInput(EtlPort):
 
     def get(self, envelope=False):
         '''Return a single record'''
+
+        self.assert_is_instance_port()
 
         unwrap = not envelope
 

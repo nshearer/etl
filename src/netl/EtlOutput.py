@@ -56,16 +56,49 @@ class EtlPort(EtlObject):
     PORT_ID_LOCK = Lock()
     NEXT_PORT_ID = 0
 
-    def __init__(self):
+    def __init__(self, class_port=True):
+        '''
+        :param class_port:
+            Set to true if this is a port being defined on a class
+            (Requires replacment of port object with create_instance() before use)
+        '''
 
         # See EtlComponent.setup()
         self._component_id = None
         self._component_name = None
         self._port_name = None
+        self.__class_port = class_port
 
-        with EtlPort.PORT_ID_LOCK:
-            self.__port_id = EtlPort.NEXT_PORT_ID
-            EtlPort.NEXT_PORT_ID += 1
+        # Calculate port ID
+        if not self.__class_port:
+            with EtlPort.PORT_ID_LOCK:
+                self.__port_id = EtlPort.NEXT_PORT_ID
+                EtlPort.NEXT_PORT_ID += 1
+
+
+    @property
+    def is_class_port(self):
+        '''Is this a port on a component class (can't be connected)'''
+        return self.__class_port
+
+
+    def assert_is_instance_port(self):
+        '''Check that this is a usable port on a component instance (not on the class)'''
+        if self.__class_port:
+            raise Exception("".join((
+                "Can't call this method on a class %s port.  " % (self.etl_port_type),
+                "Either EtlComponent.__init__() wasn't called, or ",
+                "you're trying to call on a component class (not an instance)")))
+
+
+    @abstractmethod
+    def create_instance_port(self):
+        '''
+        Called in EtlComponent to create an instance of this port that can be used
+
+        This was done because otherwise two copmnents that use the same component class
+        ended up with the same port instances.
+        '''
 
 
     @property
@@ -107,11 +140,19 @@ class EtlOutput(EtlPort):
     Defines an output channel for a component to send processed records out on
     '''
 
-    def __init__(self):
-        super(EtlOutput, self).__init__()
-        self.__mute_lock = Lock()
-        self.__connections = list()
+    def __init__(self, class_port=True):
+        super(EtlOutput, self).__init__(class_port=class_port)
+
+        if not self.is_class_port:
+            self.__mute_lock = Lock()
+            self.__connections = list()
+
         self.__closed = False
+
+
+    def create_instance_port(self):
+        return EtlOutput(class_port=False)
+
 
     @property
     def etl_port_type(self):
@@ -120,6 +161,8 @@ class EtlOutput(EtlPort):
 
     def connect(self, input):
         '''Connect to the input of a component'''
+        self.assert_is_instance_port()
+
         try:
             if not input.is_etl_input_port:
                 raise Exception("Can't connect an output to an output")
@@ -148,6 +191,8 @@ class EtlOutput(EtlPort):
 
     def output(self, record):
         '''Send a record out on this output to any connected inputs'''
+
+        self.assert_is_instance_port()
 
         # Check connection state
 
@@ -189,6 +234,8 @@ class EtlOutput(EtlPort):
 
     def close(self):
         '''Close down output and signal connected inputs that no more records will be sent'''
+
+        self.assert_is_instance_port()
 
         self.__closed = True
         for conn in self.__connections:
