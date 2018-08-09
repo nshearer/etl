@@ -3,7 +3,7 @@ import logging
 
 from .resources import EtlResourceCollection
 from .EtlTracer import EtlTracer
-from .EtlRecordFreezer import EtlRecordFreezer
+from .EtlAttributeHandler import EtlAttributeHandler
 
 from .serial import EtlSerial
 from .exceptions import SessionNotCreatedYet
@@ -16,7 +16,7 @@ class EtlSession:
         self.tracer = EtlTracer()
         self.tracer.logger = self.get_logger('TRACE')
         self.resources = EtlResourceCollection()
-        self.freezer = EtlRecordFreezer()
+        self.attr_handler = EtlAttributeHandler()
         self.freezer.logger = self.get_logger('FREEZER')
 
 

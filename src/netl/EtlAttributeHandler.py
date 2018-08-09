@@ -5,9 +5,26 @@ from .exceptions import NoFreezeFunction, ValueFreezeFailed
 
 from frozendict import frozendict
 
-class EtlRecordFreezer:
+
+class AttributeValue:
+    '''Encapsulates the value of an attribute'''
+
+    def __init__(self, value):
+        self.__value = value
+        self.__orig_class = value.__class__
+
+
+class FrozenAttributeValue(AttributeValue):
+    '''Encapsulates the immutable value of an attribute'''
+
+
+class StoredAttributeValue(FrozenAttributeValue):
+    '''Value stored to disk (json)'''
+
+
+class EtlAttributeHandler:
     '''
-    Contains the logic to make record attributes immutable
+    Contains the logic to work with record values
     '''
 
     def __init__(self):
