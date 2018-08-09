@@ -206,9 +206,10 @@ class EtlRecord:
 
         max_key_len = max([len(t[0]) for t in attrs])
 
-        max_value_len = min((width - max_key_len, max([len(t[1]) for t in attrs])))
+        max_value_len = width - max_key_len
         if border:
             max_value_len -= 7
+        max_value_len = min((max_value_len, max([len(t[1]) for t in attrs])))
 
         line_len = max_key_len + max_value_len
         if border:
@@ -268,6 +269,11 @@ class EtlRecord:
 
     def items(self):
         return self.__values.items()
+
+
+    @property
+    def values(self):
+        return tuple(self.items())
 
 
     @property
