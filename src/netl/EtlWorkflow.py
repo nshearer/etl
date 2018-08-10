@@ -102,7 +102,7 @@ class EtlWorkflow:
         '''Begin the workflow execution'''
 
         # Update freezer
-        self.session.attr_handler.mark_started()
+        self.session.attribute_handler.mark_started()
 
         # Start the tracer
         if self.session.tracer.tracing_enabled:

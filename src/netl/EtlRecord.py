@@ -11,6 +11,7 @@ from .exceptions import NoFreezeFunction, ValueFreezeFailed
 from .serial import EtlSerial
 from datetime import datetime, date
 
+from .EtlAttributeHandler import AttributeValue, FrozenAttributeValue
 
 class EtlRecord:
     '''Container for values for a single record
@@ -67,11 +68,39 @@ class EtlRecord:
         return self.__serial
 
 
-    def freeze(self, freezer):
+    # -- Handling fields ------------------------------------------------------
+
+    def __setitem__(self, name, value):
+        self.assert_not_frozen()
+        if name not in self.__values:
+            self.__values[name] = AttributeValue(value)
+        else:
+            self.__values[name].set_value(value)
+
+
+    def __getitem__(self, name):
+        try:
+            return self.__values[name].value
+        except KeyError:
+            raise InvalidEtlRecordKey("%s record has no '%s' attribute" % (
+                self.record_type, name))
+
+
+    @property
+    def attributes(self):
+        '''
+        All attributes for this record
+
+        :return: (key, value) pairs
+        '''
+        return list([(key, self.__values[key].value) for key in self.__values])
+
+
+    def freeze(self, attr_handler):
         '''
         Freeze and record to prevent accidental updates
 
-        :param freezer: EtlRecordFreezer for freezing values
+        :param attr_handler: EtlAttributeHandler
         '''
 
         if self.frozen:
@@ -80,11 +109,13 @@ class EtlRecord:
         if self.__serial is None:
             self.__serial = EtlSerial()
 
-        for key, value in self.__values.items():
-            self.__values[key] = freezer.freeze(value)
+        for key, value in self.attributes:
+            self.__values[key] = attr_handler.freeze(value)
 
         self.__frozen = True
 
+
+    # -- Record Associations --------------------------------------------------
 
     def copy(self):
         '''
@@ -115,33 +146,6 @@ class EtlRecord:
     #     '''Serial codes of records that helped generate this record'''
     #     return self.__from_records[:]
     #
-
-    # -- Handling fields ------------------------------------------------------
-
-    def __setitem__(self, name, value):
-        self.assert_not_frozen()
-        self.__values[name] = value
-
-
-    def __getitem__(self, name):
-        try:
-            return self.__values[name]
-        except KeyError:
-            raise InvalidEtlRecordKey("%s record has no '%s' attribute" % (
-                self.record_type, name))
-
-
-    @property
-    def attributes(self):
-        '''
-        All attributes for this record
-
-        :return: (key, value) pairs
-        '''
-        return self.__values.items()
-
-
-    # -- Source processor -----------------------------------------------------
 
     def set_source(self, comp_id, comp_name, output_port_name):
         self.assert_not_frozen()

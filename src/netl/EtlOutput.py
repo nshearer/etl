@@ -219,7 +219,7 @@ class EtlOutput(EtlPort):
         # Freeze the record
         if not record.frozen:
             record.set_source(self._component_id, self._component_name, self._port_name)
-            record.freeze(self.session.freezer)
+            record.freeze(self.session.attribute_handler)
             self.session.tracer.trace(TraceRecord(
                 type=   record.record_type,
                 serial= int(str(record.serial)),

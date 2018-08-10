@@ -57,14 +57,33 @@ class EtlAttributeHandler:
 
 
     def freeze(self, value):
-        '''Make value immutable'''
+        '''
+        Make value immutable
+
+        AttributeValue -> FrozenAttributeValue
+
+        :param value: AttributeValue containing value to be frozen
+        :return: FrozenAttributeValue
+        '''
 
         try:
-            freeze_calc = getattr('freeze_%s' % (value.__class__))
+            freeze_member_name = 'freeze_%s' % (value.__class__.__name__)
+            freeze_calc = getattr(self, freeze_member_name)
         except AttributeError:
             if self.freeze_required:
-                msg = "No freezer function found for class %s" % (value.__class__.__name__)
+                msg = "No freezer function found for class %s\n(missing session.attribute_handler.%s())" % (
+                    value.__class__.__name__, freeze_member_name)
                 raise ValueFreezeFailed(msg)
+
+        return FrozenAttributeValue(
+            value = freeze_calc(value),
+            orig_value_cls = value.__class__.__name__,
+        )
+
+    def freeze_str(self, value):
+        '''Strings are immutable.  Just return'''
+        return value
+
 
 
     # def add_freezer_func(self, cls, func):

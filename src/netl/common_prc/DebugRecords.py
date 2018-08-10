@@ -9,6 +9,7 @@ class DebugRecords(EtlComponent):
 
     def __init__(self, width=120):
         self.__width = width
+        super(DebugRecords, self).__init__()
 
     def run(self):
         log = self.logger
