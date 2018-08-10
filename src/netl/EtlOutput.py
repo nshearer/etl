@@ -41,24 +41,37 @@ class EtlRecordEnvelope:
 
     def __str__(self):
         return "%s.%s -> %s.%s" % (self.from_comp, self.from_port, self.to_comp or '?', self.to_port or '?')
+
     @property
     def msg_type(self):
         return self.__msg_type
     @property
-    def from_comp(self):
-        return self.__from_comp
+    def from_comp_name(self):
+        return self.__from_comp_name
     @property
-    def from_port(self):
-        return self.__from_port
+    def from_comp_id(self):
+        return self.__from_comp_id
     @property
-    def to_comp(self):
-        return self.__to_comp
+    def from_port_id(self):
+        return self.__from_port_id
     @property
-    def to_port(self):
-        return self.__to_port
+    def from_port_name(self):
+        return self.__from_port_name
     @property
     def record(self):
         return self.__record
+    @property
+    def to_comp_name(self):
+        return self.__to_comp_name
+    @property
+    def to_comp_id(self):
+        return self.__to_comp_id
+    @property
+    def to_port_name(self):
+        return self.__to_port_name
+    @property
+    def to_port_id    (self):
+        return self.__to_port_id
 
 
 class EtlPort(EtlObject):
