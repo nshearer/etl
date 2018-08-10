@@ -53,7 +53,10 @@ class EtlRecord:
     @property
     def record_type(self):
         return self.__record_type
-    # TODO: Allow changes to record type?
+    @record_type.setter
+    def record_type(self, value):
+        self.assert_not_frozen()
+        self.__record_type = value
 
     @property
     def rectype(self):

@@ -17,7 +17,7 @@ class EtlSession:
         self.tracer.logger = self.get_logger('TRACE')
         self.resources = EtlResourceCollection()
         self.attr_handler = EtlAttributeHandler()
-        self.freezer.logger = self.get_logger('FREEZER')
+        self.attr_handler.logger = self.get_logger('FREEZER')
 
 
     @property
