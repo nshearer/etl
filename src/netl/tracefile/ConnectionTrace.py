@@ -26,7 +26,7 @@ class TraceConnectionClosed(TraceData):
     '''Record that a connection has been closed'''
 
     def _list_required_keys(self):
-        return tuple(
+        return (
             'from_port_id', # Unique integer ID of the output port being
             'to_port_id',   # Unique integer ID for the input port
         )

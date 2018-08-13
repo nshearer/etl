@@ -1,5 +1,5 @@
 import os
-from zlib import compressobj, decompressobj
+from zlib import compressobj, decompressobj, Z_SYNC_FLUSH
 
 
 class GZOutputWriter:
@@ -17,7 +17,7 @@ class GZOutputWriter:
             raise Exception("File closed")
         data = self.compressor.compress(data)
         if flush:
-            data += self.compressor.flush()
+            data += self.compressor.flush(Z_SYNC_FLUSH)
         self.fh.write(data)
         if flush:
             self.fh.flush()

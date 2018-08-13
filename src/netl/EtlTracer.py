@@ -127,18 +127,13 @@ class EtlTracer(Thread):
             while True:
                 event = self.__trace_queue.get()
 
-                # debug
-                if randint(0, 20) == 0:
-                    self.logger.debug("%d trace events to go" % (self.__trace_queue.qsize()))
-
                 try:
 
                     if event['event'] == 'activity':
                         tracefile.write(
                             entry_code = event['activity'].__class__.__name__,
-                            data = event['activity'].data_json)
-                        if self.should_auto_commit():
-                            tracefile.flush()
+                            data = event['activity'].data_json,
+                            flush = self.should_auto_commit())
 
                     elif event['event'] == 'stop':
                         self.logger.debug("Got stop command")
@@ -154,7 +149,7 @@ class EtlTracer(Thread):
                     emsg.append("Encountered %s: %s with trace event %s\n %s" % (
                         e.__class__.__name__, str(e), pformat(event),
                         "".join(emsg)))
-                    self.logger.error(emsg)
+                    self.logger.error("\n".join(emsg))
 
 
 

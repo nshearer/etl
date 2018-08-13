@@ -24,7 +24,7 @@ class EtlRecordEnvelope:
         self.__from_comp_name = from_comp_name
         self.__from_comp_id = from_comp_id
         self.__from_port_id = from_port_id
-        self.__from_port_name = from_port_id
+        self.__from_port_name = from_port_name
 
         self.__record = record
 
@@ -40,7 +40,11 @@ class EtlRecordEnvelope:
         self.__to_port_id = port_id
 
     def __str__(self):
-        return "%s.%s -> %s.%s" % (self.from_comp, self.from_port, self.to_comp or '?', self.to_port or '?')
+        return "{from_comp}.{output_port} -> {to_comp}.{input_port}".format(
+            from_comp = self.from_comp_name,
+            output_port = self.from_port_name,
+            to_comp = self.to_comp_name or '?',
+            input_port = self.to_port_name or '?')
 
     @property
     def msg_type(self):
@@ -275,13 +279,17 @@ class EtlOutput(EtlPort):
 
         self.__closed = True
         for conn in self.__connections:
-              conn.to_port._queue.put(EtlRecordEnvelope(
-                msg_type    = 'close',
-                from_comp   = self.component_name,
-                from_port   = self.name,
-                record      = conn.tok,
+            conn.to_port._queue.put(EtlRecordEnvelope(
+                msg_type        = 'close',
+                from_comp_name  = self.component_name,
+                from_comp_id    = self._component_id,
+                from_port_name  = self.name,
+                from_port_id    = self.port_id,
+                record          = conn.tok,
               ))
-              self.session.tracer.trace(TraceConnectionClosed(
-                  from_port_id=self.port_id,
-                  to_port_id=conn.to_port.port_id))
-        self.session.tracer.trace(TracePortClosed(port_id=self.port_id))
+            self.session.tracer.trace(TraceConnectionClosed(
+                from_port_id=self.port_id,
+                to_port_id=conn.to_port.port_id))
+        self.session.tracer.trace(TracePortClosed(
+            component_id = self._component_id,
+            port_id = self.port_id))

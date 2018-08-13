@@ -124,10 +124,13 @@ class EtlRecord:
         :return:
         '''
         if self.frozen:
+
+            # Thaw values
+
             return EtlRecord(
                 record_type = self.record_type,
                 serial = EtlSerial(),
-                **self.__values)
+                **{key: self.__values[]}self.__values)
         else:
             raise Exception("Freeze record before copy()")
         # TODO: automatically associate derived record?

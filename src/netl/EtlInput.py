@@ -108,7 +108,9 @@ class EtlInput(EtlPort):
 
         # Make sure we have a connection
         if len(self.__connection_tokens) == 0:
-            self.session.tracer.trace(TracePortClosed(port_id=self.port_id))
+            self.session.tracer.trace(TracePortClosed(
+                component_id = self._component_id,
+                port_id = self.port_id))
             raise NoMoreData("Input has no open connections")
 
         envelope = self._queue.get()

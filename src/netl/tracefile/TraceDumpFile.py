@@ -33,11 +33,11 @@ class TraceDumpFileWriter:
     VERSION='dev'
 
     def __init__(self, path):
-        self.__fh = GZOutputWriter(self.__path)
+        self.__fh = GZOutputWriter(path)
         self.__new_data = False
 
 
-    def write(self, entry_code, data):
+    def write(self, entry_code, data, flush=False):
         '''
         Add data to the file
 
@@ -51,7 +51,7 @@ class TraceDumpFileWriter:
         header = header.encode('utf-8')
 
         self.__fh.write(header)
-        self.__fh.write(data)
+        self.__fh.write(data, flush)
         self.__new_data = True
 
 

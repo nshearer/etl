@@ -41,8 +41,8 @@ class TracePortClosed(TraceData):
     '''Record that a port was closed'''
 
     def _list_required_keys(self):
-        return tuple(
+        return tuple((
             'component_id', # Unique, integer ID for the component this port is on
             'port_id',      # Unique integer ID for this port
-        )
+        ))
 
