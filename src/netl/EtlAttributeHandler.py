@@ -19,6 +19,9 @@ class AttributeValue:
     def set_value(self, value):
         self.__value = value
 
+    def __repr__(self):
+        return repr(self.__value)
+
 
 class FrozenAttributeValue(AttributeValue):
     '''Encapsulates the immutable value of an attribute'''
@@ -29,6 +32,9 @@ class FrozenAttributeValue(AttributeValue):
 
     def set_value(self, value):
         raise Exception("Value is frozen")
+
+    def __repr__(self):
+        return 'FrozenAttributeValue(%s)' % (repr(self.value))
 
 
 
