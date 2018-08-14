@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, date, timedelta
 
-from .exceptions import NoFreezeFunction, ValueFreezeFailed
+from .exceptions import NoAttributeValueHandler
 
 from frozendict import frozendict
 
@@ -26,12 +26,16 @@ class AttributeValue:
 class FrozenAttributeValue(AttributeValue):
     '''Encapsulates the immutable value of an attribute'''
 
-    def __init__(self, value, orig_value_cls):
+    def __init__(self, value, orig_value_clsname):
         super(FrozenAttributeValue, self).__init__(value)
-        self.__orig_value_cls = orig_value_cls
+        self.__orig_value_clsname = orig_value_clsname
 
     def set_value(self, value):
         raise Exception("Value is frozen")
+
+    @property
+    def orig_value_clsname(self):
+        return self.__orig_value_clsname
 
     def __repr__(self):
         return 'FrozenAttributeValue(%s)' % (repr(self.value))
@@ -62,6 +66,8 @@ class EtlAttributeHandler:
             raise Exception("This method can't be used once ETL is started")
 
 
+    # == Primary methods ======================================================
+
     def freeze(self, value):
         '''
         Make value immutable
@@ -73,18 +79,67 @@ class EtlAttributeHandler:
         '''
 
         try:
-            freeze_member_name = 'freeze_%s' % (value.__class__.__name__)
+            freeze_member_name = 'freeze_%s' % (value.__class__.__name__.lower())
             freeze_calc = getattr(self, freeze_member_name)
         except AttributeError:
             if self.freeze_required:
                 msg = "No freezer function found for class %s\n(missing session.attribute_handler.%s())" % (
                     value.__class__.__name__, freeze_member_name)
-                raise ValueFreezeFailed(msg)
+                raise NoAttributeValueHandler(msg)
 
         return FrozenAttributeValue(
             value = freeze_calc(value),
-            orig_value_cls = value.__class__.__name__,
+            orig_value_clsname = value.__class__.__name__,
         )
+
+    def thaw(self, value):
+        '''
+        Make value mutable again (reversing freeze())
+
+        FrozenAttributeValue -> AttributeValue
+
+        :param value: FrozenAttributeValue containing value to be thawed
+        :return: FrozenAttributeValue
+        '''
+
+        try:
+            thaw_member_name = 'thaw_%s' % (value.orig_value_clsname)
+            thaw_calc = getattr(self, thaw_member_name)
+        except AttributeError:
+            if self.freeze_required:
+                msg = "No thaw function found for class %s\n(missing session.attribute_handler.%s())" % (
+                    value.__class__.__name__, thaw_member_name)
+                raise NoAttributeValueHandler(msg)
+
+        return AttributeValue(
+            value = thaw_calc(value)
+        )
+
+    def thaw(self, value):
+        '''
+        Describe the value to the user
+
+        :param value: AttributeValue or FrozenAttributeValue
+        :return: str
+        '''
+
+        try:
+
+            try:
+                clsname = value.orig_value_clsname
+            except:
+                clsname = value.__class__.__name__
+            repr_member_name = 'repr_%s' % (clsname.lower())
+            repr_calc = getattr(self, repr_member_name)
+        except AttributeError:
+            if self.freeze_required:
+                return "No representation function found for class %s\n(missing session.attribute_handler.%s())" % (
+                    value.__class__.__name__, repr_member_name)
+
+        return str(repr_calc(value))
+
+
+    # -- str ------------------------------------------------------------------
 
     def freeze_str(self, value):
         '''Strings are immutable.  Just return'''

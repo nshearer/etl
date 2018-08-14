@@ -7,7 +7,6 @@ from collections import OrderedDict
 from pprint import pformat
 
 from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
-from .exceptions import NoFreezeFunction, ValueFreezeFailed
 from .serial import EtlSerial
 from datetime import datetime, date
 
@@ -30,6 +29,7 @@ class EtlRecord:
         self.__record_type = record_type
         self.__values = OrderedDict()
         self.__frozen = False
+        self.__attr_handler = None
 
         self.__origin_comp_id = None
         self.__origin_comp_name = None
@@ -96,21 +96,41 @@ class EtlRecord:
         return list([(key, self.__values[key].value) for key in self.__values])
 
 
-    def freeze(self, attr_handler):
+    def attach_attr_handler(self, attribute_handler):
+        '''
+        Attach the attribute handler from the session
+
+        Many operation on attribute values require that the AttributeHandler class
+        to transform values.  Because ETL components generate records and we don't
+        want to make it any more difficult than necessary to create records, we
+        attach the attribute handler the first time it's needed (on freeze())
+
+        :param attribute_handler: EtlAttributeHandler
+        '''
+        self.__attr_handler = attribute_handler
+
+
+    def _assert_has_handler(self):
+        if self.__attr_handler is None:
+            raise Exception("Attribute handler not present yet")
+
+
+    def freeze(self):
         '''
         Freeze and record to prevent accidental updates
 
         :param attr_handler: EtlAttributeHandler
         '''
-
         if self.frozen:
             return
+
+        self._assert_has_handler()
 
         if self.__serial is None:
             self.__serial = EtlSerial()
 
         for key, value in self.attributes:
-            self.__values[key] = attr_handler.freeze(value)
+            self.__values[key] = self.__attr_handler.freeze(value)
 
         self.__frozen = True
 
@@ -123,14 +143,25 @@ class EtlRecord:
 
         :return:
         '''
+        self._assert_has_handler()
         if self.frozen:
 
-            # Thaw values
+            # Thaw values so that they can be changed
+
+            values = OrderedDict()
+            for key in self.__values:
+                try:
+                    values[key] = self.__attr_handler.thaw(self.__values[key])
+                except Exception as e:
+                    raise Exception("Failed to thaw %s value '%s'" % (
+                        key,
+                        self.__attr_handler.repr_value(self.__values[key])))
 
             return EtlRecord(
                 record_type = self.record_type,
                 serial = EtlSerial(),
-                **{key: self.__values[]}self.__values)
+                **values)
+
         else:
             raise Exception("Freeze record before copy()")
         # TODO: automatically associate derived record?
@@ -185,24 +216,26 @@ class EtlRecord:
 
         :return: key, value pairs for each attribute
         '''
+        self._assert_has_handler()
         for key, value in self.__values.items():
+            yield key, self.__attr_handler.repr_value(value)
 
-            try:
-                if value is None:
-                    value = 'none'
-
-                elif value.__class__ is datetime:
-                    value = value.strftime("%Y-%m-%d %H:%M:%S")
-
-                elif value.__class__ is date:
-                    return value.strftime("%Y-%m-%d")
-
-                else:
-                    value = pformat(value).strip("'")
-            except Exception as e:
-                value = "Failed to represent value: %s" % (str(e))
-
-            yield key, value
+            # try:
+            #     if value is None:
+            #         value = 'none'
+            #
+            #     elif value.__class__ is datetime:
+            #         value = value.strftime("%Y-%m-%d %H:%M:%S")
+            #
+            #     elif value.__class__ is date:
+            #         return value.strftime("%Y-%m-%d")
+            #
+            #     else:
+            #         value = pformat(value).strip("'")
+            # except Exception as e:
+            #     value = "Failed to represent value: %s" % (str(e))
+            #
+            # yield key, value
 
 
     def format(self, width=80, header=True, border=True):

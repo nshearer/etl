@@ -16,6 +16,4 @@ class EtlRecordFrozen(Exception):
 class SessionNotCreatedYet(Exception): pass
 
 
-class ValueFreezeFailed(Exception): pass
-class NoFreezeFunction(Exception): pass
-
+class NoAttributeValueHandler(Exception): pass
