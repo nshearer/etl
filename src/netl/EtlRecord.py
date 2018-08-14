@@ -129,7 +129,7 @@ class EtlRecord:
         if self.__serial is None:
             self.__serial = EtlSerial()
 
-        for key, value in self.attributes:
+        for key, value in self.__values.items():
             self.__values[key] = self.__attr_handler.freeze(value)
 
         self.__frozen = True

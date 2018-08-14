@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 from datetime import datetime, date, timedelta
 
@@ -22,13 +23,29 @@ class AttributeValue:
     def __repr__(self):
         return repr(self.__value)
 
+    @property
+    def class_name_for_handler(self):
+        '''Which class name should be used when calling methods in the attribute handler'''
+        return self.__value.__class__.__name__.lower()
+
+    @property
+    def is_frozen(self):
+        return False
+
 
 class FrozenAttributeValue(AttributeValue):
     '''Encapsulates the immutable value of an attribute'''
 
-    def __init__(self, value, orig_value_clsname):
+    def __init__(self, value, orig_value_clsname, freeze_success=True):
+        '''
+        :param value: The frozen value to store
+        :param orig_value_clsname: The origional value class name
+        :param freeze_success: Was the value successfully frozen (made into
+                an immutable type) by the handler.
+        '''
         super(FrozenAttributeValue, self).__init__(value)
         self.__orig_value_clsname = orig_value_clsname
+        self.__freeze_success = freeze_success
 
     def set_value(self, value):
         raise Exception("Value is frozen")
@@ -40,6 +57,18 @@ class FrozenAttributeValue(AttributeValue):
     def __repr__(self):
         return 'FrozenAttributeValue(%s)' % (repr(self.value))
 
+    @property
+    def class_name_for_handler(self):
+        '''Which class name should be used when calling methods in the attribute handler'''
+        return self.orig_value_clsname.lower()
+
+    @property
+    def freeze_successful(self):
+        return self.__freeze_success
+
+    @property
+    def is_frozen(self):
+        return True
 
 
 class EtlAttributeHandler:
@@ -79,18 +108,25 @@ class EtlAttributeHandler:
         '''
 
         try:
-            freeze_member_name = 'freeze_%s' % (value.__class__.__name__.lower())
-            freeze_calc = getattr(self, freeze_member_name)
+            freeze_calc_name = 'freeze_%s' % (value.class_name_for_handler)
+            freeze_calc = getattr(self, freeze_calc_name)
         except AttributeError:
             if self.freeze_required:
-                msg = "No freezer function found for class %s\n(missing session.attribute_handler.%s())" % (
-                    value.__class__.__name__, freeze_member_name)
+                msg = "Missing session.attribute_handler.%s())" % (freeze_calc_name)
                 raise NoAttributeValueHandler(msg)
+            else:
+                # Pass through original value
+                return FrozenAttributeValue(
+                    value = value.value,
+                    orig_value_clsname = value.value.__class__.__name__,
+                )
 
+        # Perform freeze
         return FrozenAttributeValue(
-            value = freeze_calc(value),
-            orig_value_clsname = value.__class__.__name__,
+            value = freeze_calc(value.value),
+            orig_value_clsname = value.value.__class__.__name__,
         )
+
 
     def thaw(self, value):
         '''
@@ -102,20 +138,29 @@ class EtlAttributeHandler:
         :return: FrozenAttributeValue
         '''
 
-        try:
-            thaw_member_name = 'thaw_%s' % (value.orig_value_clsname)
-            thaw_calc = getattr(self, thaw_member_name)
-        except AttributeError:
-            if self.freeze_required:
-                msg = "No thaw function found for class %s\n(missing session.attribute_handler.%s())" % (
-                    value.__class__.__name__, thaw_member_name)
-                raise NoAttributeValueHandler(msg)
+        # If we get passed a non-frozen attribute, silently ignore
+        if not value.is_frozen:
+            return AttributeValue(value=value.value)
 
+        # If freeze_value() couldn't find a handler to freeze, then
+        # pass same value back
+        if not value.freeze_successful:
+            return AttributeValue(value=value.value)
+
+        # Find handler to thaw
+        try:
+            thaw_calc_name = 'thaw_%s' % (value.class_name_for_handler)
+            thaw_calc = getattr(self, thaw_calc_name)
+        except AttributeError:
+            msg = "Missing session.attribute_handler.%s())" % (thaw_calc_name)
+            raise NoAttributeValueHandler(msg)
+
+        # Perform thaw calc
         return AttributeValue(
-            value = thaw_calc(value)
+            value = thaw_calc(value.value)
         )
 
-    def thaw(self, value):
+    def repr_value(self, value):
         '''
         Describe the value to the user
 
@@ -124,19 +169,13 @@ class EtlAttributeHandler:
         '''
 
         try:
-
-            try:
-                clsname = value.orig_value_clsname
-            except:
-                clsname = value.__class__.__name__
-            repr_member_name = 'repr_%s' % (clsname.lower())
-            repr_calc = getattr(self, repr_member_name)
+            repr_calc_name = 'repr_%s' % (value.class_name_for_handler)
+            repr_calc = getattr(self, repr_calc_name)
         except AttributeError:
-            if self.freeze_required:
-                return "No representation function found for class %s\n(missing session.attribute_handler.%s())" % (
-                    value.__class__.__name__, repr_member_name)
+            # No repr handler found
+            return repr(value.value)
 
-        return str(repr_calc(value))
+        return str(repr_calc(value.value))
 
 
     # -- str ------------------------------------------------------------------

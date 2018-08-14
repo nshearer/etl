@@ -241,7 +241,7 @@ class EtlOutput(EtlPort):
             self.session.tracer.trace(TraceRecord(
                 type=   record.record_type,
                 serial= int(str(record.serial)),
-                attrs=  record.repr_attrs()))
+                attrs=  list(record.repr_attrs())))
 
         # Send the record
         for conn in self.__connections:
