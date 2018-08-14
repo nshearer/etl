@@ -1,4 +1,4 @@
-from netl import EtlComponent, EtlInput
+from .. import EtlComponent, EtlInput
 
 class DebugRecords(EtlComponent):
     '''

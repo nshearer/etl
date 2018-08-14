@@ -33,6 +33,10 @@ class EtlInput(EtlPort):
     CLOSED = 'X'        # All components
 
     def __init__(self, maxsize=DEFAULT_MAXSIZE, class_port=True):
+        '''
+        :param maxsize: Maximum number of records to queue until input queue will block
+        :param class_port: Is this a port defined on the class as opposed to a component instance
+        '''
         super(EtlInput, self).__init__(class_port=class_port)
 
         self.__max_queue_size = maxsize
@@ -43,10 +47,6 @@ class EtlInput(EtlPort):
             self.__state = self.UNCONNECTED
             self.__connection_tokens = set()
             self.__next_token = 0
-
-        # See EtlComponent.setup()
-        self._component_name = None
-        self._port_name = None
 
 
     def create_instance_port(self):
@@ -92,6 +92,7 @@ class EtlInput(EtlPort):
 
     def all(self, envelope=False):
         '''Return all records'''
+        self.assert_is_instance_port()
         try:
             while True:
                 yield self.get(envelope)

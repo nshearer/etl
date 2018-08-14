@@ -103,6 +103,13 @@ class EtlPort(EtlObject):
                 EtlPort.NEXT_PORT_ID += 1
 
 
+    def __str__(self):
+        return "%s.%s" % (
+            self._component_name or "UnknownComponent",
+            self._port_name or "unknown_port",
+        )
+
+
     @property
     def is_class_port(self):
         '''Is this a port on a component class (can't be connected)'''

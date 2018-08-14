@@ -310,8 +310,12 @@ class EtlRecord:
         self[name] = value
 
 
+    @property
+    def attr_names(self):
+        return self.__values.keys()
     def keys(self):
-        return self.field_names()
+        return self.attr_name
+
 
 
     def items(self):
