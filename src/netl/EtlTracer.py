@@ -108,7 +108,7 @@ class EtlTracer(Thread):
 
         if commit:
             self.__next_autocommit = datetime.now() + self.AUTO_COMMIT_EVERY
-            self.logger.debug("COMMIT")
+            #self.logger.debug("COMMIT")
         return commit
 
 
