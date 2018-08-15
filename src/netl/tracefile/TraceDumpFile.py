@@ -55,6 +55,18 @@ class TraceDumpFileWriter:
         self.__new_data = True
 
 
+    def close(self):
+        '''
+        Close the file
+        '''
+        self.write(entry_code='C', data='END OF FILE')
+        self.__fh.close()
+        self.__fh = None
+        self.__new_data = False
+
+
+
+
 #     def add_trace_header(self, trace_port):
 #         '''
 #         Information about the running process so that monitor apps can connect
