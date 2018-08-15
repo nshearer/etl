@@ -1,7 +1,7 @@
 
-from .TraceData import TraceData
+from .TraceEvent import TraceEvent
 
-class TraceEtlState(TraceData):
+class TraceEtlState(TraceEvent):
 
     INIT_STATE = 'init'
     RUNNING_STATE = 'running'

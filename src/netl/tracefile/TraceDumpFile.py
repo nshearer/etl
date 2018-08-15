@@ -1,3 +1,6 @@
+from threading import Thread
+import logging
+from datetime import datetime
 
 try:
     import ujson as json
@@ -5,7 +8,10 @@ except ImportError:
     import json
 
 
-from ..utils.GZOutputWriter import GZOutputWriter, GZOutputReader
+from .TraceData import TraceData
+from .all_trace_events import ALL_TRACE_EVENTS
+
+from ..utils.GzFile import open_gz
 
 class TraceDumpFileWriter:
     '''
@@ -15,137 +21,95 @@ class TraceDumpFileWriter:
 
         The dump file is a zlib compressed text file
 
-         Each item is written to the file as a set of lines:
+        A newline is always added to the end of the record data so that
+        the file can be efficiently read back as a set of lines.
 
-            RECORD_HEADER: R CODE Length
-            RECORD_DATA
+        Each item is written to the file as a set of lines:
+
+            C #
+            JSON_DATA
+
+        Where
+
+            C is a code to specify what type of data is being written
+            # is the number of lines in RECORD_DATA
+            JSON_DATA is the actual data
 
         Example:
 
-            R LOG 60
+            T 1
             {'severity': 'INFO', 'msg': 'Starting component "Extract"'}
 
-        A newline is always added to the end of the record data so that the file
-        can be efficiently read back as a set of lines
 
     '''
 
     VERSION='dev'
 
+    TRACE_EVENT='T'
+    END_OF_FILE_EVENT='E'
+
     def __init__(self, path):
-        self.__fh = GZOutputWriter(path)
-        self.__new_data = False
+        self.__fh = open_gz(path, 'wt')
 
 
-    def write(self, entry_code, data, flush=False):
+    def _write_entry(self, item_type, data, flush):
         '''
-        Add data to the file
+        Write a record to the file
+        :param event_code: Single character item type
+        :param data: Data to be saved to disk
+        :param flush: Should data be flushed to disk
+        '''
+
+        # Count the lines in the data
+        data = json.dumps(data) + "\n"
+
+        # Build header
+        header = "{code} {count}\n".format(code=item_type, count=data.count("\n"))
+
+        # Write out
+        self.__fh.write(header)
+        self.__fh.write(data)
+        if flush:
+            self.__fh.flush()
+
+
+    def write_trace_event(self, event, flush=False):
+        '''
+        Add a trace event data to the file
 
         :param entry_code: A string to identify the type of entry being saved
-        :param data: The data to be saved.  Must be json serializable
+        :param event: Event being saved
         '''
 
-        data = json.dumps(data).encode('utf-8') + b"\n"
-
-        header = "R %s %d\n" % (entry_code, len(data))
-        header = header.encode('utf-8')
-
-        self.__fh.write(header)
-        self.__fh.write(data, flush)
-        self.__new_data = True
+        data = {
+            'event_class': event.__class__.__name__,
+            'event_attrs': {k: getattr(event, k) for k in event.data_keys},
+            'ts': event.ts.strftime("%c"),
+        }
+        self._write_entry(self.TRACE_EVENT, data, flush=flush)
 
 
     def close(self):
         '''
         Close the file
         '''
-        self.write(entry_code='C', data='END OF FILE')
+        self._write_entry(entry_code=self.END_OF_FILE_EVENT,
+                          data='END OF FILE')
         self.__fh.close()
         self.__fh = None
-        self.__new_data = False
 
 
+    @staticmethod
+    def rebuild_trace_event(data):
+        for event_cls in ALL_TRACE_EVENTS:
+            if data['event_class'] == event_cls.__name__:
+                event = event_cls(**data['event_attrs'])
+                event.ts = datetime.strptime(data['ts'], "%c")
+                return event
 
+        raise Exception("Didn't find a TraceEvent class called %s in all_trace_events.ALL_TRACE_EVENTS" % (
+            data['event_class']))
 
-#     def add_trace_header(self, trace_port):
-#         '''
-#         Information about the running process so that monitor apps can connect
-#
-#         :param trace_port: Port the ETL program is listening for status requests on
-#         '''
-#         self.add(
-#             "TRACER",
-#             {
-#                 'port': int(trace_port),
-#             }
-#         )
-#
-#
-#     def add_log_msg(self, logger_name, severity, msg):
-#         '''
-#         Save a log message
-#
-#         :param logger_name: Name of the logger being used
-#         :param severity: Message severity
-#         :param msg: Actual message
-#         '''
-#         self.add(
-#             "LOG",
-#             {
-#                 'name': logger_name,
-#                 'severity': severity,
-#                 'msg': msg,
-#             }
-#         )
-#
-#     def add_record(self, record):
-#         '''
-#         Save a record
-#
-#         :param record: EtlRecord
-#         '''
-#         self.add(
-#             "REC",
-#             {
-#                 'type': record.record_type,
-#                 'serial': str(record.serial),
-#                 'attrs': {k: v for (k, v) in record.repr_attrs()},
-#             }
-#         )
-#
-#     def add_record_sent(self, envl, from_comp_id, to_comp_id):
-#         '''
-#         Note that a record was sent out of a component
-#
-#         :param envl: EtlEnvilope with message dispatch details
-#         :param from_comp_id:
-#         '''
-#         self.add(
-#             "ENVL",
-#             {
-#                  'msg_type': envl.msg_type,
-#                  'from_comp_name': envl.from_comp_name,
-#                  'from_comp_id': envl.from_comp_id,
-#                  'from_port_id': envl.from_port_id,
-#                  'from_port_name': envl.from_port_name,
-#                  'record_id': str(envl.record.serial),
-#                  'to_comp_name': envl.to_comp_name,
-#                  'to_comp_id': envl.to_comp_id,
-#                  'to_port_name': envl.to_port_name,
-#                  'to_port_id': envl.to_port_id,
-#                  'to_comp_name': envl.to_comp_name,
-#                  'to_comp_id': envl.to_comp_id,
-#                  'to_port_name': envl.to_port_name,
-#                  'to_port_id': envl.to_port_id,
-#             }
-#         )
-#
-#
-#     def flush(self):
-#         '''Make sure written data is flushed out to disk'''
-#         if self.__new_data:
-#             self.__fh.flush()
-#             self.__new_data = False
 
 
 class TraceDumpFileReader:
@@ -155,9 +119,10 @@ class TraceDumpFileReader:
 
     def __init__(self, path):
         self.__path = path
+        self.__log = logging.getLogger('etl.TraceReader')
 
 
-    def all(self, entry_code, data):
+    def all(self):
         '''
         Reads through all the items and yields them back
 
@@ -166,45 +131,86 @@ class TraceDumpFileReader:
          - gracefully handles end of file, so you can read it while it's
            being written out elsewhere.
 
-        :return: yeilds item_code, item_data
+        :return: yields item_code, item_data
         '''
 
-        fh = GZOutputReader(self.__path)
+        with open_gz(self.__path, 'rt', tail=True) as fh:
 
-        parse_except = None
-        item_type_code = None
-        data_len = None
-        data = None
-        for i, line in enumerate(fh.readlines()):
-            try:
+            cur_item_code = None
+            cur_num_lines = None
+            data_lines = None
+
+            def _readlines():
+                while True:
+                    yield fh.readline()
+
+            for i, line in enumerate(_readlines()):
 
                 # Process header
-                if item_type_code is None:
+                if cur_item_code is None:
                     try:
-                        line_code, item_type_code, data_len = line.strip().split(" ")
+                        cur_item_code, cur_num_lines = line.strip().split(" ")
+                        cur_num_lines = int(cur_num_lines)
+                        data_lines = list()
                     except ValueError:
-                        raise Exception("Couldn't parse header line %d" % (i+1))
-                    if line_code != 'R':
-                        raise Exception("Line %d should be header, but doesn't start with R" % (i+1))
-                    data = list()
+                        self.__log.error("Couldn't parse header line %d" % (i+1))
+
+                # Collect data
+                else:
+                    data_lines.append(line)
 
                 # Process data
-                else:
-                    data.append(line)
-                    collected_bytes = sum([len(l) for l in data])
-                    if collected_bytes == data_len:
-                        data = json.loads(b"".join(data))
-                        yield item_type_code, data
-                        item_type_code = None
-                        data = None
-                    elif collected_bytes > data_len:
-                        raise Exception("While gathering data line %d, got %d bytes, but expected %d" % (
-                            i+1, collected_bytes, data_len
-                        ))
+                if len(data_lines) == cur_num_lines:
 
-            except Exception as e:
-                # Is this eception because we reached the end of the file?
-                if parse_except is not None:
-                    raise parse_except
-                parse_except = e
+                    # Decode data
+                    try:
+                        data = json.loads(("\n".join(data_lines)))
+                    except Exception as e:
+                        self.__log.error("\n".join([
+                            "Couldn't decode data on line %d" % (i+1),
+                            "Error: " + str(e),
+                            "Data:",
+                            "\n".join(data)
+                        ]))
+                        data = None
+
+                    # Return data
+                    if data is not None:
+                        yield cur_item_code, data
+
+                    # Reset for next record
+                    cur_item_code = None
+                    cur_num_lines = None
+                    data_lines = None
+
+
+class TraceFileMonitor(Thread):
+    '''
+    Worker class that watches a trace file and compiles into TraceData
+    '''
+
+    def __init__(self, path):
+        '''
+        :param path: Path to trace file
+        '''
+        self.data = TraceData()
+        self.__path = path
+        super(TraceFileMonitor, self).__init__(
+            name='TraceDataWatcher',
+            daemon=True)
+
+
+    def run(self):
+        '''Monitor trace file'''
+        reader = TraceDumpFileReader(self.__path)
+        for code, data in reader.all():
+            if code == TraceDumpFileWriter.TRACE_EVENT:
+
+                event = TraceDumpFileWriter.rebuild_trace_event(data)
+
+                self.data.lock.acquire_write()
+                try:
+                    event.apply_to_trace_data(self.data)
+                finally:
+                    self.data.lock.release_write()
 

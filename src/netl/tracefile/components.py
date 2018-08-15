@@ -1,8 +1,8 @@
 
 
-from .TraceData import TraceData
+from .TraceEvent import TraceEvent
 
-class TraceNewComponent(TraceData):
+class TraceNewComponent(TraceEvent):
     '''A component in the ETL'''
 
     INIT_STATE = 'init'
@@ -48,7 +48,7 @@ class TraceNewComponent(TraceData):
             return '#000000'
 
 
-class TraceComponentStateChange(TraceData):
+class TraceComponentStateChange(TraceEvent):
 
     def _list_required_keys(self):
         return (

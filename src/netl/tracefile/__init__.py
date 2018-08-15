@@ -1,8 +1,8 @@
-from .TraceDumpFile import TraceDumpFileWriter, TraceDumpFileReader
+from .TraceDumpFile import TraceDumpFileWriter, TraceFileMonitor
+from .TraceDumpFile import TraceData
 
-from .EtlTrace import TraceEtlState
-from .ComponentTrace import TraceNewComponent, TraceComponentStateChange
+from .etl_workflow import TraceEtlState
+from .components import TraceNewComponent, TraceComponentStateChange
 from .PortTrace import TracePort, TracePortClosed
-from .ConnectionTrace import TraceConnection, TraceConnectionClosed
-from .RecordTrace import TraceRecord
-from .EnvelopeTrace import TraceRecordDispatch
+from .connections import TraceConnection, TraceConnectionClosed
+from .records import TraceRecordDispatch, TraceRecord

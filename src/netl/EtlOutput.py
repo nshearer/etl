@@ -271,7 +271,7 @@ class EtlOutput(EtlPort):
                 from_comp_id    = self._component_id,
                 from_port_name  = self._port_name,
                 from_port_id    = self.port_id,
-                record_id       = record.serial,
+                record_id       = int(str(record.serial)),
                 to_comp_id      = conn.to_port._component_id,
                 to_comp_name    = conn.to_port._component_name,
                 to_port_name    = conn.to_port._port_name,

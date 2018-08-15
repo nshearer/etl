@@ -5,17 +5,20 @@ from mimetypes import guess_type
 from textwrap import dedent
 import traceback
 
+from netl.tracefile import TraceFileMonitor
+
 from .source import WebSource
 from . import views
 
 class EtlAnalyzeHandler(BaseHTTPRequestHandler):
 
-    DB = None
+    TRACE_READER = None
     SOURCE = WebSource()
 
     @staticmethod
     def set_trace_path(path):
-        EtlAnalyzeHandler.DB = TraceDB(path, mode='r')
+        EtlAnalyzeHandler.TRACE_READER = TraceFileMonitor(path)
+        EtlAnalyzeHandler.TRACE_READER.start()
 
 
     def _get_view_classes(self):

@@ -32,7 +32,7 @@ class NetAnalyzeHtmlServer:
         return self.__port
 
 
-    def server_forever(self):
+    def serve_forever(self):
         '''Begin serving clients, doesn't exit'''
         return self.__http_server.serve_forever()
 

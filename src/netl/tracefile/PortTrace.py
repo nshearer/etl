@@ -1,8 +1,8 @@
 
 
-from .TraceData import TraceData
+from .TraceEvent import TraceEvent
 
-class TracePort(TraceData):
+class TracePort(TraceEvent):
     '''A port on a component in the ETL'''
 
     TABLE = 'component_ports'
@@ -37,7 +37,7 @@ class TracePort(TraceData):
         )
 
 
-class TracePortClosed(TraceData):
+class TracePortClosed(TraceEvent):
     '''Record that a port was closed'''
 
     def _list_required_keys(self):

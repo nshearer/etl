@@ -1,7 +1,7 @@
 
-from .TraceData import TraceData
+from .TraceEvent import TraceEvent
 
-class TraceConnection(TraceData):
+class TraceConnection(TraceEvent):
     '''Record that the output of one component was connected to an input on another'''
 
     CONN_OPEN = 'open'
@@ -22,7 +22,7 @@ class TraceConnection(TraceData):
         )
 
 
-class TraceConnectionClosed(TraceData):
+class TraceConnectionClosed(TraceEvent):
     '''Record that a connection has been closed'''
 
     def _list_required_keys(self):

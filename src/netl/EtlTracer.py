@@ -8,7 +8,7 @@ import traceback
 from datetime import datetime, timedelta
 from random import randint
 
-from .tracefile import TraceDumpFileWriter, ComponentTrace
+from .tracefile import TraceDumpFileWriter, components
 
 class EtlTracer(Thread):
     '''
@@ -130,9 +130,8 @@ class EtlTracer(Thread):
                 try:
 
                     if event['event'] == 'activity':
-                        tracefile.write(
-                            entry_code = event['activity'].__class__.__name__,
-                            data = event['activity'].data_json,
+                        tracefile.write_trace_event(
+                            event = event['activity'],
                             flush = self.should_auto_commit())
 
                     elif event['event'] == 'stop':

@@ -1,8 +1,8 @@
 from bunch import Bunch
 
-from .TraceData import TraceData
+from .TraceEvent import TraceEvent
 
-class EnvelopeTrace(TraceData):
+class EnvelopeTrace(TraceEvent):
     '''A transmission trace for a record in the ETL'''
 
     # @staticmethod
@@ -13,7 +13,7 @@ class EnvelopeTrace(TraceData):
 
 
 
-class TraceRecordDispatch(TraceData):
+class TraceRecordDispatch(TraceEvent):
     '''Record that a record was sent out'''
 
     def _list_required_keys(self):
@@ -31,5 +31,16 @@ class TraceRecordDispatch(TraceData):
             'to_comp_id',       #
             'to_port_name',     #
             'to_port_id',       #
+        )
+
+
+class TraceRecord(TraceEvent):
+    '''A record in the ETL'''
+
+    def _list_required_keys(self):
+        return (
+            'type',     # Record type code
+            'serial',   # Unique ID of the record
+            'attrs',    # repr of the record values
         )
 

@@ -29,7 +29,7 @@ class MultiPassInput(EtlInput):
 
 
     def __del__(self):
-        if not self.__cleaned:
+        if not self.is_class_port and not self.__cleaned:
             print("ERROR: %s.done() was never called" % (str(self)))
 
 
