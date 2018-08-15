@@ -99,16 +99,20 @@ class TraceDumpFileWriter:
         self.__fh = None
 
 
+    ALL_TRACE_EVENTS_IDX = {c.__name__: c for c in ALL_TRACE_EVENTS}
+
     @staticmethod
     def rebuild_trace_event(data):
-        for event_cls in ALL_TRACE_EVENTS:
-            if data['event_class'] == event_cls.__name__:
-                event = event_cls(**data['event_attrs'])
-                event.ts = datetime.strptime(data['ts'], "%c")
-                return event
+        try:
+            event_class = TraceDumpFileWriter.ALL_TRACE_EVENTS_IDX[data['event_class']]
+        except KeyError:
+            raise Exception("Didn't find a TraceEvent class called %s in all_trace_events.ALL_TRACE_EVENTS" % (
+                data['event_class']))
 
-        raise Exception("Didn't find a TraceEvent class called %s in all_trace_events.ALL_TRACE_EVENTS" % (
-            data['event_class']))
+        event = event_class(**data['event_attrs'])
+        event.ts = datetime.strptime(data['ts'], "%c")
+        return event
+
 
 
 
