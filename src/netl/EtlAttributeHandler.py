@@ -180,8 +180,12 @@ class EtlAttributeHandler:
 
     # -- str ------------------------------------------------------------------
 
+    # Strings are immutable.  Just pass through
+
     def freeze_str(self, value):
-        '''Strings are immutable.  Just return'''
+        return value
+
+    def thaw_str(self, value):
         return value
 
 

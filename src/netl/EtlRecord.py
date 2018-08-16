@@ -72,8 +72,11 @@ class EtlRecord:
 
     def __setitem__(self, name, value):
         self.assert_not_frozen()
+
         if name not in self.__values:
-            self.__values[name] = AttributeValue(value)
+            if not isinstance(value, AttributeValue):
+                value = AttributeValue(value)
+            self.__values[name] = value
         else:
             self.__values[name].set_value(value)
 

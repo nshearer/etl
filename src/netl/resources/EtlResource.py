@@ -12,8 +12,9 @@ class EtlResourceHandle:
 
     def __del__(self):
         if self.__resource_wrapper is not None:
-            print("ERROR: resource %s wasn't released!" % (self.__resource_wrapper.key))
-            self.release()
+            if not self.__resource_wrapper.thread_safe:
+                print("ERROR: resource %s wasn't released!" % (self.__resource_wrapper.key))
+                self.release()
 
 
     def release(self):
@@ -86,6 +87,10 @@ class EtlResource:
     @property
     def key(self):
         return self.__key
+
+    @property
+    def thread_safe(self):
+        return self.__safe
 
 
     def peak_available(self):
