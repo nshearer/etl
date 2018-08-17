@@ -140,11 +140,12 @@ class EtlRecord:
 
     # -- Record Associations --------------------------------------------------
 
-    def copy(self):
+    def copy(self, rectype=None):
         '''
         Make a copy of the record that can be updated
 
-        :return:
+        :param rectype: Change record type
+        :return: EtlRecord
         '''
         self._assert_has_handler()
         if self.frozen:
@@ -161,7 +162,7 @@ class EtlRecord:
                         self.__attr_handler.repr_value(self.__values[key])))
 
             return EtlRecord(
-                record_type = self.record_type,
+                record_type = rectype or self.record_type,
                 serial = EtlSerial(),
                 **values)
 
