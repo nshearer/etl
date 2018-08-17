@@ -179,5 +179,5 @@ class EtlTracer(Thread):
 
     def trace_record_rcvd(self, envilope):
         # TODO: Trace envilopes
-        print(str(envilope))
-
+        #print(str(envilope))
+        pass
