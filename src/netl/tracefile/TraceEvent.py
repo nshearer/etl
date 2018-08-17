@@ -76,14 +76,12 @@ class TraceEvent(ABC):
 
     # TODO: implement apply_to_trace_data()
 
-    # @abstractmethod
-    # def apply_to_trace_data(self, trace_data):
-    #     '''
-    #     Apply this trace event to the TraceData class
-    #
-    #     Assume write lock is already obtained
-    #
-    #     :param trace_data: TraceData collecting all trace data from trace file
-    #     '''
+    @abstractmethod
     def apply_to_trace_data(self, trace_data):
-        pass
+        '''
+        Apply this trace event to the TraceData class
+
+        Assume write lock is already obtained
+
+        :param trace_data: TraceData collecting all trace data from trace file
+        '''

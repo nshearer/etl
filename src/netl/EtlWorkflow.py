@@ -119,7 +119,7 @@ class EtlWorkflow:
 
         # Log that we started
         self.session.tracer.trace(TraceEtlState(
-            state = TraceEtlState.RUNNING_STATE
+            state = EtlState.RUNNING_STATE
         ))
 
 
@@ -137,7 +137,7 @@ class EtlWorkflow:
 
         # Log that we finshed
         self.session.tracer.trace(TraceEtlState(
-            state = TraceEtlState.FINISHED_STATE
+            state = EtlState.FINISHED_STATE
         ))
 
 
@@ -149,7 +149,7 @@ class EtlWorkflow:
 
         # Log that we finshed
         self.session.tracer.trace(TraceEtlState(
-            state = TraceEtlState.FINISHED_STATE
+            state = EtlState.FINISHED_STATE
         ))
 
 

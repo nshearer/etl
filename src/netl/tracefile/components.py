@@ -2,36 +2,21 @@
 
 from .TraceEvent import TraceEvent
 
-class TraceNewComponent(TraceEvent):
-    '''A component in the ETL'''
+
+class ComponentState:
+    '''Stores the current state of the component'''
 
     INIT_STATE = 'init'
     RUNNING_STATE = 'running'
     FINISHED_STATE = 'finshed'
     ERROR_SATE = 'error'
 
-    def _list_required_keys(self):
-        return (
-            'component_id',     # Unique, integer ID for this component
-            'name',             # Name of the component
-            'clsname',          # Class name of the component
-            'state',            # Code that represents the state of the component
-        )
-
-    # TODO: list_components(trace_db):
-    #     results = trace_db.execute_select("select * from components")
-    #     for row in results:
-    #         yield ComponentTrace(trace_db, **row)
-    #
-    #
-    # TODO: list_ports(self):
-    #     return self.db.list_ports_for(self.id)
-    #
-    # TODO: list_input_ports(self):
-    #     return self.db.list_ports_for(self.id, port_type='i')
-    #
-    # TODO: list_output_ports(self):
-    #     return self.db.list_ports_for(self.id, port_type='o')
+    def __init__(self, event):
+        self.component_id = event.component_id
+        self.name = event.name
+        self.clsname = event.clsname
+        self.state = event.state
+        self.ports = dict()     # [port_id] = PortState()
 
 
     STATE_COLORS = {
@@ -48,11 +33,31 @@ class TraceNewComponent(TraceEvent):
             return '#000000'
 
 
+
+class TraceNewComponent(TraceEvent):
+    '''A component in the ETL'''
+
+    def _list_required_keys(self):
+        return (
+            'component_id',     # Unique, integer ID for this component
+            'name',             # Name of the component
+            'clsname',          # Class name of the component
+            'state',            # Code that represents the state of the component
+        )
+
+    def apply_to_trace_data(self, trace_data):
+        trace_data.components[self.component_id] = ComponentState(self)
+
+
+
 class TraceComponentStateChange(TraceEvent):
 
     def _list_required_keys(self):
         return (
             'component_id', # unique, integer ID for this component
             'state',        # New state code
-
         )
+
+    def apply_to_trace_data(self, trace_data):
+        trace_data.components[self.component_id].state = self.state
+

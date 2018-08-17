@@ -155,7 +155,7 @@ class EtlComponent(EtlObject):
             component_id = self.component_id,
             name = self.name,
             clsname = self.__class__.__name__,
-            state = TraceNewComponent.INIT_STATE
+            state = ComponentState.INIT_STATE
         ))
 
         # Push some component info into connections to assist with tracing
@@ -190,13 +190,13 @@ class EtlComponent(EtlObject):
 
         self.session.tracer.trace(TraceComponentStateChange(
             component_id = self.component_id,
-            state = TraceNewComponent.RUNNING_STATE))
+            state = ComponentState.RUNNING_STATE))
 
         self.run()
 
         self.session.tracer.trace(TraceComponentStateChange(
             component_id = self.component_id,
-            state = TraceNewComponent.FINISHED_STATE))
+            state = ComponentState.FINISHED_STATE))
 
         self._finish()
 
