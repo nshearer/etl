@@ -7,7 +7,7 @@ class EtlFilter(EtlComponent):
 
     input = EtlInput()
 
-    def __init__(self, filter_func, true_output, false_output):
+    def __init__(self, filter_func, true_output=None, false_output=None):
         '''
 
         :param filter_func: Function to be passed record.  Should return True or False
@@ -15,10 +15,12 @@ class EtlFilter(EtlComponent):
         :param false_output: Name of output to send record if flter_func returns False
         '''
         self.__true_output_name = true_output
-        setattr(self, self.__true_output_name, EtlOutput())
+        if self.__true_output_name is not None:
+            setattr(self, self.__true_output_name, EtlOutput())
 
         self.__false_output_name = false_output
-        setattr(self, self.__false_output_name, EtlOutput())
+        if self.__false_output_name is not None:
+            setattr(self, self.__false_output_name, EtlOutput())
 
         self.__filter_func = filter_func
 
@@ -30,6 +32,8 @@ class EtlFilter(EtlComponent):
     def run(self):
         for rec in self.input.all():
             if self.__filter_func(rec):
-                getattr(self, self.__true_output_name).output(rec)
+                if self.__true_output_name is not None:
+                    getattr(self, self.__true_output_name).output(rec)
             else:
-                getattr(self, self.__false_output_name).output(rec)
+                if self.__false_output_name is not None:
+                    getattr(self, self.__false_output_name).output(rec)
