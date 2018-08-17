@@ -52,7 +52,7 @@ class TraceDumpFileWriter:
         self.__fh = open_gz(path, 'wt')
 
 
-    def _write_entry(self, item_type, data, flush):
+    def _write_entry(self, item_type, data, flush=False):
         '''
         Write a record to the file
         :param event_code: Single character item type
@@ -93,7 +93,7 @@ class TraceDumpFileWriter:
         '''
         Close the file
         '''
-        self._write_entry(entry_code=self.END_OF_FILE_EVENT,
+        self._write_entry(item_type=self.END_OF_FILE_EVENT,
                           data='END OF FILE')
         self.__fh.close()
         self.__fh = None
