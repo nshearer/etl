@@ -2,14 +2,14 @@ from bunch import Bunch
 
 from .TraceEvent import TraceEvent
 
-class EnvelopeTrace(TraceEvent):
-    '''A transmission trace for a record in the ETL'''
-
-    # @staticmethod
-    # TODO: get_connection_stats(trace_db):
-    #     '''Get some stats on messages sent on connections'''
-    #     for row in trace_db.execute_select("select * from v_connection_stats"):
-    #         yield ConnectionStats(**row)
+# class EnvelopeTrace(TraceEvent):
+#     '''A transmission trace for a record in the ETL'''
+#
+#     # @staticmethod
+#     # TODO: get_connection_stats(trace_db):
+#     #     '''Get some stats on messages sent on connections'''
+#     #     for row in trace_db.execute_select("select * from v_connection_stats"):
+#     #         yield ConnectionStats(**row)
 
 
 
@@ -43,4 +43,5 @@ class TraceRecord(TraceEvent):
             'serial',   # Unique ID of the record
             'attrs',    # repr of the record values
         )
+
 
