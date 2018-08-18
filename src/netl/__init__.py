@@ -12,6 +12,7 @@ from .resources import EtlResource
 
 from .common_prc.DebugRecords import DebugRecords
 from .common_prc.EtlFilter import EtlFilter
+from .common_prc.EtlSorter import EtlSorter
 from .common_prc.MapComponent import MapComponent
 from .common_prc.WriteCSVFile import WriteCSVFile
 
