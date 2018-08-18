@@ -95,6 +95,15 @@ class EtlAttributeHandler:
             raise Exception("This method can't be used once ETL is started")
 
 
+    IMMUTABLE_TYPES = (
+        str,
+        int,
+        date,
+        datetime,
+        None
+    )
+
+
     # == Primary methods ======================================================
 
     def freeze(self, value):
@@ -111,6 +120,12 @@ class EtlAttributeHandler:
             freeze_calc_name = 'freeze_%s' % (value.class_name_for_handler)
             freeze_calc = getattr(self, freeze_calc_name)
         except AttributeError:
+
+            # Ignore immutable types
+            if value.value.__class__ in self.IMMUTABLE_TYPES:
+                return value
+
+            # Handle Error
             if self.freeze_required:
                 msg = "Missing session.attribute_handler.%s())" % (freeze_calc_name)
                 raise NoAttributeValueHandler(msg)
@@ -152,6 +167,12 @@ class EtlAttributeHandler:
             thaw_calc_name = 'thaw_%s' % (value.class_name_for_handler)
             thaw_calc = getattr(self, thaw_calc_name)
         except AttributeError:
+
+            # Ignore immutable types
+            if value.value.__class__ in self.IMMUTABLE_TYPES:
+                return value
+
+            # Handle Error
             msg = "Missing session.attribute_handler.%s())" % (thaw_calc_name)
             raise NoAttributeValueHandler(msg)
 
@@ -178,15 +199,38 @@ class EtlAttributeHandler:
         return str(repr_calc(value.value))
 
 
-    # -- str ------------------------------------------------------------------
-
-    # Strings are immutable.  Just pass through
-
-    def freeze_str(self, value):
-        return value
-
-    def thaw_str(self, value):
-        return value
+    # # -- none -----------------------------------------------------------------
+    #
+    # # Strings are immutable.  Just pass through
+    #
+    # def freeze_nonetype(self, value):
+    #     return value
+    #
+    # def thaw_nonetype(self, value):
+    #     return value
+    #
+    #
+    # # -- str ------------------------------------------------------------------
+    #
+    # # Strings are immutable.  Just pass through
+    #
+    # def freeze_str(self, value):
+    #     return value
+    #
+    # def thaw_str(self, value):
+    #     return value
+    #
+    #
+    # # -- int ------------------------------------------------------------------
+    #
+    # # Ints are immutable.  Just pass through
+    # # TODO: Make generice immutable handlers
+    #
+    # def freeze_int(self, value):
+    #     return value
+    #
+    # def thaw_int(self, value):
+    #     return value
 
 
 
