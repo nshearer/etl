@@ -100,7 +100,7 @@ class EtlAttributeHandler:
         int,
         date,
         datetime,
-        None
+        None.__class__,
     )
 
 
