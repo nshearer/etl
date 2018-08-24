@@ -128,14 +128,15 @@ class TestValueCompare(EtlComponent):
     def run(self):
         for rec in self.test_data.all():
             test_name = rec['test_name']
+            received_value = rec[name]
             for name, value in TEST_RECORDS[test_name].items():
-                if rec[name] != value:
-                    raise Exception("\n".join([
+                if received_value != value:
+                    self.logger.error("\n".join([
                         "Value for test value %s does not match." % (test_name),
                         "Original:",
                         pformat(value),
                         "Received:",
-                        pformat(rec[name]),
+                        pformat(received_value),
                         ]))
 
 
