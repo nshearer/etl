@@ -1,7 +1,7 @@
 
 from ..utils import RWLock
 
-from ..RecordShelf import RecordShelf
+from ..EtlRecordShelf import EtlRecordShelf
 from .etl_workflow import EtlState
 
 class TraceData:
@@ -12,7 +12,7 @@ class TraceData:
     def __init__(self):
         self.lock = RWLock()
 
-        self.records = RecordShelf()
+        self.records = EtlRecordShelf()
 
         self.etl_state = EtlState()
         self.components = dict()        # [component_id] = ComponentState()

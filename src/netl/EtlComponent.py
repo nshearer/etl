@@ -8,7 +8,7 @@ from .constants import *
 from .EtlSession import EtlObject
 from .serial import EtlSerial
 
-from .tracefile import TraceNewComponent, TraceComponentStateChange
+from .tracefile import TraceNewComponent, TraceComponentStateChange, ComponentState
 from .tracefile import TracePort, TraceConnection
 
 class EtlComponent(EtlObject):

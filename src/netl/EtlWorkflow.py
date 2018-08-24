@@ -7,7 +7,7 @@ import logging
 
 from .EtlComponentRunner import EtlComponentRunner
 from .EtlSession import EtlSession
-from .tracefile import TraceEtlState
+from .tracefile import TraceEtlState, EtlState
 
 class EtlWorkflow:
     '''

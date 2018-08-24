@@ -4,6 +4,7 @@ from .EtlComponent import EtlComponent
 from .EtlInput import EtlInput
 from .EtlOutput import EtlOutput
 from .EtlRecord import EtlRecord
+from .EtlRecordShelf import EtlRecordShelf
 
 from .exceptions import *
 from .constants import *
