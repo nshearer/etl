@@ -34,6 +34,17 @@ class TraceRecordDispatch(TraceEvent):
         )
 
 
+    def apply_to_trace_data(self, trace_data):
+        '''
+        Apply this trace event to the TraceData class
+
+        Assume write lock is already obtained
+
+        :param trace_data: TraceData collecting all trace data from trace file
+        '''
+        print("TODO: TraceRecordDispatch.apply_to_trace_data()")
+
+
 class TraceRecord(TraceEvent):
     '''A record in the ETL'''
 
@@ -43,5 +54,16 @@ class TraceRecord(TraceEvent):
             'serial',   # Unique ID of the record
             'attrs',    # repr of the record values
         )
+
+    def apply_to_trace_data(self, trace_data):
+        '''
+        Apply this trace event to the TraceData class
+
+        Assume write lock is already obtained
+
+        :param trace_data: TraceData collecting all trace data from trace file
+        '''
+        print("TODO: TraceRecord.apply_to_trace_data()")
+
 
 
