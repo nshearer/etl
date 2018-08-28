@@ -42,55 +42,55 @@ TEST_RECORDS['list_type'] = {
 
 TEST_RECORDS['dict_type'] = {
     'dict_var': {
-        'a': 'abc',
-        'b': 'cde',
+        'a': 'fgh',
+        'b': 'ijk',
         },
 }
 
-TEST_RECORDS['set_type'] = {
-    'set_var': set([
-        'abc',
-        'cde',
-    ]),
-}
+# TEST_RECORDS['set_type'] = {
+#     'set_var': set([
+#         'abc',
+#         'cde',
+#     ]),
+# }
 
 TEST_RECORDS['all_col_types'] = {
     'list_var': [
-        'abc',
-        'cde',
+        'lmn',
+        'opq',
         ],
     'dict_var': {
-        'a': 'abc',
-        'b': 'cde',
+        'a': 'rst',
+        'b': 'vwx',
         'c': 3,
         },
-    'set_var': set([
-        'abc',
-        'cde',
-    ]),
+    # 'set_var': set([
+    #     'abc',
+    #     'cde',
+    # ]),
 }
 
 TEST_RECORDS['embedded_collections'] = {
     'list_var': [
-        'abc',
-        'cde',
+        'yz',
+        'qwe',
         [
-            'a',
-            'c',
+            'r',
+            't',
         ],
     ],
     'dict_var': {
-        'a': 1,
-        'b': 'abc',
-        'c': {
-            'd': 'abc',
+        's': 1,
+        'd': 'yui',
+        'f': {
+            'd': 'opa',
         },
-        'd': [
+        'g': [
             1,
-            'a',
+            'h',
             Decimal('1.23'),
         ],
-        's': set(['x', 'y', 1]),
+        # 's': set(['x', 'y', 1]),
     },
 }
 
@@ -117,7 +117,7 @@ class ShelfTest(EtlComponent):
         shelf = EtlRecordShelf(limit=1)
         for i, rec in enumerate(self.test_values_in.all()):
             shelf.add(i, rec)
-        for rec in shelf.all(sorted=True):
+        for rec in shelf.all(sort_keys=True):
             self.test_values_out.output(rec)
 
 
@@ -127,16 +127,16 @@ class TestValueCompare(EtlComponent):
 
     def run(self):
         for rec in self.test_data.all():
+            rec = rec.copy()
             test_name = rec['test_name']
-            received_value = rec[name]
             for name, value in TEST_RECORDS[test_name].items():
-                if received_value != value:
+                if rec[name] != value:
                     self.logger.error("\n".join([
                         "Value for test value %s does not match." % (test_name),
                         "Original:",
                         pformat(value),
                         "Received:",
-                        pformat(received_value),
+                        pformat(rec[name]),
                         ]))
 
 

@@ -9,9 +9,10 @@ class EtlRecordShelf:
     will be returned in a random'ish order.
     '''
 
-    def __init__(self):
+    def __init__(self, limit=None):
         self.__mem_records = dict() # [key] = list(record, ...)
         self.__mem_count = 0
+        self.__limit = limit
 
 
     def add(self, key, record):
@@ -36,6 +37,10 @@ class EtlRecordShelf:
         return key in self.__mem_records
 
 
+    def keys(self):
+        return self.__mem_records.keys()
+
+
     def get(self, key, keep=False):
         '''
         Retrieve all records stored under the key
@@ -52,4 +57,18 @@ class EtlRecordShelf:
             pass
 
 
+    def all(self, sort_keys=False):
+        '''
+        Return all items from the self
 
+        :param sort_keys: Return items in sorted key order
+        '''
+
+        if sort_keys:
+            for key in sorted(self.keys()):
+                for record in self.__mem_records[key]:
+                    yield record
+        else:
+            for key in self.__mem_records:
+                for record in self.__mem_records[key]:
+                    yield record

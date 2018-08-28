@@ -46,6 +46,6 @@ class TraceConnectionClosed(TraceEvent):
         )
 
     def apply_to_trace_data(self, trace_data):
-        trace_data[self.from_port_id].connection[self.to_port_id].state = OutboundConnectionState.CONN_CLOSED
-        trace_data[self.to_port_id].connection[self.from_port_id].state = InboundConnectionState.CONN_CLOSED
-
+        # trace_data[self.from_port_id].connection[self.to_port_id].state = OutboundConnectionState.CONN_CLOSED
+        # trace_data[self.to_port_id].connection[self.from_port_id].state = InboundConnectionState.CONN_CLOSED
+        pass # TODO: Fixz this apply_to_trace_data() - TraceData doesn't support indexing

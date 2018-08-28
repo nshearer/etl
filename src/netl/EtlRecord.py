@@ -157,9 +157,10 @@ class EtlRecord:
                 try:
                     values[key] = self.__attr_handler.thaw(self.__values[key])
                 except Exception as e:
-                    raise Exception("Failed to thaw %s value '%s'" % (
+                    raise Exception("Failed to thaw %s value '%s': %s" % (
                         key,
-                        self.__attr_handler.repr_value(self.__values[key])))
+                        self.__attr_handler.repr_value(self.__values[key]),
+                        str(e)))
 
             return EtlRecord(
                 record_type = rectype or self.record_type,
