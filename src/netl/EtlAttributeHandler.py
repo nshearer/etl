@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import logging
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 from .exceptions import NoAttributeValueHandler
 
@@ -29,23 +30,34 @@ class AttributeValue:
         return self.__value.__class__.__name__.lower()
 
     @property
-    def is_frozen(self):
+    def is_frozen_attr_value(self):
         return False
 
 
 class FrozenAttributeValue(AttributeValue):
     '''Encapsulates the immutable value of an attribute'''
 
-    def __init__(self, value, orig_value_clsname, freeze_success=True):
+    def __init__(self, value, orig_value_clsname, freeze_metadata=None, freeze_success=True):
         '''
         :param value: The frozen value to store
         :param orig_value_clsname: The origional value class name
         :param freeze_success: Was the value successfully frozen (made into
-                an immutable type) by the handler.
+            an immutable type) by the handler.
+        :param freeze_metadata:
+            Extra metadata regarding the freezing of the data to be used
+            when thawing.
         '''
         super(FrozenAttributeValue, self).__init__(value)
         self.__orig_value_clsname = orig_value_clsname
         self.__freeze_success = freeze_success
+        self.__freeze_metadata = freeze_metadata
+
+        try:
+            if self.__freeze_metadata is not None:
+                self.__freeze_metadata = frozendict(self.__freeze_metadata)
+        except:
+            raise Exception("Make sure freeze_metadata is a dict")
+
 
     def set_value(self, value):
         raise Exception("Value is frozen")
@@ -67,8 +79,96 @@ class FrozenAttributeValue(AttributeValue):
         return self.__freeze_success
 
     @property
-    def is_frozen(self):
+    def is_frozen_attr_value(self):
         return True
+
+    @property
+    def metadata(self):
+        return self.__freeze_metadata
+
+
+class FrozenCollectionFactory:
+    '''
+    Helper class for freezing collection attributes
+
+    Feezing collections is a multi-step process where each item will
+    also be frozen.  This class is provided to help streamline the
+    process.
+
+    Basic usage is:
+
+        def freeze_list(list_value):
+
+            fcf = Instantiate FrozenCollectionFactory()
+
+            # Freeze the items
+            fcf.value = list()
+            for i, item in enumerate(list_value):
+                frozen.append(fcf.add_item(
+                    EtlAttributeHandler.freeze(unwrapped=item),
+                    item_key = i))
+
+            # Freeze the list data structure
+            fcf.value = tuple(fcf.value)
+
+            return fcf
+
+    '''
+
+
+    def __init__(self):
+        self.__item_class = dict()
+        self.__item_metadata = dict()
+        self.value = None
+
+
+    @property
+    def is_frozen_collection_factory(self):
+        return True
+
+
+    def add_item(self, value, item_key):
+        '''
+        Add an item (member of the collection)
+
+        :param value:
+            A FrozenAttributeValue returned for the item from
+            EtlAttributeHandler.freeze_value()
+        :param item_key:
+            A key to uniquly identify this item in the collection
+        :return: mixed
+            The value without the FrozenAttributeValue wrapper
+            suitable to be added to the frozen collection value.
+        '''
+
+        if item_key in self.__item_class:
+            raise KeyError("Item key used more than once: " + str(item_key))
+
+        # Strip FrozenAttributeValue
+        self.__item_class[item_key] = value.orig_value_clsname
+        self.__item_metadata[item_key] = value.metadata
+
+        return value.value
+
+
+    def __call__(self, collection_cls_name):
+        '''
+        Perform creation of the collection FrozenAttributeValue()
+
+        :param collection_cls_name:
+            The lass name of the original collection to determine which
+            thaw_*() method to call to thaw this back out
+        :return: FrozenAttributeValue
+        '''
+
+        return FrozenAttributeValue(
+            self.value,
+            collection_cls_name,
+            freeze_metadata = {
+                'item_classes': frozendict(self.__item_metadata),
+                'item_metadata': frozendict(self.__item_metadata),
+            }
+        )
 
 
 class EtlAttributeHandler:
@@ -97,10 +197,13 @@ class EtlAttributeHandler:
 
     IMMUTABLE_TYPES = (
         str,
+        bytes,
         int,
         date,
+        float,
         datetime,
         None.__class__,
+        Decimal,
     )
 
 
@@ -116,6 +219,11 @@ class EtlAttributeHandler:
         :return: FrozenAttributeValue
         '''
 
+        # Check already frozen
+        if value.is_frozen_attr_value:
+            return value
+
+        # Determine handler method to freeze
         try:
             freeze_calc_name = 'freeze_%s' % (value.class_name_for_handler)
             freeze_calc = getattr(self, freeze_calc_name)
@@ -199,135 +307,4 @@ class EtlAttributeHandler:
         return str(repr_calc(value.value))
 
 
-    # # -- none -----------------------------------------------------------------
-    #
-    # # Strings are immutable.  Just pass through
-    #
-    # def freeze_nonetype(self, value):
-    #     return value
-    #
-    # def thaw_nonetype(self, value):
-    #     return value
-    #
-    #
-    # # -- str ------------------------------------------------------------------
-    #
-    # # Strings are immutable.  Just pass through
-    #
-    # def freeze_str(self, value):
-    #     return value
-    #
-    # def thaw_str(self, value):
-    #     return value
-    #
-    #
-    # # -- int ------------------------------------------------------------------
-    #
-    # # Ints are immutable.  Just pass through
-    # # TODO: Make generice immutable handlers
-    #
-    # def freeze_int(self, value):
-    #     return value
-    #
-    # def thaw_int(self, value):
-    #     return value
-
-
-
-    # def add_freezer_func(self, cls, func):
-    #     '''
-    #     Add a custom function to freeze values
-    #
-    #     Will pass (value, freezer) to function.  If cls represents a collection,
-    #     then custom freezer should recursivly call freezer.freeze(value) on all
-    #     items.
-    #
-    #     :param cls: Class this function should be run on
-    #     :param func: Callback to freeze value
-    #     :return:
-    #     '''
-    #     self._assert_not_started()
-    #     self.__freeze_functions[cls] = func
-    #
-    #
-    # def suppress_freeze(self, cls):
-    #     '''
-    #     Instruct freezer not to touch this class when freezing values
-    #
-    #     :param cls: Class to not freeze
-    #     '''
-    #     self.add_freezer_func(cls, func=None)
-    #
-    #
-    # IMMUTABLE_TYPES = (bool, int, float, str, datetime, date, timedelta)
-    # IMMUTABLE_COLLECTIONS = (tuple, frozendict, frozenset)
-    #
-    #
-    # def _check_already_frozen(self, value):
-    #
-    #     if value is None:
-    #         return True
-    #
-    #     if value.__class__ in self.IMMUTABLE_TYPES:
-    #         return True
-    #
-    #     # Check for already immutable collections
-    #     if value.__class__ in (tuple, frozenset):
-    #         for item in value:
-    #             if not self._check_already_frozen(item):
-    #                 return False
-    #         return True
-    #
-    #     elif value.__class__ is frozendict:
-    #         for item in value.values():
-    #             if not self._check_already_frozen(item):
-    #                 return False
-    #         return True
-    #
-    #     return False
-    #
-    #
-    # def freeze(self, value):
-    #     '''
-    #     Create an immutable version of the value
-    #     '''
-    #
-    #     # Check for custom freezer functions
-    #     try:
-    #         func = self.__freeze_functions[value.__class__]
-    #
-    #         if func is None:
-    #             return value
-    #
-    #         try:
-    #             return func(value, self)
-    #         except Exception as e:
-    #             msg = "%s custom freezer func failed for value %s: %s" % (
-    #                   value.__class__.__name__, repr(value), str(e))
-    #             if self.freeze_required:
-    #                 raise ValueFreezeFailed(msg)
-    #
-    #     except KeyError:
-    #         pass
-    #
-    #
-    #     # Check already immutable
-    #     if self._check_already_frozen(value):
-    #         return value
-    #
-    #     # Standard freezers
-    #     if value.__class__ in (list, tuple):
-    #         return tuple([self.freeze(v) for v in value])
-    #
-    #     elif value.__class__ in (set, frozenset):
-    #         return frozenset([self.freeze(v) for v in value])
-    #
-    #     elif value.__class__ in (dict, frozendict):
-    #         return frozendict({k: self.freeze(v) for (k, v) in value.items()})
-    #
-    #     # Didn't find a method to freeze this value
-    #     msg = "No freezer function found for class %s" % (value.__class__.__name__)
-    #     if self.freeze_required:
-    #         raise NoFreezeFunction(msg)
-    #
-    #
+    # == Collection freezing =================================================
