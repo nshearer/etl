@@ -8,6 +8,9 @@ from .exceptions import NoAttributeValueHandler
 from frozendict import frozendict
 
 
+class AttrNotACollection(Exception): pass
+
+
 class AttributeValue:
     '''Encapsulates the value of an attribute'''
 
@@ -37,20 +40,20 @@ class AttributeValue:
 class FrozenAttributeValue(AttributeValue):
     '''Encapsulates the immutable value of an attribute'''
 
-    def __init__(self, value, orig_value_clsname, freeze_metadata=None, freeze_success=True):
+    def __init__(self, value, orig_value_clsname, freeze_success=True, item_clsnames=None):
         '''
         :param value: The frozen value to store
         :param orig_value_clsname: The origional value class name
         :param freeze_success: Was the value successfully frozen (made into
             an immutable type) by the handler.
-        :param freeze_metadata:
+        :param item_clsnames:
             Extra metadata regarding the freezing of the data to be used
             when thawing.
         '''
         super(FrozenAttributeValue, self).__init__(value)
         self.__orig_value_clsname = orig_value_clsname
         self.__freeze_success = freeze_success
-        self.__freeze_metadata = freeze_metadata
+        self.__item_ = item_clsnames
 
         try:
             if self.__freeze_metadata is not None:
@@ -206,6 +209,18 @@ class EtlAttributeHandler:
         Decimal,
     )
 
+    NON_COL_TYPES = {
+        str,
+        bytes,
+        int,
+        date,
+        float,
+        datetime,
+        None.__class__,
+        Decimal,
+    }
+
+
 
     # == Primary methods ======================================================
 
@@ -222,6 +237,80 @@ class EtlAttributeHandler:
         # Check already frozen
         if value.is_frozen_attr_value:
             return value
+
+        # Freeze all the items in a collection
+        try:
+            for item_key, item_value in self._get_collection_items(value.value):
+
+            is_collection = True
+        except AttrNotACollection:
+            is_collection = False
+
+
+        # Perform freeze
+        return FrozenAttributeValue(
+            value = self._freeze_raw(value.value),
+            orig_value_clsname = value.value.__class__.__name__,
+        )
+
+
+
+
+    def _get_collection_members(self, value):
+        '''
+        List all of the items in a collection with their keys
+
+        This handler supports the handling of values that are collections with
+        items which can also be nested collections.  The only requirement is that
+        each item in the collection have a unique key.
+
+        This method calls list_*_members(value) to get a listing of the keys
+        and members returned as tuples (key, value).  It also calls itself
+        recursively on the members of the collection to list all sub-members.
+
+        list_*_members(value) should raise AttrNotACollection if the value is
+        not a collection.
+
+        If the value passed to this method is not a collection, then
+        AttrNotACollection will be raised.
+
+        :param value: Any collection type
+        :return: generatory of tuples((key, sub_key, ...), item)
+        '''
+
+        # Silently return if not a collection type
+        if value.__class__ in self.NON_COL_TYPES:
+            raise AttrNotACollection()
+
+        # Determine handler method to freeze
+        try:
+            list_call_name = 'list_%s_members' % (value.__class__.__name__)
+            list_call = getattr(self, list_call_name)
+        except AttributeError:
+            # Handle Error
+            msg = "Missing session.attribute_handler.%s())" % (list_call_name)
+            raise NoAttributeValueHandler(msg)
+
+        # List items in this collection
+        for key, item in list_call(value):
+            yield (key, ), item
+
+            # Look for sub contained items
+            try:
+                for sub_key, sub_item in self._get_collection_members(sub_item):
+                    yield key+sub_key, sub_item
+            except AttrNotACollection:
+                pass
+
+
+
+    def _freeze_raw(self, value):
+        '''
+        Determine the handler method and call it to make the value immutable
+
+        :param value: Value to be frozen (as it was given to the record, not wrapped)
+        :return:
+        '''
 
         # Determine handler method to freeze
         try:
@@ -245,10 +334,7 @@ class EtlAttributeHandler:
                 )
 
         # Perform freeze
-        return FrozenAttributeValue(
-            value = freeze_calc(value.value),
-            orig_value_clsname = value.value.__class__.__name__,
-        )
+        return freeze_calc(value.value)
 
 
     def thaw(self, value):
