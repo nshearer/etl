@@ -2,7 +2,7 @@ import json
 from pprint import pprint
 from datetime import datetime
 
-from netl.utils.GZOutputWriter import GZOutputReader
+from netl.utils.GzFile import GZOutputReader
 
 
 class TraceRecordReader:
