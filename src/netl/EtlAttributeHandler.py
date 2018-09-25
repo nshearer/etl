@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import logging
+import json
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
@@ -10,7 +11,7 @@ from frozendict import frozendict
 
 class AttrNotACollection(Exception): pass
 class FreezeFailed(Exception): pass
-
+class StoreValueFailed(Exception): pass
 
 class AttributeValue:
     '''Encapsulates the value of an attribute'''
@@ -475,3 +476,91 @@ class EtlAttributeHandler:
 
     def thaw_dict(self, value, thawed_members):
         return {key: item for (key, item) in thawed_members}
+
+
+
+    # == Store ================================================================
+
+    def store(self, value):
+        '''
+        Generate a string to store the value of this attribute to disk
+
+        FrozenAttributeValue -> string
+
+        :param value: FrozenAttributeValue containing value to be stored
+        :return: value ready for pickle
+        '''
+
+        # Check already frozen
+        if not value.is_frozen_attr_value:
+            raise Exception("Can't call store() on %s" % (value.__class__.__name__))
+
+        meta = value.freeze_collection_metadata()
+        meta['value'] = self._prepickle_raw_value(value.value)
+
+        try:
+            return json.dumps(meta)
+        except Exception as e:
+            raise StoreValueFailed("Failed to store attibute value %s: %s: %s" % (
+                repr(value.value), e.__class__.__name__, str(e)))
+
+
+    SKIP_PREPICKLE = {
+        str,
+        bytes,
+        int,
+        float,
+        None.__class__,
+    }
+
+
+    def _prepickle_raw_value(self, value):
+        '''
+        Some values won't pickle easily.  So, this handler calls prepickle to allow types to be converted
+
+        Note: since we don't know if contained
+
+        :param value: Raw value to be stored
+        :return: raw value ready to be pickled
+        '''
+
+        # Skip?
+        if value.__class__ in self.SKIP_PREPICKLE:
+            return value
+
+        # Find prepickle method
+        try:
+            prepickle_calc_name = 'prepickle_%s' % (self._calc_value_clsname(value))
+            prepickle_calc = getattr(self, prepickle_calc_name)
+        except AttributeError:
+            msg = "Missing session.attribute_handler.%s())" % (prepickle_calc_name)
+            raise NoAttributeValueHandler(msg)
+
+        # For collection, recursivly prepickle
+        try:
+            prepickeled_items = dict()
+            for key, item in self._list_collection_members(value):
+                prepickeled_items[key] = self._prepickle_raw_value(item)
+
+            # Pickle collection
+            return prepickle_calc(value, prepickeled_items)
+
+        # For non-collections, just pre-pickle
+        except AttrNotACollection:
+            return prepickle_calc(value)
+
+
+    DATE_FORMAT = "%c"
+
+    def prepickle_date(self, value):
+        return value.strftime(self.DATE_FORMAT)
+
+    def prepickle_datetime(self, value):
+        return value.strftime(self.DATE_FORMAT)
+
+    def prepickle_decimal(self, value):
+        return str(value)
+
+    def prepickle_tuple(self, value, items):
+        return [items[i] for i in sorted(items.keys())]
+

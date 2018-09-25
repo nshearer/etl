@@ -3,6 +3,8 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
+import json
+
 from collections import OrderedDict
 from pprint import pformat
 
@@ -10,7 +12,7 @@ from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
 from .serial import EtlSerial
 from datetime import datetime, date
 
-from .EtlAttributeHandler import AttributeValue, FrozenAttributeValue
+from .EtlAttributeHandler import AttributeValue, FrozenAttributeValue, StoreValueFailed
 
 class EtlRecord:
     '''Container for values for a single record
@@ -136,6 +138,29 @@ class EtlRecord:
             self.__values[key] = self.__attr_handler.freeze(value)
 
         self.__frozen = True
+
+
+    def store(self):
+        '''
+        Create a representation of this record that can be written to disk.
+
+        Used when storing records somewhere like a disk.  This method produces
+        a string that can be passed back to .restore() to recreate this record.
+
+        :return: rectype, serial, data
+        '''
+
+        if not self.__frozen:
+            raise Exception("Can't store records that haven't been frozen")
+
+        attrs = dict()
+        for key, value in self.__values.items():
+            try:
+                attrs[key] = self.__attr_handler.store(value)
+            except StoreValueFailed as e:
+                raise StoreValueFailed("Error while storing %s: %s" % (key, str(e)))
+
+        return self.rectype, self.serial, json.dumps(attrs)
 
 
     # -- Record Associations --------------------------------------------------

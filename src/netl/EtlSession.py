@@ -1,5 +1,7 @@
+import os
 from abc import ABC, abstractmethod
 import logging
+from tempfile import gettempdir
 
 from .resources import EtlResourceCollection
 from .EtlTracer import EtlTracer
@@ -35,6 +37,20 @@ class EtlSession:
         if name is None:
             return logging.getLogger('etl.%d' % (self.session_id))
         return logging.getLogger('etl.%d.%s' % (self.session_id, name))
+
+
+    @property
+    def temp_directory(self):
+        '''Return path to directory to store temporary files in for this session'''
+        if self.run_dir is not None:
+            path = os.path.join(self.run_dir, 'tmp')
+        else:
+            path = gettempdir()
+
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        return path
 
 
 

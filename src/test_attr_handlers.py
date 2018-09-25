@@ -114,7 +114,7 @@ class ShelfTest(EtlComponent):
     test_values_out = EtlOutput()
 
     def run(self):
-        shelf = EtlRecordShelf(limit=1)
+        shelf = EtlRecordShelf(self.session, limit=1)
         for i, rec in enumerate(self.test_values_in.all()):
             shelf.add(i, rec)
         for rec in shelf.all(sort_keys=True):
@@ -160,9 +160,11 @@ if __name__ == '__main__':
 
     wf.start()
 
-    debug = NetAnalyzeHtmlServer(trace_path, 8080)
-    print("Server analyzer at http://127.0.0.1:8080")
-    debug.serve_forever()
+    #debug = NetAnalyzeHtmlServer(trace_path, 8080)
+    #print("Server analyzer at http://127.0.0.1:8080")
+    #debug.serve_forever()
 
     wf.wait()
     wf.finish()
+
+    print("Success")
