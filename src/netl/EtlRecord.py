@@ -3,6 +3,8 @@ Created on Dec 27, 2012
 
 @author: nshearer
 '''
+import json
+
 from collections import OrderedDict
 from pprint import pformat
 
@@ -10,7 +12,7 @@ from .exceptions import EtlRecordFrozen, InvalidEtlRecordKey
 from .serial import EtlSerial
 from datetime import datetime, date
 
-from .EtlAttributeHandler import AttributeValue, FrozenAttributeValue
+from .EtlAttributeHandler import AttributeValue, FrozenAttributeValue, StoreValueFailed
 
 class EtlRecord:
     '''Container for values for a single record
@@ -138,6 +140,55 @@ class EtlRecord:
         self.__frozen = True
 
 
+    def store(self):
+        '''
+        Create a representation of this record that can be written to disk.
+
+        Used when storing records somewhere like a disk.  This method produces
+        a string that can be passed back to .restore() to recreate this record.
+
+        :return: rectype, serial, data
+        '''
+
+        if not self.__frozen:
+            raise Exception("Can't store records that haven't been frozen")
+
+        attrs = dict()
+        for key, value in self.__values.items():
+            try:
+                attrs[key] = self.__attr_handler.store(value)
+            except StoreValueFailed as e:
+                raise StoreValueFailed("Error while storing %s: %s" % (key, str(e)))
+
+        return self.rectype, self.serial, json.dumps(attrs)
+
+
+    @staticmethod
+    def restore(rec_type, serial, data, attr_handler):
+        '''
+        Re-create a record retrieved from storage (erverse of store())
+
+        :param rec_type: Record type
+        :param serial: Record ID
+        :param data: Data containing attribute values from store()
+        :param attr_handler: AttributeHandler needed to restore attribute values
+        :return: EtlRecord
+        '''
+
+        attr_data = json.loads(data)
+        for name in attr_data:
+            attr_data[name] = attr_handler.restore(attr_data[name])
+
+        rec = EtlRecord(
+            record_type = rec_type,
+            serial = EtlSerial(serial))
+
+        for name in attr_data:
+            rec.__values[name] = attr_data[name]
+        rec.__frozen = True
+        rec.__attr_handler = attr_handler
+
+
     # -- Record Associations --------------------------------------------------
 
     def copy(self, rectype=None):
@@ -157,9 +208,10 @@ class EtlRecord:
                 try:
                     values[key] = self.__attr_handler.thaw(self.__values[key])
                 except Exception as e:
-                    raise Exception("Failed to thaw %s value '%s'" % (
+                    raise Exception("Failed to thaw %s value '%s': %s" % (
                         key,
-                        self.__attr_handler.repr_value(self.__values[key])))
+                        self.__attr_handler.repr_value(self.__values[key]),
+                        str(e)))
 
             return EtlRecord(
                 record_type = rectype or self.record_type,

@@ -6,3 +6,4 @@
 /src/scroll_example.py
 src/test.trace
 .venv/
+src/test_attr_handlers.trace
