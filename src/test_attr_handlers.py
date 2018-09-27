@@ -117,7 +117,7 @@ class ShelfTest(EtlComponent):
         shelf = EtlRecordShelf(self.session, limit=1)
         for i, rec in enumerate(self.test_values_in.all()):
             shelf.add(i, rec)
-        for rec in shelf.all(sort_keys=True):
+        for rec in shelf.all():
             self.test_values_out.output(rec)
 
 

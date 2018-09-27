@@ -163,6 +163,32 @@ class EtlRecord:
         return self.rectype, self.serial, json.dumps(attrs)
 
 
+    @staticmethod
+    def restore(rec_type, serial, data, attr_handler):
+        '''
+        Re-create a record retrieved from storage (erverse of store())
+
+        :param rec_type: Record type
+        :param serial: Record ID
+        :param data: Data containing attribute values from store()
+        :param attr_handler: AttributeHandler needed to restore attribute values
+        :return: EtlRecord
+        '''
+
+        attr_data = json.loads(data)
+        for name in attr_data:
+            attr_data[name] = attr_handler.restore(attr_data[name])
+
+        rec = EtlRecord(
+            record_type = rec_type,
+            serial = EtlSerial(serial))
+
+        for name in attr_data:
+            rec.__values[name] = attr_data[name]
+        rec.__frozen = True
+        rec.__attr_handler = attr_handler
+
+
     # -- Record Associations --------------------------------------------------
 
     def copy(self, rectype=None):
