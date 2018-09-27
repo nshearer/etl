@@ -1,0 +1,301 @@
+DEBUG    etl.0.FrozenValueDebug - ================================================================================
+Serial:  5
+Attrs:
+    'test_name': FrozenAttributeValue(
+        value          = 'movie'
+        orig_class     = 'str'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'sound': FrozenAttributeCollection(
+        value          = ('DTS', 'Dolby Digital', 'SDDS')
+        orig_class     = 'tuple'
+        freeze_success = True
+        is_frozen_col  = True
+        'meta': {
+            'item_metadata': {
+                '0': {
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '1': {
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '2': {
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+            }
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'rating': FrozenAttributeValue(
+        value          = 7.9
+        orig_class     = 'float'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'runtime': FrozenAttributeValue(
+        value          = datetime.timedelta(0, 7140)
+        orig_class     = 'timedelta'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'storyline': FrozenAttributeValue(
+        value          = 'In the future, a spaceship called Serenity is harboring a passenger with a deadly secret\nSix rebels on the run. An assassin in pursuit. When the renegade crew of Serenity agrees\nto hide a fugitive on their ship, they find themselves in an awesome action-packed\nbattle between the relentless military might of a totalitarian regime who will destroy\nanything - or anyone - to get the girl back and the bloodthirsty creatures who roam the\nuncharted areas of space. But, the greatest danger of all may be on their ship.'
+        orig_class     = 'str'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'keywords': FrozenAttributeCollection(
+        value          = (<frozendict {'term': 'on the run', 'order': 1}>, <frozendict {'term': 'smuggler', 'order': 2}>, <frozendict {'term': 'spacecraft', 'order': 3}>, <frozendict {'term': 'megacorporation', 'order': 4}>, <frozendict {'term': 'reavers', 'order': 5}>)
+        orig_class     = 'list'
+        freeze_success = True
+        is_frozen_col  = True
+        'meta': {
+            'item_metadata': {
+                '0': {
+                    'item_metadata': {
+                        'term': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'order': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '1': {
+                    'item_metadata': {
+                        'term': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'order': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '2': {
+                    'item_metadata': {
+                        'term': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'order': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '3': {
+                    'item_metadata': {
+                        'term': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'order': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '4': {
+                    'item_metadata': {
+                        'term': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'order': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+            }
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'actors': FrozenAttributeCollection(
+        value          = (<frozendict {'name': 'Nathan Fillion', 'addedd': datetime.datetime(2018, 9, 26, 23, 40, 41, 360349), 'birthdate': datetime.date(1971, 3, 27), 'also in': (<frozendict {'role': 'pre-producer', 'title': 'The Rookie', 'year': 2018}>, <frozendict {'role': 'voice', 'title': 'Henchmen', 'year': 2018}>)}>, <frozendict {'name': 'Dina Torres', 'addedd': datetime.datetime(2018, 9, 26, 23, 40, 41, 360349), 'birthdate': datetime.date(1969, 4, 25), 'also in': (<frozendict {'role': 'actor', 'title': 'Second City', 'year': 2019}>, <frozendict {'role': 'actor', 'title': 'Angie  Tribeca', 'year': 2018}>)}>)
+        orig_class     = 'list'
+        freeze_success = True
+        is_frozen_col  = True
+        'meta': {
+            'item_metadata': {
+                '0': {
+                    'item_metadata': {
+                        'name': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'addedd': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'birthdate': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'also in': {
+                            'item_metadata': {
+                                '0': {
+                                    'item_metadata': {
+                                        'role': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'title': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'year': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                    }
+                                    'type': 'type'
+                                    'orig_class': 'orig_class'
+                                }
+                                '1': {
+                                    'item_metadata': {
+                                        'role': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'title': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'year': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                    }
+                                    'type': 'type'
+                                    'orig_class': 'orig_class'
+                                }
+                            }
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+                '1': {
+                    'item_metadata': {
+                        'name': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'addedd': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'birthdate': {
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                        'also in': {
+                            'item_metadata': {
+                                '0': {
+                                    'item_metadata': {
+                                        'role': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'title': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'year': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                    }
+                                    'type': 'type'
+                                    'orig_class': 'orig_class'
+                                }
+                                '1': {
+                                    'item_metadata': {
+                                        'role': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'title': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                        'year': {
+                                            'type': 'type'
+                                            'orig_class': 'orig_class'
+                                        }
+                                    }
+                                    'type': 'type'
+                                    'orig_class': 'orig_class'
+                                }
+                            }
+                            'type': 'type'
+                            'orig_class': 'orig_class'
+                        }
+                    }
+                    'type': 'type'
+                    'orig_class': 'orig_class'
+                }
+            }
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'box-office': FrozenAttributeValue(
+        value          = Decimal('25514517.14')
+        orig_class     = 'Decimal'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'oppening week': FrozenAttributeValue(
+        value          = Decimal('10086680')
+        orig_class     = 'Decimal'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }
+    'faults': FrozenAttributeValue(
+        value          = None
+        orig_class     = 'NoneType'
+        freeze_success = True
+        is_frozen_col  = False
+        'meta': {
+            'type': 'type'
+            'orig_class': 'orig_class'
+        }

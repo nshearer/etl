@@ -203,11 +203,13 @@ class EtlAttributeHandler:
         str,
         bytes,
         int,
-        date,
         float,
+        date,
         datetime,
+        timedelta,
         None.__class__,
         Decimal,
+        tuple,
     )
 
     NON_COL_TYPES = {
